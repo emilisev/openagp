@@ -1,7 +1,11 @@
+@php
+    use Jenssegers\Agent\Agent;
+    $agent = new Agent();
+@endphp
 <div id="form" class="content-card">
     <header><span>Source</span></header>
     <content>
-        <form method="POST" action="{{ Request::route()->getName()?? '/agp' }}">
+        <form method="POST" action="{{ Request::route()->getName()?? ($agent->isMobile()?'/daily':'/agp') }}">
             @csrf
             <div class="form-floating mb-3">
                 <input id="url" name="url"

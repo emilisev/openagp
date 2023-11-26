@@ -31,7 +31,7 @@ $(document).ready(function() {
             $('.show-hide-password i').addClass( "bi-eye" );
         }
     });
-    $('.highcharts-data-label').each(function(item) {
+    $('.upper-labels .highcharts-data-label').each(function(item) {
         var current = $(this).attr("transform");
         var currentX = current.match(/[0-9]+,/);
         $(this).attr("transform", 'translate('+currentX+' 0)');

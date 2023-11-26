@@ -183,12 +183,17 @@ class DiabetesData {
     }
 
     public function filter($_begin, $_end): void {
+        //echo '<pre>';
         $this->m_begin = $_begin;
         $this->m_end = $_end;
         $this->m_bloodGlucoseData = self::filterData($this->m_bloodGlucoseData, $_begin, $_end);
         foreach ($this->m_treatmentsData as $insulinType => $data) {
+            //var_dump($insulinType, readableDateArray($data), readableDate($_begin * self::__1SECOND), readableDate($_end * self::__1SECOND));
             $this->m_treatmentsData[$insulinType] = self::filterData($data, $_begin, $_end);
+            //var_dump($this->m_treatmentsData[$insulinType]);
         }
+        /*var_dump($this->m_treatmentsData);
+        die();*/
     }
 
     public function getAgpData(): array {

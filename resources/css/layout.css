@@ -5,7 +5,7 @@
 }
 
 @media print {
-    #sidebar, header.menu { display:none;}
+    #form, header.menu { display:none;}
 }
 
 html, body {
@@ -19,11 +19,13 @@ header {
     width: 100%;
     max-width: 800px;
     float:left;
+    margin-top: 5px;
 }
 
 div.layout-row {
     display: flex;
-    height:100%;
+    flex-direction: row;
+    /*height:100%;*/
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
@@ -33,13 +35,17 @@ div.layout-row>div {
     max-width: 50%;
 }
 
-#sidebar {
-    max-width: 33%;
-    margin-right: 20px;
-    margin-top: 20px;
+@media (max-width: 500px) {
+    div.layout-row.responsive {
+        flex-direction: column;
+    }
+    div.layout-row.responsive>div {
+        max-width: fit-content;
+    }
 }
 
 #form {
     flex: 0.5;
     margin-right: 20px;
+    min-width: 300px;
 }

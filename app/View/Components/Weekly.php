@@ -2,28 +2,11 @@
 
 namespace App\View\Components;
 
-use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use Ghunti\HighchartsPHP\HighchartJsExpr;
 use Illuminate\Support\Facades\Request;
-use Illuminate\View\Component;
 
-class Weekly extends Component {
-    private $m_data;
-
-    /**
-     * @var string
-     */
-    private $m_renderTo;
-
-    /**
-     * Create the component instance.
-     */
-    public function __construct(DiabetesData $data, string $renderTo = null) {
-        $this->m_data = $data;
-        $this->m_renderTo = $renderTo;
-    }
-
+class Weekly extends HighChartsComponent {
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /**
      * Get the view / contents that represent the component.
@@ -32,98 +15,53 @@ class Weekly extends Component {
         if(Request::route()->getName() == 'agp') {
             $weeks = 2;
         } else {
-            $weeks = ceil(($this->m_data->getEnd() - $this->m_data->getBegin()) / (60*60*24*7));
+            $weeks = ceil(($this->m_data->getEnd() - $this->m_data->getBegin()) / (60 * 60 * 24 * 7));
         }
         $start = strtotime("midnight +1day -$weeks weeks", $this->m_data->getEnd());
         //var_dump("start", date('Y-m-d H:i:s', $start));
         //prepare plotLines
         $data = $this->m_data->getDailyDataByWeek($weeks);
         ksort($data);
-        $plotLines = $ticks = [];
-        /*foreach(array_keys($data) as $i => $microKey) {
-            $key = $microKey / DiabetesData::__1SECOND;*/
-        $darkLine = true;
-        for($key = $start; $key <= $start + 60*60*24*7; $key += 60*60*12) {
-            $microKey = $key * 1000;
-            if(empty($ticks)) {
-                $ticks[] = $microKey;
-            }
-            $plotLines[] = [
-                'value' => $microKey,
-                'color' => $darkLine?'#777777':'#e9e9e9'
-            ];
-            if(!$darkLine) {
-                $ticks[] = $microKey;
-                //var_dump(readableDate($microKey));
-            }
-            $darkLine = !$darkLine;
-        }
-        $ticks[] = $microKey;
-        //var_dump($ticks);
-        //prepare chart
-        $chart = new Highchart();
-        $targets = $this->m_data->getTargets();
-        $chart->chart = [
-            'renderTo' => $this->m_renderTo,
-            'height' => ($weeks * 100)+50
-        ];
-        $chart->plotOptions->series = ['enableMouseTracking' => false, 'marker' => ['enabled' => false]];
-        $chart->tooltip->enabled = false;
-        $chart->title->text = null;
-        $chart->legend = ['enabled' => false];
-        $chart->time->timezoneOffset = -60;
-        $zones = [
-            [
-                'className' => 'outer-low',
-                'color' => '#ff2b34',
-                'value' => $targets['low']
-            ],
-            [
-                'className' => 'outer-inrange',
-                'color' => '#25bf70',
-                'value' => $targets['high']
-            ],
-            [
-                'className' => 'outer-high',
-                'color' => '#ffb61b',
-            ],
-        ];
-        //with blank
-        /*$blankHeight = (round(100 / $weeks / 8 * 10))/10;
-        $weeklyGraphHeight = (round(100 / $weeks * 7 / 8 * 10))/10 + ($blankHeight / $weeks);*/
-        //without blank
-        $weeklyGraphHeight = (round(100 / $weeks * 10))/10;
-        $yAxisBase = [
-            'title' => ['text' => 'mg/dL', 'rotation' => 0, 'offset' => 10, 'align' => 'high', 'y' => 25, 'style' => ['fontSize' => '0.8rem']],
-            'tickPositions' => [0, $targets['low'], $targets['high'], 350],
-            'height' => $weeklyGraphHeight.'%',
-            'offset' => 0,
-            'showFirstLabel' => false,
-            'showLastLabel' => false,
-            'plotLines' => [
-                ['value' => 0, 'width' => 1, 'color' => '#777777', 'zIndex' => 10],
-                ['value' => 350, 'width' => 1, 'color' => '#777777'],
-            ]
-        ];
-        $chart->yAxis = [];
 
+        //prepare chart
+        $chart = $this->createChart($weeks);
+        list($ticks, $plotLines) = $this->computeTicksAndPlotlines($start);
+
+        $weeklyGraphHeight = (round(100 / $weeks * 10)) / 10;
+        $yAxisBase = $this->getBloodGlucoseYAxis($_greenLineWidth = 1);
+        $yAxisBase['height'] = $weeklyGraphHeight.'%';
+        $yAxisBase['id'] = 'gloodGlucose-yAxis1';
+
+        $this->addBloodGlucoseSeries($chart, $yAxisBase, $plotLines, $ticks, $weeks, $weeklyGraphHeight);
+
+        //echo "<pre>".$chart->render()."</pre>";
+        echo '<script type="module">'.$chart->render().'</script>';
+    }
+
+/* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    /**
+     * @param Highchart $_chart
+     * @param array $y_AxisBase
+     * @param mixed $_plotLines
+     * @param mixed $_ticks
+     * @param int $_weeks
+     * @param float $_weeklyGraphHeight
+     */
+    private function addBloodGlucoseSeries(Highchart $_chart, array $y_AxisBase, mixed $_plotLines, mixed $_ticks, int $_weeks, float $_weeklyGraphHeight): void {
         //add 1 serie per week
         $yAxisNumber = $xAxisNumber = $currentHeight = 0;
-        for($weekNum = $weeks; $weekNum >= 1; $weekNum --) {
+        for ($weekNum = $_weeks; $weekNum >= 1; $weekNum--) {
             $data = $this->m_data->getDailyDataByWeek($weekNum);
-            $dataForChart = [];
-            foreach($data as $key => $value) {
-                $dataForChart[] = [$key, $value];
-            }
+            $dataForChart = $this->formatTimeDataForChart($data);
             if($xAxisNumber == 0) {
-                $chart->xAxis = [
+                $_chart->xAxis = [
                     [
                         'type' => 'datetime',
                         'labels' => [
                             'format' => '{value:%A}',
                         ],
-                        'plotLines' => $plotLines,
-                        'tickPositions' => $ticks,
+                        'plotLines' => $_plotLines,
+                        'tickPositions' => $_ticks,
                         'opposite' => true,
                         'lineWidth' => 0,
                         'tickWidth' => 0,
@@ -134,30 +72,17 @@ class Weekly extends Component {
                     ]
                 ];
             } else {
-                $chart->xAxis[] = [
+                $_chart->xAxis[] = [
                     'visible' => false,
                     'type' => 'datetime',
                 ];
             }
-            //with blank
-            /*if($yAxisNumber > 0) {
-                $chart->yAxis[] = [
-                    'top' => $currentHeight.'%',
-                    'height' => $blankHeight.'%',
-                    'title' => ['enabled' => false],
-                ];
-                $currentHeight += $blankHeight;
-                $yAxisNumber ++;
-                $chart->series[] = [
-                    'type' => 'line',
-                    'data' => [],
-                    'xAxis' => $xAxisNumber,
-                    'yAxis' => $yAxisNumber,
-                ];
-            }*/
-            $chart->yAxis[] = $yAxisBase + ['top' => $currentHeight.'%'];
-            $currentHeight += $weeklyGraphHeight;
-            $chart->series[] = [
+
+            $_chart->yAxis[] =
+                ['top' => $currentHeight.'%', 'id' => 'gloodGlucose-yAxis'.$yAxisNumber] +
+                $y_AxisBase;
+            $currentHeight += $_weeklyGraphHeight;
+            $_chart->series[] = [
                 'type' => 'line',
                 'data' => $dataForChart,
                 'dataLabels' => ['enabled' => true, 'verticalAlign' => 'bottom', 'formatter' => new HighchartJsExpr("function() {
@@ -173,13 +98,47 @@ class Weekly extends Component {
                 }"
                 )],
                 'xAxis' => $xAxisNumber,
-                'yAxis' => $yAxisNumber,
-                'zones' => $zones
+                'yAxis' => 'gloodGlucose-yAxis'.$yAxisNumber,
+                'zones' => $this->getDefaultZones()
             ];
-            $yAxisNumber ++;
-            $xAxisNumber ++;
+            $yAxisNumber++;
+            $xAxisNumber++;
         }
-        //echo "<pre>".$chart->render()."</pre>";
-        echo '<script type="module">'.$chart->render().'</script>';
     }
+
+    /**
+     * @param int $start
+     * @return array
+     */
+    private function computeTicksAndPlotlines(int $start): array {
+        $plotLines = $ticks = [];
+        /*foreach(array_keys($data) as $i => $microKey) {
+            $key = $microKey / DiabetesData::__1SECOND;*/
+        $darkLine = true;
+        for ($key = $start; $key <= $start + 60 * 60 * 24 * 7; $key += 60 * 60 * 12) {
+            $microKey = $key * 1000;
+            if(empty($ticks)) {
+                $ticks[] = $microKey;
+            }
+            $plotLines[] = [
+                'value' => $microKey,
+                'color' => $darkLine ? '#777777' : '#e9e9e9'
+            ];
+            if(!$darkLine) {
+                $ticks[] = $microKey;
+                //var_dump(readableDate($microKey));
+            }
+            $darkLine = !$darkLine;
+        }
+        $ticks[] = $microKey;
+        return array($ticks, $plotLines);
+    }
+
+    private function createChart(int $_weeks): Highchart {
+        $chart = $this->createDefaultChart();
+        $chart->chart->height = ($_weeks * 100) + 50;
+
+        return $chart;
+    }
+
 }

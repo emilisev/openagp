@@ -11,11 +11,8 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Models\DiabetesData;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
 
-class AgpController extends BaseController
-{
+class AgpController extends BaseController {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     public function view() {

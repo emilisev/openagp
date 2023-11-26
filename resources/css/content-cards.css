@@ -4,11 +4,22 @@
     flex-direction: column;
     position: relative;
     width: 100%;
-    margin-bottom: 20px;
+    margin:20px;
+    margin-left: 0;
+}
+
+/*@media (max-width: 500px) {
+    .content-card {
+        margin-left: 20px;
+    }
+}*/
+
+.content-card:last-child {
+    margin-bottom: 0;
 }
 
 .content-card.error header {
-    border: 4px solid darkred;
+    border: 4px solid rgba(139, 0, 0, 0.8);
     background-color: darkred;
     color: var(--font-color-dark-background);
 }
@@ -42,4 +53,7 @@
 
 #time-in-range-chart {
     width: 30%;
+}
+#time-in-range-text {
+    white-space: nowrap;
 }

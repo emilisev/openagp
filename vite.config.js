@@ -3,7 +3,6 @@ import laravel from 'laravel-vite-plugin';
 import * as path from "path";
 
 export default defineConfig({
-    base : 'https://openagp.lappel-buissonnier.org/build/',
     mode : 'development',
     plugins: [
         laravel({

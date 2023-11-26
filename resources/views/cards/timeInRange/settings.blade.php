@@ -1,3 +1,7 @@
+@php
+    /** @var $data \App\Models\DiabetesData */
+    $targets = $data->getTargets();
+@endphp
 <div class="agp-target-settings">
     <div class="range">
         <span class="range-label in-range-label">Plage cible&nbsp;:</span>

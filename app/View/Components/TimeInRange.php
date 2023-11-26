@@ -2,78 +2,29 @@
 
 namespace App\View\Components;
 
-use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
-use Illuminate\View\Component;
 
-class TimeInRange extends Component {
-    private $m_data;
+class TimeInRange extends HighChartsComponent {
+    protected int $m_minValTimeInRangeChart = 2;
 
-    protected $m_minValTimeInRangeChart = 2;
-
-    protected $m_timeInRangeColors =
-        ['veryHigh' => '#e36a00', 'veryLow' => '#a60006', 'high' => '#fed65c', 'low' => '#fd8c80', 'target' => '#58a618'];
-
-    protected $m_timeInRangeLabels =
+    protected array $m_timeInRangeLabels =
     ['veryHigh' => 'Très élevée', 'veryLow' => 'Très basse', 'high' => 'Élevée', 'low' => 'Basse', 'target' => 'Dans la plage'];
-    /**
-     * @var string
-     */
-    private $m_type;
-    private $m_renderTo;
 
 
-    /**
-     * Create the component instance.
-     */
-    public function __construct(DiabetesData $data, string $type, string $renderTo = null) {
-        $this->m_data = $data;
-        $this->m_type = $type;
-        $this->m_renderTo = $renderTo;
-    }
 
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /**
      * Get the view / contents that represent the component.
      */
     public function render() {
-        if($this->m_type == 'text') {
-            return $this->renderText();
-        } elseif($this->m_type == 'chart') {
-            return $this->renderChart();
-        }elseif($this->m_type == 'settings') {
-            return $this->renderSettings();
-        }
+        $chart = $this->createChart();
+        $this->addBloodGlucoseSeries($chart);
 
+        return '<script type="module">'.$chart->render().'</script>';
     }
 
-    private function renderChart() {
-        $chart = new Highchart();
-
-        $chart->chart = [
-            "renderTo" => $this->m_renderTo,
-            "type" => "column",
-            "showAxes" => false,
-            'margin' => 0,
-            'height' => 180,
-            'width' => 70,
-        ];
-        $chart->title->text = null;
-        $chart->yAxis->max = 100;
-        $chart->yAxis->visible = false;
-        $chart->legend = ['enabled' => false];
-        /*$chart->legend = [
-            'layout' => 'vertical',
-            'align' => 'right',
-            'verticalAlign' => 'middle',
-            'itemMarginTop' => 10,
-            'itemMarginBottom' => 10
-        ];*/
-        $chart->xAxis->visible = false;
-        $chart->tooltip->enabled = false;
-
-        $chart->plotOptions->series->stacking = "normal";
-
+    /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    private function addBloodGlucoseSeries(Highchart $_chart) {
         $data = $this->m_data->getTimeInRangePercent();
         //var_dump($data);
         foreach($data as &$value) {
@@ -84,21 +35,28 @@ class TimeInRange extends Component {
         }
         unset($value);
         foreach($data as $label => $value) {
-            $chart->series[] = array(
+            $_chart->series[] = array(
                 'name' => $this->m_timeInRangeLabels[$label],
                 'data' => [$value],
-                'color' => $this->m_timeInRangeColors[$label],
+                'color' => config('colors.timeInRange.'.$label),
                 'enableMouseTracking' => false
             );
         }
-
-        return '<script type="module">'.$chart->render().'</script>';
     }
 
-    private function renderSettings() {
-        return view('cards.timeInRange.settings', ['targets' => $this->m_data->getTargets()]);
+    private function createChart(): Highchart {
+        $chart = $this->createDefaultChart();
+        $chart->chart->type = "column";
+        $chart->chart->showAxes = false;
+        $chart->chart->margin = 0;
+        $chart->chart->width = 70;
+        $chart->yAxis->max = 100;
+        $chart->yAxis->visible = false;
+        $chart->xAxis->visible = false;
+
+        $chart->plotOptions->series->stacking = "normal";
+
+        return $chart;
     }
-    private function renderText() {
-        return view('cards.timeInRange.text', ['timeInRangeData' => $this->m_data->getTimeInRangePercent()]);
-    }
+
 }

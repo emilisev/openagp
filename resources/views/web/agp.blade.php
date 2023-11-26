@@ -15,10 +15,10 @@
                     </span>--}}
                     <div class="layout-row">
                         <div id="time-in-range-chart"></div>
-                        <x-timeInRange type="chart" renderTo="time-in-range-chart" :data="$data"/>
-                        <x-timeInRange type="text" :data="$data"/>
+                        <x-timeInRange renderTo="time-in-range-chart" :data="$data" :height="180"/>
+                        @include('cards.timeInRange.text')
                     </div>
-                    <x-timeInRange type="settings" :data="$data"/>
+                    @include('cards.timeInRange.settings')
                 </content>
             </div>
             <div id="average" class="content-card">
@@ -38,7 +38,7 @@
         <div id="daily" class="content-card">
             <header><span>Profil glycémique quotidien sur les 15 derniers jours</span></header>
             <content>
-                <div id="weekly-chart" class="highcharts-light"></div>
+                <div id="weekly-chart" class="highcharts-light upper-labels"></div>
             </content>
             <x-weekly renderTo="weekly-chart" :data="$data"/>
         </div>

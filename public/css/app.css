@@ -1,0 +1,48 @@
+body {
+    font-family: sans-serif;
+}
+#main, img {
+    width: 49%;
+}
+#main {
+    float:left;
+}
+img {
+    float: right;
+}
+text.highcharts-credits { display: none;}
+div.flex { display: flex;}
+
+#time-in-range, #average {
+    flex:1;
+}
+#time-in-range {
+    flex : 1.75;
+    margin-right: 20px;
+}
+/*#time-in-range-chart {
+    height:200px;
+    width:70px;
+}*/
+h2 {
+    text-decoration: underline;
+}
+
+header {
+    border: 4px solid #d9d9d9;
+    background-color: #d9d9d9;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 0 20px;
+}
+
+.content-card {
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    margin-top: 20px;
+}

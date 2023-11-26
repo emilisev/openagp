@@ -1,0 +1,7 @@
+.highcharts-axis {
+    font-size: 0.6em;
+}
+#agp .highcharts-axis-labels text {
+    fill:green;
+}
+text.highcharts-credits { display: none;}

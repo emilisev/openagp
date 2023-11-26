@@ -1,0 +1,45 @@
+.content-card {
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.content-card.error header {
+    border: 4px solid darkred;
+    background-color: darkred;
+    color: var(--font-color-dark-background);
+}
+.content-card header, .content-card header a {
+    border: 4px solid var(--main-bg-color);
+    background-color: var(--main-bg-color);
+    color: var(--font-color-dark-background);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    font-weight: 700;
+    padding: 0 20px;
+    font-size: 16px;
+}
+
+.content-card.big-title header {
+    font-size: 24px;
+}
+
+.content-card content {
+    border: 4px solid var(--main-bg-color);
+    border-top: none;
+    background-color: #fff;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    padding: 14px 20px;
+}
+
+.content-card.error content {
+    border: 4px solid darkred;
+}
+
+#time-in-range-chart {
+    width: 30%;
+}

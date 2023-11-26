@@ -1,0 +1,45 @@
+:root {
+    --bs-body-line-height:1.2;
+    --main-bg-color: #3e82ff;
+    --font-color-dark-background: #f4f4f4;
+}
+
+@media print {
+    #sidebar, header.menu { display:none;}
+}
+
+html, body {
+    font-size: 12px;
+}
+
+header {
+    background-color: var(--main-bg-color);
+}
+#main {
+    width: 100%;
+    max-width: 800px;
+    float:left;
+}
+
+div.layout-row {
+    display: flex;
+    height:100%;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+div.layout-row>div {
+    max-width: 50%;
+}
+
+#sidebar {
+    max-width: 33%;
+    margin-right: 20px;
+    margin-top: 20px;
+}
+
+#form {
+    flex: 0.5;
+    margin-right: 20px;
+}

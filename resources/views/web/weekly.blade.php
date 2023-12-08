@@ -2,6 +2,7 @@
 @php /** @var App\Models\DiabetesData $data */ @endphp
 @section('content')
     <div id="main"><h1>Semainier</h1>
+        @include('layouts.sub.reportDate')
         <div id="weekly" class="content-card">
             <header><span>Profil glycémique quotidien</span></header>
             <content>

@@ -8,5 +8,10 @@ return [
         'target' => '#00b657',
         'low' => '#ff0009',
         'veryLow' => '#a71b2b',
-    ]
+    ],
+    'dailyTimeInRange' => [
+        'target' => '#63bb1b',
+        'other' => '#dee7d1',
+        'belowTarget' => '#486d27',
+    ],
 ];

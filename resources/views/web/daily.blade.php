@@ -1,4 +1,4 @@
-@extends('layouts.nosidebar')
+@extends('layouts.mainlayout')
 @php
 /** @var $data \App\Models\DiabetesData */
 $previousDay = $data->getBegin() - 60*60*24;

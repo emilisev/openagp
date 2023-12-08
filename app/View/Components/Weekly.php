@@ -5,6 +5,7 @@ namespace App\View\Components;
 use Ghunti\HighchartsPHP\Highchart;
 use Ghunti\HighchartsPHP\HighchartJsExpr;
 use Illuminate\Support\Facades\Request;
+use function App\Models\readableDateArray;
 
 class Weekly extends HighChartsComponent {
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

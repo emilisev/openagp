@@ -1,7 +1,7 @@
-import './bootstrap';
-
 import $ from 'jquery';
 window.$ = $;
+
+import './bootstrap';
 
 import highcharts from 'highcharts';
 import highchartsmore from 'highcharts/highcharts-more';

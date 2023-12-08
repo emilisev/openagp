@@ -6,5 +6,6 @@
 <div class="layout-row responsive">
     @yield('content')
 </div>
+@include('layouts.sub.footer')
 </body>
 </html>

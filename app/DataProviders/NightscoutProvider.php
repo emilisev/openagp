@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Request;
 
 class NightscoutProvider {
 
+    /**
+     * @var DateTime
+     */
+    private $m_actualEndDate;
+
     private $m_apiSecret;
     private $m_endDate;
     private $m_startDate;
@@ -25,6 +30,7 @@ class NightscoutProvider {
         }
         $this->m_startDate = clone($_startDate);
         $this->m_endDate = clone($_endDate);
+        $this->m_actualEndDate = $_endDate;
 
         //add 1 day before and after to recompute with time offset
         $this->m_startDate->sub(new \DateInterval('P1D'));
@@ -68,24 +74,24 @@ class NightscoutProvider {
                 'API-SECRET' => $this->m_apiSecret,
             ];
         }
-        $response = $client->request('GET', $url, $params);
-
-        $data = $response->getBody()->getContents();
-        return json_decode($data, true);
+        return $this->getCacheOrLive($url, $params);
     }
 
     private function getCacheOrLive($_url, $_params) {
         $cacheKey = sha1($_url.json_encode($_params));
-        if(Request::session()->has($cacheKey) && $this->m_endDate < new DateTime()) {
+        if(Request::session()->has($cacheKey)) {
             $data = Request::session()->get($cacheKey);
         } else {
             $client = new Client();
             $response = $client->request('GET', $_url, $_params);
 
             $data = $response->getBody()->getContents();
-            Request::session()->put($cacheKey, $data);
+            if($this->m_actualEndDate < new DateTime()) {
+                Request::session()->put($cacheKey, $data);
+            }
         }
-        return json_decode($data, true);
+        $result = json_decode($data, true);
+        return $result;
     }
 
 

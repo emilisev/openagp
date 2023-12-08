@@ -1,9 +1,7 @@
 @extends('layouts.mainlayout')
-@php /** @var App\Models\DiabetesData $data */ @endphp
 @section('content')
     <div id="main"><h1>Ambulatory Glucose Profile (AGP)</h1>
-        <p><b>{{round(($data->getEnd() - $data->getBegin())/(60*60*24))}} jours</b>
-            | {{date('D j F Y', $data->getBegin())}} - {{date('D j F Y', $data->getEnd())}}
+        @include('layouts.sub.reportDate')
         <div id="top-row" class="layout-row">
             <div id="time-in-range" class="content-card">
                 <header><span>Durée dans les plages</span></header>

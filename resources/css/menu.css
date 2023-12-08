@@ -1,11 +1,11 @@
 nav ul {
-    display: flex;
-    flex-wrap: wrap;
+    /*display: flex;
+    flex-wrap: wrap;*/
 }
 
 nav li {
-    display: block;
-    position: relative;
+    /*display: block;
+    position: relative;*/
     margin : 0 20px;
 }
 
@@ -13,9 +13,6 @@ nav li.active {
     font-weight: bold;
 }
 
-header h1, nav a {
-    color: var(--font-color-dark-background);
-}
 nav a {
     text-decoration: none;
     font-size: 1.5em;

@@ -23,13 +23,9 @@ class Daily extends HighChartsComponent {
         ksort($data);
 
         //prepare data
-        $dataForChart = [];
-        foreach ($data as $key => $value) {
-            $dataForChart[] = [$key, $value];
-        }
         $_chart->series[] = [
             'type' => 'line',
-            'data' => $dataForChart,
+            'data' => $this->formatTimeDataForChart($data),
             'zones' => $this->getDefaultZones(),
             'lineWidth' => 2
         ];

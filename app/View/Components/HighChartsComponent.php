@@ -94,7 +94,6 @@ abstract class HighChartsComponent extends Component {
         $tickPositions = [0];
         $maxInsulin = ceil($maxInsulin);
         if($maxInsulin <= 3) {
-            $maxInsulin = 4;
             $tickPositions[] = $maxInsulin / 2;
         } elseif($maxInsulin < 10 && fmod($maxInsulin, 2) > 0) {
             $maxInsulin--;

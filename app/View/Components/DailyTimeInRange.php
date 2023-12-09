@@ -2,7 +2,6 @@
 
 namespace App\View\Components;
 
-use App\Http\Controllers\AgpController;
 use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 
@@ -30,6 +29,7 @@ class DailyTimeInRange extends HighChartsComponent {
         $series = [];
         foreach(array_reverse($data) as $label => $values) {
             $zones = [];
+            $dataLabels = ['enabled' => false];
             if($label == 'target') {
                 $zones = [
                     [
@@ -41,15 +41,20 @@ class DailyTimeInRange extends HighChartsComponent {
                         'value' => 100
                     ],
                 ];
+                $dataLabels = [
+                    'enabled' => true,
+                    'format' => '{y:.0f} %',
+                    'style' => ['fontSize' => '1rem', 'textOutline' => 'none', 'color' => 'rgb(51, 51, 51)', 'fontWeight' => 'initial']
+                ];
             }
-
             $series[] = array(
                 'name' => $label,
                 'data' => array_values($values),
                 'color' => config('colors.dailyTimeInRange.'.$label),
                 'enableMouseTracking' => false,
                 'zones' => $zones,
-                'pointWidth' => 15
+                'pointWidth' => 15,
+                'dataLabels' => $dataLabels
             );
         }
         $_chart->series = $series;
@@ -70,6 +75,7 @@ class DailyTimeInRange extends HighChartsComponent {
             'categories' => $categories,
         ];
         $chart->yAxis = [
+            'title' => ['enabled' => false],
             'plotLines' => [
                 ['value' => 70, 'width' => 2, 'color' => config('colors.dailyTimeInRange.belowTarget'), 'zIndex' => 10],
             ],

@@ -11,7 +11,7 @@ return [
     ],
     'dailyTimeInRange' => [
         'target' => '#63bb1b',
-        'other' => '#dee7d1',
-        'belowTarget' => '#486d27',
+        'other' => '#e9eee3',
+        'belowTarget' => '#afe086',
     ],
 ];

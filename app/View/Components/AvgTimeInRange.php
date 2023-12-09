@@ -4,7 +4,7 @@ namespace App\View\Components;
 
 use Ghunti\HighchartsPHP\Highchart;
 
-class TimeInRange extends HighChartsComponent {
+class AvgTimeInRange extends HighChartsComponent {
     protected int $m_minValTimeInRangeChart = 2;
 
     protected array $m_timeInRangeLabels =

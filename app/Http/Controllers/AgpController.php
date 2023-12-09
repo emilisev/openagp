@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Models\DiabetesData;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Request;
 
 class AgpController extends BaseController {
@@ -51,8 +52,6 @@ class AgpController extends BaseController {
             } else {
                 $startDate = $endDate = date('d/m/Y');
             }
-            $dates = "$startDate - $endDate";
-            Request::session()->put('dates', $dates);
         } else {
             list($startDate, $endDate) = explode(" - ", $dates);
         }
@@ -88,12 +87,7 @@ class AgpController extends BaseController {
         //$data = Storage::disk('local')->get('response.json');
         $utcOffset = $endDateObject->getOffset();
         $data = new DiabetesData($rawData, $utcOffset);
-        $data->setTargets(
-            [
-                'veryHigh' => 250,
-                'veryLow' => 54,
-                'high' => 180,
-                'low' => 70]);
+        $data->setTargets(config('diabetes.bloodGlucose.targets'));
         $data->setAgpStep(30);
         $data->parse();
 

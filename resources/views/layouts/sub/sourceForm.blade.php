@@ -26,7 +26,7 @@
                 <div class="input-group-text">
                     <a href=""><i class="bi bi-eye-slash" aria-hidden="true"></i></a>
                 </div>
-                <label for="url">Api Secret</label>
+                <label for="url">Api Secret ou Token</label>
             </div>
 
             <button type="submit" class="btn btn-primary">Afficher mon rapport</button>

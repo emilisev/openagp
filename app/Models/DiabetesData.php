@@ -311,6 +311,7 @@ class DiabetesData {
     }
 
     public function parse(): void {
+        //echo "<pre>";
         foreach($this->m_rawData['bloodGlucose'] as $item) {
             //erase duplicates by rounding to minute + transform timestamp to microTimestamp
             $microTimestamp = floor(($item["date"] + $this->m_utcOffset) / (5*self::__1MINUTE)) * (5*self::__1MINUTE);
@@ -329,14 +330,21 @@ class DiabetesData {
             }*/
         }
         foreach($this->m_rawData['treatments'] as $item) {
-            if(array_key_exists("timestamp", $item) && array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
+            $timestamp = null;
+            if(array_key_exists("timestamp", $item)) {
+                $timestamp = $item["timestamp"];
+            } elseif(array_key_exists("created_at", $item)) {
+                $date = DateTime::createFromFormat('Y-m-d\TH:i:s.v\Z', $item["created_at"]);
+                $timestamp = $date->format('Uv');
+            }
+            if(!is_null($timestamp) && array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
                 $type = 'unknown';
                 if(!empty($item["insulinInjections"])) {
                     $details = json_decode($item["insulinInjections"], true);
                     $type = $details[0]['insulin'];
                 }
                 //var_dump(round($item["timestamp"]/1000), date('Y-m-d H:i:s', $item["timestamp"]/1000));echo "<br/>";
-                $this->m_treatmentsData[$type][$item["timestamp"]] = $item["insulin"];
+                $this->m_treatmentsData[$type][$timestamp] = $item["insulin"];
             } /*else {
                 echo "<br/><br/><br/>";
                 var_dump($item);

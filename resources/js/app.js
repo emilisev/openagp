@@ -36,4 +36,10 @@ $(document).ready(function() {
         var currentX = current.match(/[0-9]+,/);
         $(this).attr("transform", 'translate('+currentX+' 0)');
     });
+    $('.left-aligned-labels .highcharts-data-label').each(function(item) {
+        var current = $(this).attr("transform");
+        var currentY = current.match(/,-?[0-9]+/);
+        console.log(current, currentY, 'translate(0'+currentY+')');
+        $(this).attr("transform", 'translate(0'+currentY+')');
+    });
 });

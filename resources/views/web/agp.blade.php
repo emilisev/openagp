@@ -13,7 +13,7 @@
             </span>--}}
             <div class="row">
                 <div class="col-2" id="time-in-range-chart"></div>
-                <x-timeInRange renderTo="time-in-range-chart" :data="$data" :height="180"/>
+                <x-avgTimeInRange renderTo="time-in-range-chart" :data="$data" :height="180"/>
                 @include('cards.timeInRange.text')
             </div>
             @include('cards.timeInRange.settings')
@@ -22,7 +22,7 @@
     <div id="average" class="card col">
         <header class="card-title">Mesures du glucose</header>
         <content class="card-body">
-            <x-average :data="$data"/>
+            @include('cards.average.text')
         </content>
     </div>
 </div>

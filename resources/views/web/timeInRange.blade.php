@@ -6,7 +6,7 @@
 <div id="weekly" class="card">
     <header class="card-title">Objectif</header>
     <content class="card-body">
-        <div id="chart" class="highcharts-light upper-labels"></div>
+        <div id="chart" class="highcharts-light left-aligned-labels"></div>
     </content>
     <x-dailyTimeInRange renderTo="chart" :data="$data"/>
 </div>

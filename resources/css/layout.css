@@ -34,6 +34,11 @@ header h1 {
 @media (min-width: 992px) {
     #main {
         width: 80%; } }
+@media (max-width: 500px) {
+    #main {
+        padding: 10px;
+    }
+}
 
 div.layout-row {
     display: flex;

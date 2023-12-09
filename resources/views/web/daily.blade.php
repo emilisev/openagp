@@ -16,13 +16,14 @@ if($nextDay > time()) {
             <a href="?day={{ date('d/m/Y',  $nextDay) }}"><i class="bi bi-caret-right-fill"></i></a>
         @endif
     </header>
-    <content class="card-body">
+    <content class="card-body container">
         <div class="row justify-content-center">
-            <div id="average" class="col-2"></div>
-            <x-averageGauge renderTo="average" :data="$data" :height="130"/>
-            <div id="time-in-range-chart" class="col-1"></div>
-            <x-timeInRange renderTo="time-in-range-chart" :data="$data" :height="130"/>
+            @include('cards.average.square')
+            @include('cards.variation.square')
+            <div id="time-in-range-chart" class="col-auto"></div>
+            <x-avgTimeInRange renderTo="time-in-range-chart" :data="$data" :height="130"/>
             @include('cards.timeInRange.text', ['style' => 'light'])
+
         </div>
         <div id="daily-chart" class="highcharts-light"></div>
         <x-daily renderTo="daily-chart" :data="$data"/>

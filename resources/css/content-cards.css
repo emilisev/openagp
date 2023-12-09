@@ -6,15 +6,11 @@
     --bs-card-title-spacer-y: 0;
 }
 
-/*@media (max-width: 500px) {
-    .card {
-        margin-left: 20px;
+@media (max-width: 500px) {
+    #main>.card {
+        margin: 0;
     }
-}*/
-
-/*.card:last-child {
-    margin-bottom: 0;
-}*/
+}
 
 .card.error header {
     border: 4px solid rgba(139, 0, 0, 0.8);
@@ -43,6 +39,12 @@
     border-bottom-left-radius: 14px;
     border-bottom-right-radius: 14px;
     padding: 14px 20px;
+}
+
+@media (max-width: 500px) {
+    .card content {
+        padding: 5px;
+    }
 }
 
 .card.error content {

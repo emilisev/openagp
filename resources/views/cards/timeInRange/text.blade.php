@@ -5,7 +5,7 @@
 		$style = 'complete';
     }
 @endphp
-<div @if($style == 'complete') class="col" @else class="col-2" @endif id="time-in-range-text">
+<div @if($style == 'complete') class="col" @else class="col-auto" @endif id="time-in-range-text">
     <div @if($style == 'complete') class="row"@endif >
         <div class="high-container time-in-range-container col">
             <div class="block-label very-high" style="color:{{config('colors.timeInRange.veryHigh')}}">

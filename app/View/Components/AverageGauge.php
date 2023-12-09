@@ -19,8 +19,7 @@ class AverageGauge extends HighChartsComponent {
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private function addBloodGlucoseSeries(Highchart $_chart) {
         //prepare data
-        $data = $this->m_data->getBloodGlucoseData();
-        $avg = round(array_sum($data) / count($data));
+        $avg = $this->m_data->getAverage();
         $_chart->series[] = [
             'data' => [$avg],
             'dataLabels' => [

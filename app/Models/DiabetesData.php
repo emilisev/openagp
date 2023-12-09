@@ -12,7 +12,7 @@ class DiabetesData {
 
     private int $m_begin;
 
-    private array $m_bloodGlucoseData;
+    private array $m_bloodGlucoseData = [];
 
     private array $m_bloodGlucoseDataByRoundedTime;
 
@@ -174,7 +174,7 @@ class DiabetesData {
         if(empty($this->m_bloodGlucoseData)) {
             return;
         }
-        $timeInRangeCount = ['veryHigh' => 0, 'veryLow' => 0, 'high' => 0, 'low' => 0, 'target' => 0];
+        $timeInRangeCount = ['veryLow' => 0, 'low' => 0, 'target' => 0, 'high' => 0, 'veryHigh' => 0];
         foreach($this->m_bloodGlucoseData as $value) {
             if($value > $this->m_targets['low'] && $value < $this->m_targets['high']) {
                 $timeInRangeCount['target']++;
@@ -189,6 +189,7 @@ class DiabetesData {
             }
         }
         $countValues = array_sum($timeInRangeCount);
+        //echo "<pre>"; var_dump($timeInRangeCount, count($this->m_bloodGlucoseData));
         $this->m_timeInRangePercent = [
             'veryHigh' => $timeInRangeCount['veryHigh'] * 100 / $countValues,
             'high' => $timeInRangeCount['high'] * 100 / $countValues,
@@ -205,10 +206,13 @@ class DiabetesData {
         $this->m_end = $_end;
         $this->m_bloodGlucoseData = self::filterData($this->m_bloodGlucoseData, $_begin, $_end);
         ksort($this->m_bloodGlucoseData);
+        //extrapolate missing data or set null to prevent straight lignes in graph
         foreach($this->m_bloodGlucoseData as $time => $value) {
-            if(isset($previousTime) && $time - (10 * self::__1MINUTE) > $previousTime) {
+            if(isset($previousTime) && $time - (15 * self::__1MINUTE) > $previousTime) {
                 $this->m_bloodGlucoseData[$previousTime + round(($time - $previousTime) / 2)] = null;
-                //var_dump("missing value : ", date('Y-m-d H:i:s', ($previousTime + round(($time - $previousTime) / 2))/1000));
+            } elseif(isset($previousTime) && $time - (9 * self::__1MINUTE) > $previousTime) {
+                $this->m_bloodGlucoseData[$previousTime + round(($time - $previousTime) / 2)] =
+                    ($value + $this->m_bloodGlucoseData[$previousTime])/2;
             }
             $previousTime = $time;
         }
@@ -310,6 +314,11 @@ class DiabetesData {
         foreach($this->m_rawData['bloodGlucose'] as $item) {
             //erase duplicates by rounding to minute + transform timestamp to microTimestamp
             $microTimestamp = floor(($item["date"] + $this->m_utcOffset) / (5*self::__1MINUTE)) * (5*self::__1MINUTE);
+            /*if(array_key_exists($microTimestamp, $this->m_bloodGlucoseData)) {
+                var_dump(
+                    "override value", readableTime($microTimestamp),
+                    readableTime($item["date"] + $this->m_utcOffset));
+            }*/
             if(array_key_exists("sgv", $item) && is_int($item["sgv"])) {
                 $this->m_bloodGlucoseData[$microTimestamp] = $item["sgv"];
             } elseif(array_key_exists("mbg", $item) && is_int($item["mbg"])) {

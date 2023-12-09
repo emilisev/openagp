@@ -21,22 +21,25 @@ header h1 {
 
 #main {
     width: 100%;
-    max-width: 800px;
-    float:left;
-    margin-top: 5px;
-}
+    float: right;
+    -webkit-transition: 0.5s;
+    -o-transition: 0.5s;
+    transition: 0.5s;
+    padding: 40px; }
+@media (prefers-reduced-motion: reduce) {
+    #main {
+        -webkit-transition: none;
+        -o-transition: none;
+        transition: none; } }
+@media (min-width: 992px) {
+    #main {
+        width: 80%; } }
 
 div.layout-row {
     display: flex;
     flex-direction: row;
-    /*height:100%;*/
     align-items: center;
     justify-content: center;
-    box-sizing: border-box;
-}
-
-div.layout-row>div {
-    max-width: 50%;
 }
 
 @media (max-width: 500px) {

@@ -13,7 +13,7 @@
 <body style="height:100%">
 
 <div class="layout-row">
-    <div class="content-card">
+    <div class="card">
         <header><span>Déconnexion</span></header>
         <content>
             Vous avez été déconnecté avec succès.

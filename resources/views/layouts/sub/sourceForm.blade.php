@@ -2,7 +2,7 @@
     use Jenssegers\Agent\Agent;
     $agent = new Agent();
 @endphp
-<div id="form" class="content-card">
+<div id="form" class="card">
     <header><span>Source</span></header>
     <content>
         <form method="POST" action="{{ Request::route()->getName()?? ($agent->isMobile()?'/daily':'/agp') }}">

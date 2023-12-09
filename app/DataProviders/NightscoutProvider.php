@@ -79,8 +79,13 @@ class NightscoutProvider {
 
     private function getCacheOrLive($_url, $_params) {
         $cacheKey = sha1($_url.json_encode($_params));
+        //var_dump($_url, $this->m_endDate > new DateTime(), Request::session()->has($cacheKey));
         if(Request::session()->has($cacheKey)) {
             $data = Request::session()->get($cacheKey);
+            /*if($this->m_endDate > new DateTime()) {
+                var_dump($data);
+                die();
+            }*/
         } else {
             $client = new Client();
             $response = $client->request('GET', $_url, $_params);

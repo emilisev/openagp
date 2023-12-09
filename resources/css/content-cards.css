@@ -1,29 +1,27 @@
-.content-card {
+.card {
     border-radius: 14px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    width: 100%;
     margin:20px;
     margin-left: 0;
+    padding:0;
+    --bs-card-title-spacer-y: 0;
 }
 
 /*@media (max-width: 500px) {
-    .content-card {
+    .card {
         margin-left: 20px;
     }
 }*/
 
-.content-card:last-child {
+/*.card:last-child {
     margin-bottom: 0;
-}
+}*/
 
-.content-card.error header {
+.card.error header {
     border: 4px solid rgba(139, 0, 0, 0.8);
     background-color: darkred;
     color: var(--font-color-dark-background);
 }
-.content-card header, .content-card header a {
+.card header, .card header a {
     border: 4px solid var(--main-bg-color);
     background-color: var(--main-bg-color);
     color: var(--font-color-dark-background);
@@ -34,11 +32,11 @@
     font-size: 16px;
 }
 
-.content-card.big-title header {
+.card.big-title header {
     font-size: 24px;
 }
 
-.content-card content {
+.card content {
     border: 4px solid var(--main-bg-color);
     border-top: none;
     background-color: #fff;
@@ -47,13 +45,10 @@
     padding: 14px 20px;
 }
 
-.content-card.error content {
+.card.error content {
     border: 4px solid darkred;
 }
 
-#time-in-range-chart {
-    width: 30%;
-}
 #time-in-range-text {
     white-space: nowrap;
 }

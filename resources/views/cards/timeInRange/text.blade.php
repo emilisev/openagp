@@ -5,9 +5,9 @@
 		$style = 'complete';
     }
 @endphp
-<div id="time-in-range-text">
-    <div @if($style == 'complete') class="layout-row"@endif >
-        <div class="high-container time-in-range-container">
+<div @if($style == 'complete') class="col" @else class="col-2" @endif id="time-in-range-text">
+    <div @if($style == 'complete') class="row"@endif >
+        <div class="high-container time-in-range-container col">
             <div class="block-label very-high" style="color:{{config('colors.timeInRange.veryHigh')}}">
                 {{ round($timeInRangeData['veryHigh']) }}&nbsp;% Très élevée
             </div>
@@ -22,7 +22,7 @@
         </div>
 
         @if($style == 'complete')
-        <div class="summation-and-goal">
+        <div class="summation-and-goal col">
             <div class="summation high-summation">
                 {{ round($timeInRangeData['high'] + $timeInRangeData['veryHigh']) }}&nbsp;%
             </div>
@@ -45,8 +45,8 @@
     </div>
 
 
-    <div @if($style == 'complete') class="layout-row"@endif >
-        <div class="low-container time-in-range-container">
+    <div @if($style == 'complete') class="row"@endif >
+        <div class="low-container time-in-range-container col">
             <div class="block-label low" style="color:{{config('colors.timeInRange.low')}}">
                 {{ round($timeInRangeData['low']) }}&nbsp;% Basse
             </div>
@@ -67,7 +67,7 @@
             @endif
         </div>
         @if($style == 'complete')
-        <div class="summation-and-goal">
+        <div class="summation-and-goal col">
             <div class="summation low-summation">
                 {{ round($timeInRangeData['low'] + $timeInRangeData['veryLow']) }}&nbsp;%
             </div>

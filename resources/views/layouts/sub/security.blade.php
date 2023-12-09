@@ -1,4 +1,4 @@
-<div class="content-card">
+<div class="card">
     <header><span>Sécurité des données</span></header>
     <content>En utilisant ce site, les données suivantes seront stockées sur le serveur de manière cryptée le temps de votre session :
         <ul>

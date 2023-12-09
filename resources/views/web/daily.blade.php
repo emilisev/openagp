@@ -8,28 +8,24 @@ if($nextDay > time()) {
 }
 @endphp
 @section('content')
-    <div id="main">
-        <div class="content-card big-title">
-            <header>
-                <span><a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
-                    {{ date('D d M',  $data->getBegin()) }}
-                @if(isset($nextDay))
-                    <a href="?day={{ date('d/m/Y',  $nextDay) }}"><i class="bi bi-caret-right-fill"></i></a>
-                @endif
-                </span>
-                </header>
-            <content>
-                <div class="layout-row">
-                    <div id="average" style="width:30%"></div>
-                    <x-averageGauge renderTo="average" :data="$data" :height="130"/>
-                    <div id="time-in-range-chart" style="width:70px"></div>
-                    <x-timeInRange renderTo="time-in-range-chart" :data="$data" :height="130"/>
-                    @include('cards.timeInRange.text', ['style' => 'light'])
-                </div>
-                <div id="daily-chart" class="highcharts-light"></div>
-                <x-daily renderTo="daily-chart" :data="$data"/>
-            </content>
-            {{--<x-daily renderTo="daily-chart" :data="$data"/>--}}
+<div class="card big-title">
+    <header class="card-title">
+        <a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
+            {{ date('D d M',  $data->getBegin()) }}
+        @if(isset($nextDay))
+            <a href="?day={{ date('d/m/Y',  $nextDay) }}"><i class="bi bi-caret-right-fill"></i></a>
+        @endif
+    </header>
+    <content class="card-body">
+        <div class="row justify-content-center">
+            <div id="average" class="col-2"></div>
+            <x-averageGauge renderTo="average" :data="$data" :height="130"/>
+            <div id="time-in-range-chart" class="col-1"></div>
+            <x-timeInRange renderTo="time-in-range-chart" :data="$data" :height="130"/>
+            @include('cards.timeInRange.text', ['style' => 'light'])
         </div>
-    </div>
+        <div id="daily-chart" class="highcharts-light"></div>
+        <x-daily renderTo="daily-chart" :data="$data"/>
+    </content>
+</div>
 @endsection

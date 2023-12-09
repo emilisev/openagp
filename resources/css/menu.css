@@ -1,11 +1,4 @@
-nav ul {
-    /*display: flex;
-    flex-wrap: wrap;*/
-}
-
 nav li {
-    /*display: block;
-    position: relative;*/
     margin : 0 20px;
 }
 
@@ -20,3 +13,33 @@ nav a {
 nav li.active a {
     text-decoration:underline;
 }
+#navbar {
+    padding-top: 3em;
+    padding-bottom: 40px;
+    padding-left: 3em;
+    padding-right: 3em;
+    width: 20%;
+    position: fixed;
+    left: 0;
+    right: 0;
+    overflow-y: hidden;
+    z-index: 1001;
+    background: #fff;
+    -webkit-transition: 0.5s;
+    -o-transition: 0.5s;
+    transition: 0.5s; }
+@media (prefers-reduced-motion: reduce) {
+    #navbar {
+        -webkit-transition: none;
+        -o-transition: none;
+        transition: none; } }
+@media (min-width: 992px) {
+    #navbar {
+        display: block; }
+    .navbar-toggler {
+        display: none;
+    }
+}
+@media (max-width: 991.98px) {
+    #navbar {
+        width: 270px;} }

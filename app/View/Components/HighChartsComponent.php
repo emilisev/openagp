@@ -105,7 +105,7 @@ abstract class HighChartsComponent extends Component {
             }
         }
         $tickPositions[] = $maxInsulin;
-        $tickPositions[] = $maxInsulin * 6;
+        $tickPositions[] = $maxInsulin / config('diabetes.treatments.relativeAxisHeight');
         return [
             'title' => ['text' => 'UI', 'rotation' => 0, 'offset' => 10, 'align' => 'high', 'y' => 25, 'style' => ['fontSize' => '0.8rem']],
             'opposite' => true,

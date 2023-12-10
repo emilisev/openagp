@@ -291,6 +291,25 @@ class DiabetesData {
         return $this->m_dailyTimeInRangePercent;
     }
 
+    public function getDailyTreatmentsByWeek(int $_weekBackCount) {
+        $maxDate = new DateTime();
+        $maxDate->setTimestamp($this->m_end);
+        $maxDate->modify("midnight + 1day");
+        $minDate = clone($maxDate);
+        $minDate->modify("-$_weekBackCount weeks midnight");
+        $middleDate = clone($minDate);
+        $middleDate->modify('+1 week midnight');
+        $result = [];
+        foreach($this->m_treatmentsData['insulin'] as $type => $values) {
+            $result['insulin'][$type] = DiabetesData::filterData($values, $minDate->format('U'), $middleDate->format('U'));
+        }
+        $result['carbs'] = DiabetesData::filterData($this->m_treatmentsData['carbs'], $minDate->format('U'), $middleDate->format('U'));
+        $result['notes'] = DiabetesData::filterData($this->m_treatmentsData['notes'], $minDate->format('U'), $middleDate->format('U'));
+        /*echo "<hr/>";
+        var_dump($result, $minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
+        return $result;
+    }
+
     public function getEnd(): int {
         return $this->m_end;
     }

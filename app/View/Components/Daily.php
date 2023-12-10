@@ -3,6 +3,7 @@
 namespace App\View\Components;
 
 use Ghunti\HighchartsPHP\Highchart;
+use StringToColor\StringToColor;
 
 class Daily extends HighChartsComponent {
 
@@ -42,7 +43,7 @@ class Daily extends HighChartsComponent {
         $_chart->yAxis[] = [
             'id' => 'carbs-yAxis',
             'visible' => false,
-            'max' => $maxCarbs * 3
+            'max' => $maxCarbs / config('diabetes.treatments.relativeAxisHeight')
         ];
 
         $dataForChart = [];
@@ -60,16 +61,16 @@ class Daily extends HighChartsComponent {
             }
         }
 
-
+        $stringToColor = new StringToColor();
         $_chart->series[] = [
             'type' => 'column',
+            'color' => $stringToColor->handle('carbs'),
             'data' => $dataForChart,
             'yAxis' => 'carbs-yAxis',
             'pointRange' => 60 * 60 * 1000, //largeur
             'opacity' => 1,
             'dataLabels' => ['enabled' => true, 'format' => '{point.name}']
         ];
-
     }
 
     private function addTreatmentsSeries(Highchart $_chart) {
@@ -78,10 +79,11 @@ class Daily extends HighChartsComponent {
             return;
         }
         $_chart->yAxis[] = ['visible' => false] + $this->getTreatmentYAxis();
-
-        foreach ($data as $datum) {
+        $stringToColor = new StringToColor();
+        foreach ($data as $type => $datum) {
             $_chart->series[] = [
                 'type' => 'column',
+                'color' => $stringToColor->handle($type),
                 'data' => $this->formatTimeDataForChart($datum),
                 'yAxis' => 'insulin-yAxis',
                 'pointRange' => 60 * 60 * 1000, //largeur

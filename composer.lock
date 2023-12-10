@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "39f7e20a822f3a6ff81a475bb580ae30",
+    "content-hash": "a3b30338596fdae2e784cfe050829f66",
     "packages": [
         {
             "name": "brick/math",
@@ -1203,6 +1203,47 @@
                 }
             ],
             "time": "2020-06-13T08:05:20+00:00"
+        },
+        {
+            "name": "kyosifov/php-string-to-color",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/KaloyanYosifov/php-string-to-color.git",
+                "reference": "8a4a19bb72e666a957705251c2ad6933af51f324"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/KaloyanYosifov/php-string-to-color/zipball/8a4a19bb72e666a957705251c2ad6933af51f324",
+                "reference": "8a4a19bb72e666a957705251c2ad6933af51f324",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-mbstring": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "StringToColor\\": "app/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kaloyan Yosifov",
+                    "email": "kaloqn665@gmail.com"
+                }
+            ],
+            "description": "Port of js string to color",
+            "support": {
+                "issues": "https://github.com/KaloyanYosifov/php-string-to-color/issues",
+                "source": "https://github.com/KaloyanYosifov/php-string-to-color/tree/1.0.0"
+            },
+            "time": "2020-09-17T13:23:05+00:00"
         },
         {
             "name": "laravel/framework",

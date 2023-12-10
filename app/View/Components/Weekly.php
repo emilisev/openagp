@@ -5,7 +5,7 @@ namespace App\View\Components;
 use Ghunti\HighchartsPHP\Highchart;
 use Ghunti\HighchartsPHP\HighchartJsExpr;
 use Illuminate\Support\Facades\Request;
-use function App\Models\readableDateArray;
+use StringToColor\StringToColor;
 
 class Weekly extends HighChartsComponent {
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -34,12 +34,14 @@ class Weekly extends HighChartsComponent {
         $yAxisBase['id'] = 'gloodGlucose-yAxis1';
 
         $this->addBloodGlucoseSeries($chart, $yAxisBase, $plotLines, $ticks, $weeks, $weeklyGraphHeight);
+        $this->addTreatmentsSeries($chart, $weeks, $weeklyGraphHeight);
+        $this->addCarbsSeries($chart, $weeks, $weeklyGraphHeight);
 
         //echo "<pre>".$chart->render()."</pre>";
         echo '<script type="module">'.$chart->render().'</script>';
     }
 
-/* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /**
      * @param Highchart $_chart
      * @param array $y_AxisBase
@@ -86,22 +88,101 @@ class Weekly extends HighChartsComponent {
             $_chart->series[] = [
                 'type' => 'line',
                 'data' => $dataForChart,
-                'dataLabels' => ['enabled' => true, 'verticalAlign' => 'bottom', 'formatter' => new HighchartJsExpr("function() {
-                    var date = new Date(this.key);
-                    var result = null;
-                    if(date.getHours() == 12 && date.getMinutes() == 0) {
-                        result = date.getDate();
-                    }
-                    if(result == 1) {
-                        result += '/'+(date.getMonth()+1);
-                    }
-                    return result;
-                }"
-                )],
+                'dataLabels' => [
+                    'enabled' => true,
+                    'verticalAlign' => 'bottom',
+                    'formatter' => new HighchartJsExpr("function() {
+                        var date = new Date(this.key);
+                        var result = null;
+                        if(date.getHours() == 12 && date.getMinutes() == 0) {
+                            result = date.getDate();
+                        }
+                        if(result == 1) {
+                            result += '/'+(date.getMonth()+1);
+                        }
+                        return result;
+                    }"),
+                    'className' => 'upper-labels'
+                ],
                 'xAxis' => $xAxisNumber,
                 'yAxis' => 'gloodGlucose-yAxis'.$yAxisNumber,
                 'zones' => $this->getDefaultZones()
             ];
+            $yAxisNumber++;
+            $xAxisNumber++;
+        }
+    }
+
+    private function addCarbsSeries(Highchart $_chart, int $_weeks, float $_weeklyGraphHeight) {
+        //add 1 serie per week
+        $stringToColor = new StringToColor();
+        $yAxisNumber = $xAxisNumber = $currentHeight = 0;
+        for ($weekNum = $_weeks; $weekNum >= 1; $weekNum--) {
+            $data = $this->m_data->getDailyTreatmentsByWeek($weekNum)['carbs'];
+            if(!empty($data)) {
+                $maxCarbs = max($data);
+                $_chart->yAxis[] = [
+                    'id' => 'carbs-yAxis'.$yAxisNumber,
+                    'visible' => false,
+                    'height' => $_weeklyGraphHeight.'%',
+                    'max' => $maxCarbs / config('diabetes.treatments.relativeAxisHeight'),
+                    'top' => $currentHeight.'%',
+                    'min' => 0,
+                ];
+
+                $_chart->series[] = [
+                    'type' => 'column',
+                    'color' => $stringToColor->handle('carbs'),
+                    'data' => $this->formatTimeDataForChart($data),
+                    'yAxis' => 'carbs-yAxis'.$yAxisNumber,
+                    'xAxis' => $xAxisNumber,
+                    'pointRange' => 60 * 60 * 1000, //largeur
+                    'opacity' => 1,
+                    'dataLabels' => ['enabled' => true, 'format' => '{point.name}']
+                ];
+            }
+            $currentHeight += $_weeklyGraphHeight;
+            $yAxisNumber++;
+            $xAxisNumber++;
+        }
+    }
+
+    private function addTreatmentsSeries(Highchart $_chart, int $_weeks, float $_weeklyGraphHeight) {
+        //add 1 serie per week
+
+        $stringToColor = new StringToColor();
+        $yAxisNumber = $xAxisNumber = $currentHeight = 0;
+        for ($weekNum = $_weeks; $weekNum >= 1; $weekNum--) {
+            $data = $this->m_data->getDailyTreatmentsByWeek($weekNum)['insulin'];
+            $max = 0;
+            foreach($data as $datum) {
+                if(!empty($datum)) {
+                    $max = max($max, max($datum));
+                }
+            }
+            if($max > 0) {
+                $_chart->yAxis[] = [
+                    'top' => $currentHeight.'%',
+                    'visible' => false,
+                    'id' => 'treatments-yAxis'.$yAxisNumber,
+                    'height' => $_weeklyGraphHeight.'%',
+                    'min' => 0,
+                    'max' => $max / config('diabetes.treatments.relativeAxisHeight')
+                ];
+                foreach($data as $type => $datum) {
+                    $dataForChart = $this->formatTimeDataForChart($datum);
+                    $_chart->series[] = [
+                        'type' => 'column',
+                        'color' => $stringToColor->handle($type),
+                        'data' => $dataForChart,
+                        'xAxis' => $xAxisNumber,
+                        'yAxis' => 'treatments-yAxis'.$yAxisNumber,
+                        'pointRange' => 60 * 60 * 1000, //largeur
+                        //'dataLabels' => ['enabled' => true, 'format' => '{y}UI']
+                    ];
+                }
+            }
+            $currentHeight += $_weeklyGraphHeight;
             $yAxisNumber++;
             $xAxisNumber++;
         }

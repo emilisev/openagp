@@ -22,4 +22,7 @@ return [
     'notes' => [
         'filter' => ['PEN']
     ],
+    'treatments' => [
+        'relativeAxisHeight' => 1/3
+    ]
 ];

@@ -84,7 +84,7 @@ abstract class HighChartsComponent extends Component {
 
     }
     protected function getTreatmentYAxis() {
-        $treatments = $this->m_data->getTreatmentsData();
+        $treatments = $this->m_data->getTreatmentsData()['insulin'];
         $maxInsulin = 0;
         foreach ($treatments as $insulinDatum) {
             foreach ($insulinDatum as $value) {

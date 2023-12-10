@@ -13,5 +13,13 @@ return [
             'good' => 34,
             'high' => 36
         ],
-    ]
+    ],
+    'agp' => [
+        'insulin' => [
+            'minutesBetweenInjections' => 60 * 4
+        ]
+    ],
+    'notes' => [
+        'filter' => ['PEN']
+    ],
 ];

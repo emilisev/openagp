@@ -14,6 +14,7 @@ class Daily extends HighChartsComponent {
         $chart = $this->createChart();
         $this->addBloodGlucoseSeries($chart);
         $this->addTreatmentsSeries($chart);
+        $this->addCarbsSeries($chart);
         echo '<script type="module">'.$chart->render().'</script>';
     }
 
@@ -21,30 +22,71 @@ class Daily extends HighChartsComponent {
     private function addBloodGlucoseSeries(Highchart $_chart) {
         $data = $this->m_data->getBloodGlucoseData();
         ksort($data);
-
         //prepare data
         $_chart->series[] = [
             'type' => 'line',
             'data' => $this->formatTimeDataForChart($data),
             'zones' => $this->getDefaultZones(),
-            'lineWidth' => 2
+            'lineWidth' => 2,
+            //'marker' => ['enabled' => true, 'radius' => 1,]
         ];
     }
 
-    private function addTreatmentsSeries(Highchart $_chart) {
-        $treatments = $this->m_data->getTreatmentsData();
-        foreach ($treatments as $insulinDatum) {
-            $serie = [];
-            foreach ($insulinDatum as $time => $value) {
-                $serie[] = [$time, $value];
+    private function addCarbsSeries(Highchart $_chart) {
+        $data = $this->m_data->getTreatmentsData()['carbs'];
+        $notes = $this->m_data->getTreatmentsData()['notes'];
+        if(empty($data)) {
+            return;
+        }
+        $maxCarbs = max($data);
+        $_chart->yAxis[] = [
+            'id' => 'carbs-yAxis',
+            'visible' => false,
+            'max' => $maxCarbs * 3
+        ];
+
+        $dataForChart = [];
+        foreach ($data as $key => $value) {
+            $item = ['x' => $key, 'y' => $value, 'name' => "{$value}g"];
+            if(array_key_exists($key, $notes)) {
+                $item['name'] .= ' ('.$notes[$key].')';
             }
+            $dataForChart[] = $item;
+        }
+        foreach ($notes as $key => $value) {
+            if(!array_key_exists($key, $data)) {
+                $item = ['x' => $key, 'y' => 0, 'name' => $value];
+                $dataForChart[] = $item;
+            }
+        }
+
+
+        $_chart->series[] = [
+            'type' => 'column',
+            'data' => $dataForChart,
+            'yAxis' => 'carbs-yAxis',
+            'pointRange' => 60 * 60 * 1000, //largeur
+            'opacity' => 1,
+            'dataLabels' => ['enabled' => true, 'format' => '{point.name}']
+        ];
+
+    }
+
+    private function addTreatmentsSeries(Highchart $_chart) {
+        $data = $this->m_data->getTreatmentsData()['insulin'];
+        if(empty($data)) {
+            return;
+        }
+        $_chart->yAxis[] = ['visible' => false] + $this->getTreatmentYAxis();
+
+        foreach ($data as $datum) {
             $_chart->series[] = [
                 'type' => 'column',
-                'data' => $serie,
+                'data' => $this->formatTimeDataForChart($datum),
                 'yAxis' => 'insulin-yAxis',
                 'pointRange' => 60 * 60 * 1000, //largeur
                 'opacity' => 1,
-                'dataLabels' => ['enabled' => true]
+                'dataLabels' => ['enabled' => true, 'format' => '{y}UI']
             ];
         }
     }
@@ -52,9 +94,9 @@ class Daily extends HighChartsComponent {
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
         //$chart->chart->height = 500;
+
         $chart->yAxis = [
             $this->getBloodGlucoseYAxis(),
-            $this->getTreatmentYAxis()
         ];
         $xAxis = $this->getBottomLabelledXAxis();
         $min = $this->m_data->getBegin();

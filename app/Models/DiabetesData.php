@@ -47,7 +47,7 @@ class DiabetesData {
 
     private array $m_timeInRangePercent = [];
 
-    private array $m_treatmentsData = [];
+    private array $m_treatmentsData = ['insulin' => [], 'carbs' => [], 'notes' => []];
 
     /**
      * @var int
@@ -116,7 +116,7 @@ class DiabetesData {
     public function computeInsulinAgp(int $_minutesBetweenInjections): void {
         //echo "<pre>";
         $secondsBetweenInjections = $_minutesBetweenInjections * 60;
-        foreach($this->m_treatmentsData as $insulinType => $treatments) {
+        foreach($this->getTreatmentsData()['insulin'] as $insulinType => $treatments) {
             $treatmentsCountBetweenTimeFrame = $this->getInjectionsCountByTimespan($secondsBetweenInjections, $treatments);
             //construit un tableau retenant les injections regroupées selon les plus fréquentes
             $timesToKeep = [];
@@ -176,6 +176,9 @@ class DiabetesData {
         }
         $timeInRangeCount = ['veryLow' => 0, 'low' => 0, 'target' => 0, 'high' => 0, 'veryHigh' => 0];
         foreach($this->m_bloodGlucoseData as $value) {
+            if($value === null) {
+                continue;
+            }
             if($value > $this->m_targets['low'] && $value < $this->m_targets['high']) {
                 $timeInRangeCount['target']++;
             } elseif($value <= $this->m_targets['veryLow']) {
@@ -207,9 +210,15 @@ class DiabetesData {
         $this->m_bloodGlucoseData = self::filterData($this->m_bloodGlucoseData, $_begin, $_end);
         ksort($this->m_bloodGlucoseData);
         //extrapolate missing data or set null to prevent straight lignes in graph
+        $countSinceLastNull = 0;
         foreach($this->m_bloodGlucoseData as $time => $value) {
+            $countSinceLastNull ++;
             if(isset($previousTime) && $time - (15 * self::__1MINUTE) > $previousTime) {
                 $this->m_bloodGlucoseData[$previousTime + round(($time - $previousTime) / 2)] = null;
+                if($countSinceLastNull < 2) {
+                    $this->m_bloodGlucoseData[$previousTime+self::__1SECOND] = $this->m_bloodGlucoseData[$previousTime];
+                }
+                $countSinceLastNull = 0;
             } elseif(isset($previousTime) && $time - (9 * self::__1MINUTE) > $previousTime) {
                 $this->m_bloodGlucoseData[$previousTime + round(($time - $previousTime) / 2)] =
                     ($value + $this->m_bloodGlucoseData[$previousTime])/2;
@@ -217,9 +226,9 @@ class DiabetesData {
             $previousTime = $time;
         }
         ksort($this->m_bloodGlucoseData);
-        foreach($this->m_treatmentsData as $insulinType => $data) {
+        foreach($this->m_treatmentsData['insulin'] as $insulinType => $data) {
             //var_dump($insulinType, readableDateArray($data), readableDate($_begin * self::__1SECOND), readableDate($_end * self::__1SECOND));
-            $this->m_treatmentsData[$insulinType] = self::filterData($data, $_begin, $_end);
+            $this->m_treatmentsData['insulin'][$insulinType] = self::filterData($data, $_begin, $_end);
             //var_dump($this->m_treatmentsData[$insulinType]);
         }
         /*var_dump($this->m_treatmentsData);
@@ -291,6 +300,9 @@ class DiabetesData {
     }
 
     public function getInsulinAgpData(): array {
+        if(empty($this->m_insulinAgpData)) {
+            $this->computeInsulinAgp(config('diabetes.agp.insulin.minutesBetweenInjections'));
+        }
         return $this->m_insulinAgpData;
     }
 
@@ -329,7 +341,10 @@ class DiabetesData {
                 var_dump($item);
             }*/
         }
+        //echo "<pre>";
+        //var_dump($this->m_rawData['treatments']);
         foreach($this->m_rawData['treatments'] as $item) {
+            //compute timestamp from various possibilities
             $timestamp = null;
             if(array_key_exists("timestamp", $item)) {
                 $timestamp = $item["timestamp"];
@@ -337,18 +352,34 @@ class DiabetesData {
                 $date = DateTime::createFromFormat('Y-m-d\TH:i:s.v\Z', $item["created_at"]);
                 $timestamp = $date->format('Uv');
             }
-            if(!is_null($timestamp) && array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
+            if(is_null($timestamp)) {
+                continue;
+            }
+
+            //fetch possible data : insulin, carbs, notes
+            if(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
                 $type = 'unknown';
                 if(!empty($item["insulinInjections"])) {
                     $details = json_decode($item["insulinInjections"], true);
                     $type = $details[0]['insulin'];
                 }
-                //var_dump(round($item["timestamp"]/1000), date('Y-m-d H:i:s', $item["timestamp"]/1000));echo "<br/>";
-                $this->m_treatmentsData[$type][$timestamp] = $item["insulin"];
-            } /*else {
-                echo "<br/><br/><br/>";
-                var_dump($item);
-            }*/
+                $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
+            }
+            if(array_key_exists("carbs", $item) && is_numeric($item["carbs"])) {
+                $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];
+            }
+            if(array_key_exists("notes", $item) && !empty($item["notes"])) {
+                $filter = false;
+                foreach(config('diabetes.notes.filter') as $filterString) {
+                    if(strpos($item['notes'], $filterString) !== false) {
+                        $filter = true;
+                        break;
+                    }
+                }
+                if(!$filter) {
+                    $this->m_treatmentsData['notes'][$timestamp] = $item["notes"];
+                }
+            }
         }
     }
 

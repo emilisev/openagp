@@ -104,7 +104,6 @@ class AgpController extends BaseController {
         $data->computeTimeInRange();
         $data->computeAverage();
         $data->computeBloodGlucoseAgp();
-        $data->computeInsulinAgp(60 * 4);
         $data->prepareDailyData(30);
         //$data->smoothAgp([5 => 2, 25=> 3, 50 => 4, 75 => 3, 95 => 2]);
         $data->smoothAgp([5 => 1, 25 => 1, 50 => 1, 75 => 1, 95 => 1]);

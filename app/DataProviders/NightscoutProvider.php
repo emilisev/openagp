@@ -64,7 +64,7 @@ class NightscoutProvider {
             'query' => [
                 'find[created_at][$gte]' => $this->m_startDate->format('Y-m-d'),
                 'find[created_at][$lte]' => $this->m_endDate->format('Y-m-d'),
-                'find[insulin][$gt]' => 0,
+                //'find[insulin][$gt]' => 0,
                 //'find[enteredBy]'=>'xdrip',
                 'count' => 25000,
             ],

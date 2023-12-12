@@ -8,7 +8,7 @@ if($nextDay > time()) {
 }
 @endphp
 @section('content')
-<div class="card big-title">
+<div id="daily" class="card big-title">
     <header class="card-title">
         <a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
             {{ date('D d M',  $data->getBegin()) }}
@@ -17,12 +17,13 @@ if($nextDay > time()) {
         @endif
     </header>
     <content class="card-body container">
-        <div class="row justify-content-center">
+        <div class="row justify-content-center mb-2">
             @include('cards.average.square')
             @include('cards.variation.square')
-            <div id="time-in-range-chart" class="col-auto"></div>
-            <x-avgTimeInRange renderTo="time-in-range-chart" :data="$data" :height="130"/>
-            @include('cards.timeInRange.text', ['style' => 'light'])
+            <div id="time-in-range-chart" class="col-auto pe-0"></div>
+            <x-avgTimeInRange renderTo="time-in-range-chart" :data="$data"/>
+            {{--<div id="time-in-range">@include('cards.timeInRange.text')</div>--}}
+            @include('cards.timeInRange.text')
 
         </div>
         <div id="daily-chart" class="highcharts-light"></div>

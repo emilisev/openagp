@@ -16,5 +16,5 @@
         <p class="display-3 m-0">{{$data->getAverage()}}</p>
         <span>mg/dL</span>
     </div>
-    <span>Moyenne glycémie</span>
+    <span>Moy. glycémie</span>
 </div>

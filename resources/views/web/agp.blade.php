@@ -13,8 +13,8 @@
             </span>--}}
             <div class="row">
                 <div class="col-2" id="time-in-range-chart"></div>
-                <x-avgTimeInRange renderTo="time-in-range-chart" :data="$data" :height="180"/>
-                @include('cards.timeInRange.text')
+                <x-avgTimeInRange renderTo="time-in-range-chart" :data="$data"/>
+                @include('cards.timeInRange.text', ['style' => 'light'])
             </div>
             @include('cards.timeInRange.settings')
         </content>

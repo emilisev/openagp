@@ -6,5 +6,5 @@
     {{--<link rel="stylesheet" href="{{ URL::asset('css/app.css') }}"/>
     <link rel="stylesheet" href="{{ URL::asset('css/highcharts.css') }}"/>
     <script type="text/javascript" src="{{ URL::asset('js/app.js') }}"></script>--}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.scss', 'resources/js/app.js'])
 </head>

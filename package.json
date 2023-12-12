@@ -10,6 +10,7 @@
         "lodash": "^4.17.19",
         "postcss": "^8.1.14",
         "sass": "^1.69.5",
+        "scss": "^0.2.4",
         "vite": "^4.0.0"
     },
     "dependencies": {

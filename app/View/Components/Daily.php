@@ -100,7 +100,7 @@ class Daily extends HighChartsComponent {
         $chart->yAxis = [
             $this->getBloodGlucoseYAxis(),
         ];
-        $xAxis = $this->getBottomLabelledXAxis();
+        $xAxis = ['showLastLabel' => false] + $this->getBottomLabelledXAxis();
         $min = $this->m_data->getBegin();
         $max = $min + 60 * 60 * 24;
         $xAxis['min'] = $min * 1000;

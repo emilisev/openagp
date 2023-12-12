@@ -2,7 +2,7 @@
     /** @var $data \App\Models\DiabetesData */
     $targets = $data->getTargets();
 @endphp
-<div class="agp-target-settings">
+<div class="agp-target-settings d-none d-lg-block">
     <div class="range">
         <span class="range-label in-range-label">Plage cible&nbsp;:</span>
         <span class="in-range">{{ $targets['low'] }}-{{ $targets['high'] }} mg/dL</span>

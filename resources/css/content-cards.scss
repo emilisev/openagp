@@ -6,7 +6,7 @@
     --bs-card-title-spacer-y: 0;
 }
 
-@media (max-width: 500px) {
+@include media-breakpoint-up(md) {
     #main>.card {
         margin: 0;
     }

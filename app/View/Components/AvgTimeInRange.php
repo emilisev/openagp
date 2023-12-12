@@ -8,11 +8,15 @@ class AvgTimeInRange extends HighChartsComponent {
     protected int $m_minValTimeInRangeChart = 2;
 
     protected array $m_timeInRangeLabels =
-    ['veryHigh' => 'Très élevée', 'veryLow' => 'Très basse', 'high' => 'Élevée', 'low' => 'Basse', 'target' => 'Dans la plage'];
-
-
+        ['veryHigh' => 'Très élevée',
+            'veryLow' => 'Très basse',
+            'high' => 'Élevée',
+            'low' => 'Basse',
+            'target' => 'Dans la plage'];
 
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    /********************** PUBLIC METHODS *********************/
+/********************** PUBLIC METHODS *********************/
     /**
      * Get the view / contents that represent the component.
      */
@@ -24,6 +28,7 @@ class AvgTimeInRange extends HighChartsComponent {
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+//\t/********************** PRIVATE METHODS *********************/
     private function addBloodGlucoseSeries(Highchart $_chart) {
         $data = $this->m_data->getTimeInRangePercent();
         //var_dump($data);
@@ -39,7 +44,8 @@ class AvgTimeInRange extends HighChartsComponent {
                 'name' => $this->m_timeInRangeLabels[$label],
                 'data' => [$value],
                 'color' => config('colors.timeInRange.'.$label),
-                'enableMouseTracking' => false
+                'enableMouseTracking' => false,
+                'pointWidth' => 40,
             );
         }
     }
@@ -48,11 +54,25 @@ class AvgTimeInRange extends HighChartsComponent {
         $chart = $this->createDefaultChart();
         $chart->chart->type = "column";
         $chart->chart->showAxes = false;
-        $chart->chart->margin = 0;
-        $chart->chart->width = 70;
+        $chart->chart->marginLeft = 0;
+        $chart->chart->marginBottom = 0;
+        $chart->chart->width = 40;
         $chart->yAxis->max = 100;
         $chart->yAxis->visible = false;
         $chart->xAxis->visible = false;
+
+        /*$chart->responsive = [
+            'rules' => [
+                [
+                    'condition' => [
+                        'maxWidth' => 500
+                    ],
+                    'chartOptions' => [
+                        'height' => 10
+                    ]
+                ]
+            ]
+        ];*/
 
         $chart->plotOptions->series->stacking = "normal";
 

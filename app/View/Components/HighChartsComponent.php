@@ -27,6 +27,10 @@ abstract class HighChartsComponent extends Component {
         if(is_int($this->m_height)) {
             $chart->chart->height = $this->m_height;
         }
+        $chart->chart->marginTop = 0;
+        $chart->chart->marginRight = 0;
+        $chart->chart->marginLeft = 20;
+        $chart->chart->marginBottom = 20;
         $chart->plotOptions->series = ['enableMouseTracking' => false, 'marker' => ['enabled' => false]];
         $chart->tooltip->enabled = false;
         $chart->title->text = null;
@@ -68,10 +72,10 @@ abstract class HighChartsComponent extends Component {
     protected function getBloodGlucoseYAxis($_greenLineWidth = 2) {
         $targets = $this->m_data->getTargets();
         return [
-            'title' => ['text' => 'mg/dL', 'rotation' => 0, 'offset' => 10, 'align' => 'high', 'y' => 25, 'style' => ['fontSize' => '0.8rem']],
+            'title' => ['text' => 'mg/dL', 'rotation' => -90, 'offset' => 15, 'align' => 'high', 'y' => 25, 'style' => ['fontSize' => '0.8rem']],
             'id' => 'gloodGlucose-yAxis',
             'tickPositions' => [0, $targets['low'], $targets['high'], 350],
-            'offset' => 0,
+            'offset' => -10,
             'showFirstLabel' => false,
             'showLastLabel' => false,
             'plotLines' => [
@@ -122,6 +126,7 @@ abstract class HighChartsComponent extends Component {
             'type' => 'datetime',
             'labels' => [
                 'format' => '{value:%H:%M}',
+                'distance' => 5
             ],
             'gridLineWidth' => 2,
             'tickInterval' => 3 * 60 * 60 * 1000,

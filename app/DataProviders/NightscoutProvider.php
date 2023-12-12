@@ -13,6 +13,8 @@ class NightscoutProvider {
      */
     private $m_actualEndDate;
 
+    private $m_actualStartDate;
+
     private $m_apiSecret;
     private $m_endDate;
     private $m_startDate;
@@ -31,6 +33,7 @@ class NightscoutProvider {
         $this->m_startDate = clone($_startDate);
         $this->m_endDate = clone($_endDate);
         $this->m_actualEndDate = $_endDate;
+        $this->m_actualStartDate = $_startDate;
 
         //add 1 day before and after to recompute with time offset
         $this->m_startDate->sub(new \DateInterval('P1D'));
@@ -42,8 +45,8 @@ class NightscoutProvider {
         $url = $this->m_url.'api/v1/entries.json';
         $params = [
             'query' => [
-                'find[dateString][$gte]' => $this->m_startDate->format('Y-m-d'),
-                'find[dateString][$lte]' => $this->m_endDate->format('Y-m-d'),
+                'find[date][$gte]' => $this->m_actualStartDate->format('U')*1000,
+                'find[date][$lte]' => $this->m_actualEndDate->format('U')*1000,
                 'count' => 25000,
             ],
         ];
@@ -98,6 +101,4 @@ class NightscoutProvider {
         $result = json_decode($data, true);
         return $result;
     }
-
-
 }

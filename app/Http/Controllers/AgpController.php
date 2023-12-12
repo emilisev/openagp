@@ -72,7 +72,6 @@ class AgpController extends BaseController {
             $endDate = DateTime::createFromFormat('d/m/Y H:i:s', '04/11/2023 23:59:00');*/
 
             $nightscoutProvider = new NightscoutProvider($url, $apiSecret, $startDateObject, $endDateObject);
-
             $date2 = microtime(true);
             $rawData = ['bloodGlucose' => $nightscoutProvider->fetchEntries()];
             $date2b = microtime(true);

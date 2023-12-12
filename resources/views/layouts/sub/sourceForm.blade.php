@@ -1,11 +1,16 @@
 @php
     use Jenssegers\Agent\Agent;
     $agent = new Agent();
+
+$formAction = Request::route()->getName();
+if(strpos($formAction, 'generated') === 0) {
+	$formAction = ($agent->isMobile()?'/daily':'/agp');
+}
 @endphp
 <div id="form" class="card">
     <header><span>Source</span></header>
     <content>
-        <form method="POST" action="{{ Request::route()->getName()?? ($agent->isMobile()?'/daily':'/agp') }}">
+        <form method="POST" action="{{ $formAction  }}">
             @csrf
             <div class="form-floating mb-3">
                 <input id="url" name="url"

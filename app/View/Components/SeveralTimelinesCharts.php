@@ -184,8 +184,17 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
 
     protected function createChart(int $_timelinesCount): Highchart {
         $chart = $this->createDefaultChart();
-        $chart->plotOptions->series->enableMouseTracking = false;
+        $chart->tooltip = ['shared' => false];
         $chart->chart->height = ($_timelinesCount * 100) + 50;
+
+        $chart->plotOptions->series->point = [
+            'events' => [
+                'click' => new HighchartJsExpr(
+                "function() {
+                    window.location.href = '/daily?day='+(moment(this.x).format('DD/MM/YYYY'));
+                }")
+            ]
+        ];
 
         return $chart;
     }

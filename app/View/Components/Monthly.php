@@ -11,7 +11,7 @@ class Monthly extends SeveralTimelinesCharts {
      * Get the view / contents that represent the component.
      */
     public function render() {
-        $months = max(floor(($this->m_data->getEnd() - $this->m_data->getBegin()) / (60 * 60 * 24 * 30)));
+        $months = max(1, floor(($this->m_data->getEnd() - $this->m_data->getBegin()) / (60 * 60 * 24 * 30)));
         $start = strtotime("midnight +1day -$months months", $this->m_data->getEnd());
         //var_dump("start", date('Y-m-d H:i:s', $start));
 

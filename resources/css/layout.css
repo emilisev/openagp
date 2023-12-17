@@ -5,7 +5,7 @@
 }
 
 @media print {
-    #form, header.menu { display:none;}
+    #form, body>header, footer { display:none;}
 }
 
 html, body {

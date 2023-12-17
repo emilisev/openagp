@@ -11,7 +11,7 @@ if($nextDay > time()) {
 <div id="daily" class="card big-title">
     <header class="card-title">
         <a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
-            {{ date('D d M',  $data->getBegin()) }}
+            {{ $dateFormatter->format($data->getBegin()) }}
         @if(isset($nextDay))
             <a href="?day={{ date('d/m/Y',  $nextDay) }}"><i class="bi bi-caret-right-fill"></i></a>
         @endif

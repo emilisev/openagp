@@ -11,6 +11,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Models\DiabetesData;
 use Illuminate\Support\Facades\Request;
+use IntlDateFormatter;
 
 class AgpController extends BaseController {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
@@ -116,13 +117,20 @@ class AgpController extends BaseController {
         var_dump('1 => 5', );*/
         $times = ['total' => round(($date5 * 1000 - $date1 * 1000)) / 1000, 'network' => round(($date3 * 1000 - $date2 * 1000)) / 1000];
         //var_dump(Route::currentRouteName());
+        $dateFormatter = new IntlDateFormatter(
+            'fr_FR',
+            IntlDateFormatter::FULL,
+            IntlDateFormatter::NONE
+        );
+
         return view(
             'web.'.Request::route()->getName(),
             [
                 'data' => $data,
                 'chart' => $chart,
                 'formDefault' => ['startDate' => $startDate, 'endDate' => $endDate],
-                'times' => $times
+                'times' => $times,
+                'dateFormatter' => $dateFormatter
             ]);
     }
 }

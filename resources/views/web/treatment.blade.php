@@ -1,7 +1,7 @@
 @extends('layouts.mainlayout')
 @php /** @var App\Models\DiabetesData $data */ @endphp
 @section('content')
-    <h1>Traitement</h1>
+    <h1>Traitements</h1>
     @include('layouts.sub.reportDate')
     <div id="treatment" class="card">
         <header class="card-title">Glycémie et traitements</header>

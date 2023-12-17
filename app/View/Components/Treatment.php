@@ -8,12 +8,22 @@ use StringToColor\StringToColor;
 
 class Treatment extends HighChartsComponent {
 
+    private array $m_bgData;
+
     private $m_dataStartPoint = null;
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /**
      * Get the view / contents that represent the component.
      */
     public function render() {
+
+        $statComputer = new StatisticsComputer();
+        $data = $this->m_data->getBloodGlucoseData();
+        $this->m_bgData = $statComputer->computeAverage($data, 60 * 60 * 24);
+        $this->m_dataStartPoint = array_key_first($this->m_bgData);
+        ksort($this->m_bgData);
+
+
         $chart = $this->createChart();
         $this->addBloodGlucoseSeries($chart);
         $this->addTreatmentsSeries($chart);
@@ -32,15 +42,9 @@ class Treatment extends HighChartsComponent {
      * @param float $_weeklyGraphHeight
      */
     private function addBloodGlucoseSeries(Highchart $_chart): void {
-        $statComputer = new StatisticsComputer();
-        $data = $this->m_data->getBloodGlucoseData();
-        $data = $statComputer->computeAverage($data, 60 * 60 * 24);
-        $this->m_dataStartPoint = array_key_first($data);
-        ksort($data);
-        //prepare data
         $_chart->series[] = [
             'type' => 'line',
-            'data' => $this->formatTimeDataForChart($data),
+            'data' => $this->formatTimeDataForChart($this->m_bgData),
             'zones' => $this->getDefaultZones(),
             'lineWidth' => 2,
             //'marker' => ['enabled' => true, 'radius' => 1,]
@@ -70,6 +74,7 @@ class Treatment extends HighChartsComponent {
         $stringToColor = new StringToColor();
         $sums = [];
         $series = [];
+        $plotLines = [];
         foreach ($data as $type => $datum) {
             $datum = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
             foreach($datum as $key => $value) {
@@ -86,6 +91,9 @@ class Treatment extends HighChartsComponent {
                 'data' => $this->formatTimeDataForChart($datum),
                 'yAxis' => 'insulin-yAxis',
             ];
+            $avgInsulin = round((array_sum($datum)/count($datum))*10)/10;
+            $plotLines[] = ['value' => last($datum), 'width' => 0, 'zIndex' => 1000, 'label' =>
+                ['align' => 'right', 'x' => 25, 'text' => "$type<br/>{$avgInsulin}UI"]];
         }
         $max = max($sums);
         //place insulin type with less quantity at bottom
@@ -95,20 +103,23 @@ class Treatment extends HighChartsComponent {
                 $_chart->series[] = $serie;
             }
         }
-        $_chart->yAxis[] = ['visible' => false, 'tickPositions' => [0, $max * 3]] + $this->getTreatmentYAxis();
+        $_chart->yAxis[] = ['tickPositions' => [0, $max * 3], 'plotLines' => $plotLines] + $this->getTreatmentYAxis();
     }
 
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
         $chart->chart->marginBottom = 30;
+        $chart->chart->marginRight = 50;
 
-        $chart->yAxis = [
-            $this->getBloodGlucoseYAxis(),
-        ];
+        $bloodGlucoseYAxis = $this->getBloodGlucoseYAxis();
+        $avgBG = array_sum($this->m_bgData) / count($this->m_bgData);
+        $bloodGlucoseYAxis['plotLines'][] = ['value' => last($this->m_bgData), 'width' => 0, 'zIndex' => 1000, 'label' =>
+            ['align' => 'right', 'x' => 25, 'text' => 'Moy. gly.<br/>'.round($avgBG).'<br/>mg/dL']];
+
+        $chart->yAxis = [$bloodGlucoseYAxis];
         $xAxis = [
             'labels' => [
                 'format' => '{value:%d/%m}',
-                'distance' => 5
             ],
             'tickInterval' => 7 * 24 * 60 * 60 * 1000,
         ] + $this->getBottomLabelledXAxis();

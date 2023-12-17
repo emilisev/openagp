@@ -2,7 +2,7 @@ nav li {
     margin : 0 20px;
 }
 
-nav li.active {
+nav li.exact-active {
     font-weight: bold;
 }
 
@@ -10,7 +10,7 @@ nav a {
     text-decoration: none;
     font-size: 1.5em;
 }
-nav li.active a {
+nav li.exact-active a {
     text-decoration:underline;
 }
 #navbar {

@@ -1,7 +1,7 @@
 @extends('layouts.mainlayout')
 @php /** @var App\Models\DiabetesData $data */ @endphp
 @section('content')
-    <h1>Semainier</h1>
+    <h1>Hebdo</h1>
     @include('layouts.sub.reportDate')
     <div id="weekly" class="card">
         <header class="card-title">Profil glycémique hebdomadaire</header>

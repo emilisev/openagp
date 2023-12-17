@@ -17,9 +17,15 @@ use App\Http\Controllers\AgpController;
 */
 Route::view('/', 'web.welcome');
 Route::any('/agp', [AgpController::class, 'view'])->name('agp');
+Route::any('/timeInRange', [AgpController::class, 'view'])->name('timeInRange');
+Route::any('/treatment', [AgpController::class, 'view'])->name('treatment');
+
 Route::any('/daily', [AgpController::class, 'view'])->name('daily');
 Route::any('/weekly', [AgpController::class, 'view'])->name('weekly');
-Route::any('/timeInRange', [AgpController::class, 'view'])->name('timeInRange');
+Route::any('/monthly', [AgpController::class, 'view'])->name('monthly');
+
+
+
 Route::any('/user', [UserController::class, 'view'])->name('user');
 Route::any('/logout', [UserController::class, 'logout'])->name('logout');
 

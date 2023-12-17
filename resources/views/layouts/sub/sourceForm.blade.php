@@ -2,7 +2,7 @@
     use Jenssegers\Agent\Agent;
     $agent = new Agent();
 
-$formAction = Request::route()->getName();
+$formAction = Request::route()->getName()??($agent->isMobile()?'/daily':'/agp');
 if(strpos($formAction, 'generated') === 0) {
 	$formAction = ($agent->isMobile()?'/daily':'/agp');
 }

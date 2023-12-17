@@ -64,6 +64,8 @@ class DailyTimeInRange extends HighChartsComponent {
         $chart = $this->createDefaultChart();
         $chart->chart->type = "bar";
         $chart->plotOptions->series->stacking = "percent";
+        $chart->chart->marginLeft = 90;
+        $chart->chart->marginBottom = 40;
 
         $categories = [];
         $data = $this->m_data->getDailyTimeInRange();

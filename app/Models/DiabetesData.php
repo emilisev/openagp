@@ -264,14 +264,15 @@ class DiabetesData {
         return $this->m_cgmActivePercent;
     }
 
-    public function getDailyDataByWeek(int $_weekBackCount) {
-        $maxDate = new DateTime();
-        $maxDate->setTimestamp($this->m_end);
-        $maxDate->modify("midnight + 1day");
-        $minDate = clone($maxDate);
-        $minDate->modify("-$_weekBackCount weeks midnight");
-        $middleDate = clone($minDate);
-        $middleDate->modify('+1 week midnight');
+	public function getDailyDataByMonth(int $_monthBackCount) {
+        list($minDate, $middleDate) = $this->computeDatesForMonth($_monthBackCount);
+        /*echo "<hr/>";
+        var_dump($minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
+        return DiabetesData::filterData($this->m_bloodGlucoseDataByRoundedTime, $minDate->format('U'), $middleDate->format('U'));
+	}
+
+	public function getDailyDataByWeek(int $_weekBackCount) {
+        list($minDate, $middleDate) = $this->computeDatesForWeek($_weekBackCount);
         /*echo "<hr/>";
         var_dump($minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
         return DiabetesData::filterData($this->m_bloodGlucoseDataByRoundedTime, $minDate->format('U'), $middleDate->format('U'));
@@ -291,20 +292,15 @@ class DiabetesData {
         return $this->m_dailyTimeInRangePercent;
     }
 
+    public function getDailyTreatmentsByMonth(int $_monthBackCount) {
+        list($minDate, $middleDate) = $this->computeDatesForMonth($_monthBackCount);
+        $result = $this->filterTreatementsData($minDate, $middleDate);
+        return $result;
+    }
+
     public function getDailyTreatmentsByWeek(int $_weekBackCount) {
-        $maxDate = new DateTime();
-        $maxDate->setTimestamp($this->m_end);
-        $maxDate->modify("midnight + 1day");
-        $minDate = clone($maxDate);
-        $minDate->modify("-$_weekBackCount weeks midnight");
-        $middleDate = clone($minDate);
-        $middleDate->modify('+1 week midnight');
-        $result = [];
-        foreach($this->m_treatmentsData['insulin'] as $type => $values) {
-            $result['insulin'][$type] = DiabetesData::filterData($values, $minDate->format('U'), $middleDate->format('U'));
-        }
-        $result['carbs'] = DiabetesData::filterData($this->m_treatmentsData['carbs'], $minDate->format('U'), $middleDate->format('U'));
-        $result['notes'] = DiabetesData::filterData($this->m_treatmentsData['notes'], $minDate->format('U'), $middleDate->format('U'));
+        list($minDate, $middleDate) = $this->computeDatesForWeek($_weekBackCount);
+        $result = $this->filterTreatementsData($minDate, $middleDate);
         /*echo "<hr/>";
         var_dump($result, $minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
         return $result;
@@ -381,6 +377,8 @@ class DiabetesData {
                 if(!empty($item["insulinInjections"])) {
                     $details = json_decode($item["insulinInjections"], true);
                     $type = $details[0]['insulin'];
+                } elseif(!empty($item["notes"])) {
+                    $type = $item["notes"];
                 }
                 $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
             }
@@ -495,6 +493,37 @@ class DiabetesData {
 
     }
 
+    /**
+     * @param int $_monthBackCount
+     * @return DateTime[]
+     */
+    private function computeDatesForMonth(int $_monthBackCount): array {
+        $days = $_monthBackCount * 30;
+        $maxDate = new DateTime();
+        $maxDate->setTimestamp($this->m_end);
+        $maxDate->modify("midnight + 1day");
+        $minDate = clone($maxDate);
+        $minDate->modify("-$days days midnight");
+        $middleDate = clone($minDate);
+        $middleDate->modify('+30 days midnight');
+        return array($minDate, $middleDate);
+    }
+
+    /**
+     * @param int $_weekBackCount
+     * @return DateTime[]
+     */
+    private function computeDatesForWeek(int $_weekBackCount): array {
+        $maxDate = new DateTime();
+        $maxDate->setTimestamp($this->m_end);
+        $maxDate->modify("midnight + 1day");
+        $minDate = clone($maxDate);
+        $minDate->modify("-$_weekBackCount weeks midnight");
+        $middleDate = clone($minDate);
+        $middleDate->modify('+1 week midnight');
+        return array($minDate, $middleDate);
+    }
+
     private function computeStandardDeviation($_array): float {
         $count = count($_array);
         $variance = 0.0;
@@ -507,6 +536,23 @@ class DiabetesData {
         }
 
         return sqrt($variance / $count);
+    }
+
+    /**
+     * @param DateTime $minDate
+     * @param DateTime $middleDate
+     * @return array
+     */
+    private function filterTreatementsData(DateTime $minDate, DateTime $middleDate): array {
+        $result = [];
+        foreach($this->m_treatmentsData['insulin'] as $type => $values) {
+            $result['insulin'][$type] = DiabetesData::filterData($values, $minDate->format('U'), $middleDate->format('U'));
+        }
+        $result['carbs'] = DiabetesData::filterData($this->m_treatmentsData['carbs'], $minDate->format('U'), $middleDate->format('U'));
+        $result['notes'] = DiabetesData::filterData($this->m_treatmentsData['notes'], $minDate->format('U'), $middleDate->format('U'));
+        return $result;
+        /*echo "<hr/>";
+        var_dump($result, $minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
     }
 
     private function getInjectionsCountByTimespan(int $_secondsBetweenInjections, array $_treatments): array {

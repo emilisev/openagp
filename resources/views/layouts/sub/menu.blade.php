@@ -1,7 +1,7 @@
 @php
     use Spatie\Menu\Laravel\Link;
     use Spatie\Menu\Laravel\Menu;
-    use Jenssegers\Agent\Agent;use Spatie\Menu\Laravel\View;
+    use Jenssegers\Agent\Agent;
 
     class CustomMenu extends Menu {
         function addMenuLink(Link $_link) {
@@ -13,11 +13,16 @@
     $agent = new Agent();
     $menu
     //->add(View::create('layouts.sub.formcalendar')->addParentClass('nav-item'))
-    ->addMenuLink(Link::toUrl('/agp', 'AGP'))
-    ->addMenuLink(Link::toUrl('/daily', 'Quotidien'))
-    ->addMenuLink(Link::toUrl('/weekly', 'Semainier'))
-    ->addMenuLink(Link::toUrl('/timeInRange', 'Temps dans la cible'))
-    ;
+    ->submenu('Statistiques', CustomMenu::new()->addClass('nav')->addClass('flex-column')
+        ->addMenuLink(Link::toUrl('/agp', 'AGP'))
+        ->addMenuLink(Link::toUrl('/timeInRange', 'Temps dans la cible'))
+        ->addMenuLink(Link::toUrl('/treatment', 'Traitements'))
+    )
+    ->submenu('Profil détaillé', CustomMenu::new()->addClass('nav')->addClass('flex-column')
+        ->addMenuLink(Link::toUrl('/daily', 'Quotidien'))
+        ->addMenuLink(Link::toUrl('/weekly', 'Hebdo'))
+        ->addMenuLink(Link::toUrl('/monthly', 'Mensuel'))
+    );
 
     /*$menu->url('/login', "Se connecter");
     $menu->url('/register', "Créer un compte");*/

@@ -15,7 +15,7 @@ class Agp extends HighChartsComponent {
     public function render() {
         $chart = $this->createChart();
         $this->addBloodGlucoseSeries($chart);
-        $this->addStackedGradiantTreatmentSeries($chart);
+        //$this->addStackedGradiantTreatmentSeries($chart);
         echo '<script type="module">'.$chart->render().'</script>';
     }
 
@@ -203,16 +203,25 @@ class Agp extends HighChartsComponent {
 
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
+        $chart->chart->marginRight = 40;
         $xAxis = $this->getBottomLabelledXAxis();
         $xAxis['min'] = strtotime('midnight') * 1000;
         $xAxis['max'] = (strtotime('midnight') + 60 * 60 *24 )* 1000;
         $chart->xAxis = $xAxis;
         $treatmentYAxis = $this->getTreatmentYAxis();
-        $treatmentYAxis['stackLabels'] = ['enabled' => true];
-        $chart->yAxis = [
-            $this->getBloodGlucoseYAxis(), $treatmentYAxis
-        ];
+        $treatmentYAxis['visible'] = false;
+        //$treatmentYAxis['stackLabels'] = ['enabled' => true];
 
+        //percentTicks
+        $data = $this->m_data->getAgpData();
+        $bloodGlucoseYAxis = $this->getBloodGlucoseYAxis();
+        $bloodGlucoseYAxis['plotLines'][] = ['value' => last($data[5]), 'width' => 0, 'zIndex' => 1000, 'label' => ['align' => 'right', 'x' => 25, 'text' => '5%']];
+        $bloodGlucoseYAxis['plotLines'][] = ['value' => last($data[25]), 'width' => 0, 'zIndex' => 1000, 'label' => ['align' => 'right', 'x' => 25, 'text' => '25%']];
+        $bloodGlucoseYAxis['plotLines'][] = ['value' => last($data[50]), 'width' => 0, 'zIndex' => 1000, 'label' => ['align' => 'right', 'x' => 25, 'text' => '50%']];
+        $bloodGlucoseYAxis['plotLines'][] = ['value' => last($data[75]), 'width' => 0, 'zIndex' => 1000, 'label' => ['align' => 'right', 'x' => 25, 'text' => '75%']];
+        $bloodGlucoseYAxis['plotLines'][] = ['value' => last($data[95]), 'width' => 0, 'zIndex' => 1000, 'label' => ['align' => 'right', 'x' => 25, 'text' => '95%']];
+
+        $chart->yAxis = [$bloodGlucoseYAxis, $treatmentYAxis];
         return $chart;
     }
 
@@ -228,7 +237,8 @@ class Agp extends HighChartsComponent {
         foreach (array_keys($data[50]) as $index) {
             $microTime = getTodayTimestampFromTimeInMicroSeconds($index);
             $outerSerie[] = [$microTime, $data[5][$index], $data[95][$index]];
-            $innerSerie[] = [$microTime, $data[25][$index], max($data[75][$index], min($data[95][$index], $targets['high']))];
+            //$innerSerie[] = [$microTime, $data[25][$index], max($data[75][$index], min($data[95][$index], $targets['high']))];
+            $innerSerie[] = [$microTime, $data[25][$index], $data[75][$index]];
             $middleSerie[] = [$microTime, $data[50][$index]];
         }
         /*echo "<pre>";

@@ -26,6 +26,7 @@ class Daily extends HighChartsComponent {
         //prepare data
         $_chart->series[] = [
             'type' => 'line',
+            'name' => 'Glycémie',
             'data' => $this->formatTimeDataForChart($data),
             'zones' => $this->getDefaultZones(),
             'lineWidth' => 2,
@@ -64,6 +65,7 @@ class Daily extends HighChartsComponent {
         $stringToColor = new StringToColor();
         $_chart->series[] = [
             'type' => 'column',
+            'name' => 'Glucides',
             'color' => $stringToColor->handle('carbs'),
             'data' => $dataForChart,
             'yAxis' => 'carbs-yAxis',
@@ -82,6 +84,7 @@ class Daily extends HighChartsComponent {
         $stringToColor = new StringToColor();
         foreach ($data as $type => $datum) {
             $_chart->series[] = [
+                'name' => $type,
                 'type' => 'column',
                 'color' => $stringToColor->handle($type),
                 'data' => $this->formatTimeDataForChart($datum),

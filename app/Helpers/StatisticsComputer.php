@@ -8,7 +8,7 @@ class StatisticsComputer {
         $arrayValues = $this->gatherDataByTimespan($_spanInSeconds, $_data, $_startPoint);
         $result = [];
         foreach($arrayValues as $key => $values) {
-            $result[$key] = array_sum($values) / count($values);
+            $result[$key] = round(array_sum($values) / count($values) *10)/10;
         }
         return $result;
     }

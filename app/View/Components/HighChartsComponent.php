@@ -31,8 +31,9 @@ abstract class HighChartsComponent extends Component {
         $chart->chart->marginRight = 0;
         $chart->chart->marginLeft = 20;
         $chart->chart->marginBottom = 20;
-        $chart->plotOptions->series = ['enableMouseTracking' => false, 'marker' => ['enabled' => false]];
-        $chart->tooltip->enabled = false;
+        $chart->plotOptions->series = ['marker' => ['enabled' => false]];
+        //$chart->tooltip->enabled = false;
+        $chart->tooltip = ['shared' => true];
         $chart->title->text = null;
         $chart->legend = ['enabled' => false];
         $chart->time->timezoneOffset = -60;

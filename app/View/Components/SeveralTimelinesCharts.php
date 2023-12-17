@@ -51,6 +51,7 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
             $y_AxisBase;
         $_chart->series[] = [
             'type' => 'line',
+            'name' => 'Glycémie',
             'data' => $dataForChart,
             'dataLabels' => [
                 'enabled' => true,
@@ -100,6 +101,7 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
 
         $_chart->series[] = [
             'type' => 'column',
+            'name' => 'Glucides',
             'color' => $stringToColor->handle('carbs'),
             'data' => $this->formatTimeDataForChart($_data),
             'yAxis' => 'carbs-yAxis'.$_yAxisNumber,
@@ -141,6 +143,7 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
             $dataForChart = $this->formatTimeDataForChart($datum);
             $_chart->series[] = [
                 'type' => 'column',
+                'name' => $type,
                 'color' => $stringToColor->handle($type),
                 'data' => $dataForChart,
                 'xAxis' => $_xAxisNumber,
@@ -181,6 +184,7 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
 
     protected function createChart(int $_timelinesCount): Highchart {
         $chart = $this->createDefaultChart();
+        $chart->plotOptions->series->enableMouseTracking = false;
         $chart->chart->height = ($_timelinesCount * 100) + 50;
 
         return $chart;

@@ -250,6 +250,7 @@ class Agp extends HighChartsComponent {
         $_chart->series[] = [
             'type' => 'areasplinerange',
             'data' => $outerSerie,
+            'name' => '5% - 95%',
             'zones' => [
                 [
                     'className' => 'outer-low',
@@ -275,6 +276,7 @@ class Agp extends HighChartsComponent {
         $_chart->series[] = [
             'type' => 'areasplinerange',
             'data' => $innerSerie,
+            'name' => '25% - 75%',
             'zones' => [
                 [
                     'className' => 'inner-low',
@@ -300,6 +302,7 @@ class Agp extends HighChartsComponent {
         $_chart->series[] = [
             'type' => 'spline',
             'data' => $middleSerie,
+            'name' => 'Glycémie moyenne',
             'lineWidth' => 3,
             'zones' => [
                 [

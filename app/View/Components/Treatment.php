@@ -44,6 +44,7 @@ class Treatment extends HighChartsComponent {
     private function addBloodGlucoseSeries(Highchart $_chart): void {
         $_chart->series[] = [
             'type' => 'line',
+            'name' => "Glycémie",
             'data' => $this->formatTimeDataForChart($this->m_bgData),
             'zones' => $this->getDefaultZones(),
             'lineWidth' => 2,
@@ -86,6 +87,7 @@ class Treatment extends HighChartsComponent {
             }
             $series[array_sum($datum)][] = [
                 'type' => 'area',
+                'name' => $type,
                 'stacking' => 'normal',
                 'color' => $stringToColor->handle($type),
                 'data' => $this->formatTimeDataForChart($datum),

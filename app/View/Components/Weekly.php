@@ -13,11 +13,7 @@ class Weekly extends SeveralTimelinesCharts {
      * Get the view / contents that represent the component.
      */
     public function render() {
-        if(Request::route()->getName() == 'agp') {
-            $weeks = 2;
-        } else {
-            $weeks = ceil(($this->m_data->getEnd() - $this->m_data->getBegin()) / (60 * 60 * 24 * 7));
-        }
+        $weeks = ceil(($this->m_data->getEnd() - $this->m_data->getBegin()) / (60 * 60 * 24 * 7));
         $start = strtotime("midnight +1day -$weeks weeks", $this->m_data->getEnd());
         //var_dump("start", date('Y-m-d H:i:s', $start));
         //prepare plotLines

@@ -31,6 +31,8 @@ class DiabetesData {
      */
     private float $m_gmi;
 
+    private bool $m_hasBasalTreatment = false;
+
     private array $m_insulinAgpData = [];
 
     private array $m_rawData;
@@ -80,8 +82,6 @@ class DiabetesData {
         $this->m_cgmActivePercent = count($this->m_bloodGlucoseData) * 100 / $potentialDataCount;
     }
 
-    /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
     public function computeBloodGlucoseAgp(): void {
         $incrementInSeconds = $this->m_agpStepInMinutes * 60;
         $dataByIncrement = [];
@@ -112,6 +112,8 @@ class DiabetesData {
         }
         $this->m_diabetesAgpData = $dataByCentile;
     }
+
+    /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
     public function computeInsulinAgp(int $_minutesBetweenInjections): void {
         //echo "<pre>";
@@ -212,16 +214,16 @@ class DiabetesData {
         //extrapolate missing data or set null to prevent straight lignes in graph
         $countSinceLastNull = 0;
         foreach($this->m_bloodGlucoseData as $time => $value) {
-            $countSinceLastNull ++;
+            $countSinceLastNull++;
             if(isset($previousTime) && $time - (15 * self::__1MINUTE) > $previousTime) {
                 $this->m_bloodGlucoseData[$previousTime + round(($time - $previousTime) / 2)] = null;
                 if($countSinceLastNull < 2) {
-                    $this->m_bloodGlucoseData[$previousTime+self::__1SECOND] = $this->m_bloodGlucoseData[$previousTime];
+                    $this->m_bloodGlucoseData[$previousTime + self::__1SECOND] = $this->m_bloodGlucoseData[$previousTime];
                 }
                 $countSinceLastNull = 0;
             } elseif(isset($previousTime) && $time - (9 * self::__1MINUTE) > $previousTime) {
                 $this->m_bloodGlucoseData[$previousTime + round(($time - $previousTime) / 2)] =
-                    ($value + $this->m_bloodGlucoseData[$previousTime])/2;
+                    ($value + $this->m_bloodGlucoseData[$previousTime]) / 2;
             }
             $previousTime = $time;
         }
@@ -264,14 +266,14 @@ class DiabetesData {
         return $this->m_cgmActivePercent;
     }
 
-	public function getDailyDataByMonth(int $_monthBackCount) {
+    public function getDailyDataByMonth(int $_monthBackCount) {
         list($minDate, $middleDate) = $this->computeDatesForMonth($_monthBackCount);
         /*echo "<hr/>";
         var_dump($minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
         return DiabetesData::filterData($this->m_bloodGlucoseDataByRoundedTime, $minDate->format('U'), $middleDate->format('U'));
-	}
+    }
 
-	public function getDailyDataByWeek(int $_weekBackCount) {
+    public function getDailyDataByWeek(int $_weekBackCount) {
         list($minDate, $middleDate) = $this->computeDatesForWeek($_weekBackCount);
         /*echo "<hr/>";
         var_dump($minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
@@ -337,11 +339,18 @@ class DiabetesData {
         return $this->m_variation;
     }
 
+    /**
+     * @return bool
+     */
+    public function hasBasalTreatment(): bool {
+        return $this->m_hasBasalTreatment;
+    }
+
     public function parse(): void {
         //echo "<pre>";
         foreach($this->m_rawData['bloodGlucose'] as $item) {
             //erase duplicates by rounding to minute + transform timestamp to microTimestamp
-            $microTimestamp = floor(($item["date"] + $this->m_utcOffset) / (5*self::__1MINUTE)) * (5*self::__1MINUTE);
+            $microTimestamp = floor(($item["date"] + $this->m_utcOffset) / (5 * self::__1MINUTE)) * (5 * self::__1MINUTE);
             /*if(array_key_exists($microTimestamp, $this->m_bloodGlucoseData)) {
                 var_dump(
                     "override value", readableTime($microTimestamp),
@@ -363,6 +372,8 @@ class DiabetesData {
             $timestamp = null;
             if(array_key_exists("timestamp", $item)) {
                 $timestamp = $item["timestamp"];
+            } elseif(array_key_exists("srvCreated", $item)) {
+                $timestamp = $item["srvCreated"];
             } elseif(array_key_exists("created_at", $item)) {
                 $date = DateTime::createFromFormat('Y-m-d\TH:i:s.v\Z', $item["created_at"]);
                 $timestamp = $date->format('Uv');
@@ -372,12 +383,27 @@ class DiabetesData {
             }
 
             //fetch possible data : insulin, carbs, notes
-            if(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
+            if(@$item["pumpType"] == "OMNIPOD_DASH" || @$item["enteredBy"] == "freeaps-x") { //pumps
+                $this->m_hasBasalTreatment = true;
+                $type = $item["eventType"];
+                if(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
+                    $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
+                } elseif(array_key_exists("rate", $item) && is_numeric($item["rate"])) {
+                    $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["rate"];
+                }/* else {
+                    var_dump($item);
+                }*/
+                if(array_key_exists("durationInMilliseconds", $item)) { //omnipod
+                    $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["durationInMilliseconds"];
+                } elseif(array_key_exists("duration", $item)) {
+                    $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["duration"] * self::__1MINUTE;
+                }
+            } elseif(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
                 $type = 'unknown';
-                if(!empty($item["insulinInjections"])) {
+                if(!empty($item["insulinInjections"])) { //sync pen in xdrip
                     $details = json_decode($item["insulinInjections"], true);
                     $type = $details[0]['insulin'];
-                } elseif(!empty($item["notes"])) {
+                } elseif(!empty($item["notes"])) { //manually entered in xdrip
                     $type = $item["notes"];
                 }
                 $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
@@ -398,6 +424,8 @@ class DiabetesData {
                 }
             }
         }
+        /*echo "<pre>";
+        var_dump($this->m_treatmentsData['insulin']);*/
     }
 
     public function prepareDailyData(int $_increment): void {

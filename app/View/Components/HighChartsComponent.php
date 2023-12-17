@@ -136,10 +136,14 @@ abstract class HighChartsComponent extends Component {
         ];
     }
 
-    protected function formatTimeDataForChart($_data) {
+    protected function formatTimeDataForChart($_data, $_width = null) {
         $dataForChart = [];
         foreach ($_data as $key => $value) {
-            $dataForChart[] = [$key, $value];
+            if(!empty($_width) && array_key_exists($key, $_width) && !empty($_width[$key])) {
+                $dataForChart[] = [$key, $value, $_width[$key]];
+            } else {
+                $dataForChart[] = [$key, $value];
+            }
         }
         return $dataForChart;
     }

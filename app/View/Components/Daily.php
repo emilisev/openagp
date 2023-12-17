@@ -83,15 +83,25 @@ class Daily extends HighChartsComponent {
         $_chart->yAxis[] = ['visible' => false] + $this->getTreatmentYAxis();
         $stringToColor = new StringToColor();
         foreach ($data as $type => $datum) {
+            $serieType = 'column';
+            $basal = false;
+            if($this->m_data->hasBasalTreatment() && $type == 'Temp Basal') {
+                if(!empty(@$this->m_data->getTreatmentsData()['insulinDuration'][$type])) {
+                    $serieType = 'variwide';
+                }
+                $basal = true;
+            }
             $_chart->series[] = [
                 'name' => $type,
-                'type' => 'column',
+                'type' => $serieType,
                 'color' => $stringToColor->handle($type),
-                'data' => $this->formatTimeDataForChart($datum),
+                'data' => $this->formatTimeDataForChart($datum, @$this->m_data->getTreatmentsData()['insulinDuration'][$type]),
                 'yAxis' => 'insulin-yAxis',
+                'borderColor' => $basal?$stringToColor->handle($type):'white',
+                'borderRadius' => $basal?0:3,
                 'pointRange' => 60 * 60 * 1000, //largeur
-                'opacity' => 1,
-                'dataLabels' => ['enabled' => true, 'format' => '{y}UI']
+                'dataLabels' => ['enabled' => !$basal, 'format' => '{y}UI'],
+                'zIndex' => $basal?1:2
             ];
         }
     }

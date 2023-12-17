@@ -1,7 +1,14 @@
-@php /** @var App\Models\DiabetesData $data */ @endphp
+@php /** @var App\Models\DiabetesData $data */
+
+$fmt = new IntlDateFormatter(
+    'fr_FR',
+    IntlDateFormatter::FULL,
+    IntlDateFormatter::NONE
+);
+@endphp
 <h4>
     <b>{{round(($data->getEnd() - $data->getBegin())/(60*60*24))}} jours</b>
-    | {{date('D j F Y', $data->getBegin())}} - {{date('D j F Y', $data->getEnd())}}
+    | {{$fmt->format($data->getBegin())}} - {{$fmt->format($data->getEnd())}}
     <i id="selectDateIcon" class="bi bi-calendar3 text-primary" aria-hidden="true"></i>
 </h4>
 <form method="POST" style="display: none" action="{{ Request::route()->getName()?? ($agent->isMobile()?'/daily':'/agp') }}">

@@ -1,35 +1,30 @@
 @php
+    use \App\Helpers\CustomMenu;
     use Spatie\Menu\Laravel\Link;
-    use Spatie\Menu\Laravel\Menu;
     use Jenssegers\Agent\Agent;
-
-    class CustomMenu extends Menu {
-        function addMenuLink(Link $_link) {
-            return $this->add($_link->addClass('nav-link')->addParentClass('nav-item'));
-        }
-    }
 
     $menu = CustomMenu::new()->addClass('nav')->addClass('flex-column');
     $agent = new Agent();
     $menu
     //->add(View::create('layouts.sub.formcalendar')->addParentClass('nav-item'))
-    ->submenu('Statistiques', CustomMenu::new()->addClass('nav')->addClass('flex-column')
-        ->addMenuLink(Link::toUrl('/agp', 'AGP'))
-        ->addMenuLink(Link::toUrl('/treatment', 'Traitements'))
-        ->addMenuLink(Link::toUrl('/timeInRange', 'Temps dans la cible'))
+    ->submenu(__('Statistiques'), CustomMenu::new()->addClass('nav')->addClass('flex-column')
+        ->addMenuLink(Link::toUrl('/agp', __('AGP')))
+        ->addMenuLink(Link::toUrl('/treatment', __('Traitements')))
+        ->addMenuLink(Link::toUrl('/timeInRange', __('Temps dans la cible')))
     )
-    ->submenu('Profil détaillé', CustomMenu::new()->addClass('nav')->addClass('flex-column')
-        ->addMenuLink(Link::toUrl('/daily', 'Quotidien'))
-        ->addMenuLink(Link::toUrl('/weekly', 'Hebdo'))
-        ->addMenuLink(Link::toUrl('/monthly', 'Mensuel'))
+    ->submenu(__('Profil détaillé'), CustomMenu::new()->addClass('nav')->addClass('flex-column')
+        ->addMenuLink(Link::toUrl('/daily', __('Quotidien')))
+        ->addMenuLink(Link::toUrl('/weekly', __('Hebdo')))
+        ->addMenuLink(Link::toUrl('/monthly', __('Mensuel')))
     );
 
     /*$menu->url('/login', "Se connecter");
     $menu->url('/register', "Créer un compte");*/
-    $menu->addMenuLink(Link::toUrl('/logout', 'Se déconnecter'));
+    $menu->addMenuLink(Link::toUrl('/logout', __('Se déconnecter')));
     $menu->setActiveFromRequest();
 @endphp
 <nav id="navbar" class="collapse navbar-collapse border">
     {{ $menu }}
+    @include('layouts.sub.languageSwitch')
 </nav>
 

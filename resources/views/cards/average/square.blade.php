@@ -14,7 +14,7 @@
 <div class="col-auto text-center">
     <div class="card m-0 p-2 text-center" style="background-color: {{$color}}">
         <p class="display-3 m-0">{{$data->getAverage()}}</p>
-        <span>mg/dL</span>
+        <span>{{ __("mg/dL") }}</span>
     </div>
-    <span>Moy. glycémie</span>
+    <span>{{ __("Moy. glycémie") }}</span>
 </div>

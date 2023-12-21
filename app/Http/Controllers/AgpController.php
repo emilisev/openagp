@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Models\DiabetesData;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
 use IntlDateFormatter;
 
@@ -18,6 +19,14 @@ class AgpController extends BaseController {
 
 /********************** PUBLIC METHODS *********************/
     public function view() {
+        if(!empty(@Request::get('language'))) {
+            App::setLocale(Request::get('language'));
+            Request::session()->put('language', Request::get('language'));
+        } else {
+            if(!empty(Request::session()->get('language'))) {
+                App::setLocale(Request::session()->get('language'));
+            }
+        }
         $date1 = microtime(true);
         $url = Request::post()['url'] ?? Request::session()->get('url');
         $apiSecret = @Request::post()['url'] ? Request::post()['apiSecret'] : Request::session()->get('apiSecret');

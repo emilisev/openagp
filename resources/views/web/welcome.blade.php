@@ -1,6 +1,7 @@
 @extends('layouts.mainlayout')
 
 @section('content')
+    @include('layouts.sub.languageSwitch')
     @if (!empty($error))
         @include('layouts.sub.error')
         @include('layouts.sub.sourceForm')

@@ -1,5 +1,5 @@
 @isset($times)
     <footer class="menu">
-        Temps de génération : {{ $times['total'] }}s dont Nightscout : {{ $times['network'] }}s
+        {{ __("Temps de génération : :totals dont Nightscout : :nss", ['total' => $times['total'], 'ns' => $times['network']]) }}
     </footer>
 @endisset

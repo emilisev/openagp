@@ -3,7 +3,7 @@
 /** @var \IntlDateFormatter $dateFormatter \*/
 @endphp
 <h4>
-    <b>{{round(($data->getEnd() - $data->getBegin())/(60*60*24))}} jours</b>
+    <b>{{round(($data->getEnd() - $data->getBegin())/(60*60*24))}} {{ __("jours") }}</b>
     | {{$dateFormatter->format($data->getBegin())}} - {{$dateFormatter->format($data->getEnd())}}
     <i id="selectDateIcon" class="bi bi-calendar3 text-primary" aria-hidden="true"></i>
 </h4>

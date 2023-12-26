@@ -29,7 +29,7 @@ abstract class HighChartsComponent extends Component {
         }
         $chart->chart->marginTop = 0;
         $chart->chart->marginRight = 0;
-        $chart->chart->marginLeft = 20;
+        $chart->chart->marginLeft = 25;
         $chart->chart->marginBottom = 20;
         $chart->plotOptions->series = ['marker' => ['enabled' => false]];
         //$chart->tooltip->enabled = false;
@@ -75,13 +75,15 @@ abstract class HighChartsComponent extends Component {
         return [
             'title' => ['text' => 'mg/dL', 'rotation' => -90, 'offset' => 15, 'align' => 'high', 'y' => 25, 'style' => ['fontSize' => '0.8rem']],
             'id' => 'gloodGlucose-yAxis',
-            'tickPositions' => [0, $targets['low'], $targets['high'], 350],
+            'tickPositions' => [0, $targets['veryHigh'], $targets['veryLow'], $targets['low'], $targets['high'], 350],
             'offset' => -10,
             'showFirstLabel' => false,
             'showLastLabel' => false,
             'plotLines' => [
                 ['value' => 0, 'width' => 1, 'color' => '#777777'],
                 ['value' => 350, 'width' => 1, 'color' => '#777777'],
+                ['value' => $targets['veryHigh'], 'width' => 1, 'color' => '#777777'],
+                ['value' => $targets['veryLow'], 'width' => 1, 'color' => '#777777'],
                 ['value' => $targets['low'], 'width' => $_greenLineWidth, 'color' => '#00b657', 'zIndex' => 5],
                 ['value' => $targets['high'], 'width' => $_greenLineWidth, 'color' => '#00b657', 'zIndex' => 5],
             ]

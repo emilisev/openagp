@@ -412,15 +412,18 @@ class DiabetesData {
                 $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];
             }
             if(array_key_exists("notes", $item) && !empty($item["notes"])) {
-                $filter = false;
-                foreach(config('diabetes.notes.filter') as $filterString) {
-                    if(strpos($item['notes'], $filterString) !== false) {
-                        $filter = true;
-                        break;
+                $strings = explode(" → ", $item['notes']);
+                foreach($strings as $string) {
+                    $filter = false;
+                    foreach(config('diabetes.notes.filter') as $filterString) {
+                        if(strpos($string, $filterString) !== false) {
+                            $filter = true;
+                            break;
+                        }
                     }
-                }
-                if(!$filter) {
-                    $this->m_treatmentsData['notes'][$timestamp] = $item["notes"];
+                    if(!$filter) {
+                        $this->m_treatmentsData['notes'][$timestamp] = $string;
+                    }
                 }
             }
         }

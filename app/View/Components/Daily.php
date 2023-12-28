@@ -2,8 +2,9 @@
 
 namespace App\View\Components;
 
+use App\Helpers\LabelProviders;
 use Ghunti\HighchartsPHP\Highchart;
-use StringToColor\StringToColor;
+use App\Helpers\StringToColor;
 
 class Daily extends HighChartsComponent {
 
@@ -35,44 +36,51 @@ class Daily extends HighChartsComponent {
     }
 
     private function addCarbsSeries(Highchart $_chart) {
-        $data = $this->m_data->getTreatmentsData()['carbs'];
-        $notes = $this->m_data->getTreatmentsData()['notes'];
-        if(empty($data)) {
+        $data = $this->m_data->getAnalyzedCarbs();
+        $maxCarbs = 0;
+        foreach($data as $dataSet) {
+            if(!empty($dataSet)) {
+                $maxCarbs = max($maxCarbs, max($dataSet));
+            }
+        }
+        if($maxCarbs == 0) {
             return;
         }
-        $maxCarbs = max($data);
+        $notes = $this->m_data->getTreatmentsData()['notes'];
         $_chart->yAxis[] = [
             'id' => 'carbs-yAxis',
             'visible' => false,
             'max' => $maxCarbs / config('diabetes.treatments.relativeAxisHeight')
         ];
 
-        $dataForChart = [];
-        foreach ($data as $key => $value) {
-            $item = ['x' => $key, 'y' => $value, 'name' => "{$value}g"];
-            if(array_key_exists($key, $notes)) {
-                $item['name'] .= ' ('.$notes[$key].')';
-            }
-            $dataForChart[] = $item;
-        }
-        foreach ($notes as $key => $value) {
-            if(!array_key_exists($key, $data)) {
-                $item = ['x' => $key, 'y' => 0, 'name' => $value];
+        $stringToColor = new StringToColor();
+        foreach($data as $type => $datum) {
+            if(empty($datum)) continue;
+            $dataForChart = [];
+            foreach($datum as $key => $value) {
+                $item = ['x' => $key, 'y' => $value, 'name' => "{$value}g"];
+                if(array_key_exists($key, $notes)) {
+                    $item['name'] .= ' ('.$notes[$key].')';
+                }
                 $dataForChart[] = $item;
             }
+            foreach ($notes as $key => $value) {
+                if(!array_key_exists($key, $data)) {
+                    $item = ['x' => $key, 'y' => 0, 'name' => $value];
+                    $dataForChart[] = $item;
+                }
+            }
+            $_chart->series[] = [
+                'type' => 'column',
+                'name' => LabelProviders::get($type),
+                'color' => $stringToColor->handle($type),
+                'data' => $dataForChart,
+                'yAxis' => 'carbs-yAxis',
+                'pointRange' => 60 * 60 * 1000, //largeur
+                'opacity' => 1,
+                'dataLabels' => ['enabled' => true, 'format' => '{point.name}']
+            ];
         }
-
-        $stringToColor = new StringToColor();
-        $_chart->series[] = [
-            'type' => 'column',
-            'name' => 'Glucides',
-            'color' => $stringToColor->handle('carbs'),
-            'data' => $dataForChart,
-            'yAxis' => 'carbs-yAxis',
-            'pointRange' => 60 * 60 * 1000, //largeur
-            'opacity' => 1,
-            'dataLabels' => ['enabled' => true, 'format' => '{point.name}']
-        ];
     }
 
     private function addTreatmentsSeries(Highchart $_chart) {
@@ -83,6 +91,7 @@ class Daily extends HighChartsComponent {
         $_chart->yAxis[] = ['visible' => false] + $this->getTreatmentYAxis();
         $stringToColor = new StringToColor();
         foreach ($data as $type => $datum) {
+            if(empty($datum)) continue;
             $serieType = 'column';
             $basal = false;
             if($this->m_data->hasBasalTreatment() && $type == 'Temp Basal') {

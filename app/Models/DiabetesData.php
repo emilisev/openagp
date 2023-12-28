@@ -8,6 +8,8 @@ class DiabetesData {
 
     private int $m_agpStepInMinutes;
 
+    private $m_analyzedCarbs;
+
     private int $m_average;
 
     private int $m_begin;
@@ -248,6 +250,13 @@ class DiabetesData {
 
     public function getAgpData(): array {
         return $this->m_diabetesAgpData;
+    }
+
+    public function getAnalyzedCarbs() {
+        if(is_null($this->m_analyzedCarbs)) {
+            $this->computeAnalyzedCarbs();
+        }
+        return $this->m_analyzedCarbs;
     }
 
     public function getAverage(): int {
@@ -491,7 +500,44 @@ class DiabetesData {
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-//\t/********************** PRIVATE METHODS *********************/
+    private function computeAnalyzedCarbs() {
+        $carbs = ['meal' => [], 'hypo' => [], 'unknown' => []];
+        foreach($this->getTreatmentsData()['carbs'] as $time => $value) {
+            $carbDate = new DateTime();
+            $carbDate->setTimestamp($time/self::__1SECOND);
+
+            $minDate = clone $carbDate;
+            $minDate->modify("-90 minutes");
+
+            $maxDate = clone $carbDate;
+            $maxDate->modify("+15 minutes");
+
+            $hasRelatedInsulin = count(array_filter($this->filterTreatementsData($minDate, $maxDate)['insulin']));
+
+            $minDate = clone $carbDate;
+            $minDate->modify("-15 minutes");
+
+            $lastBg = last(self::filterData($this->m_bloodGlucoseData, $minDate->format('U'), $carbDate->format('U')));
+            $isMeal = $hasRelatedInsulin;
+            $isHypo = !$hasRelatedInsulin && $lastBg < 90;
+            if(!$hasRelatedInsulin && !$isHypo && $lastBg < 110) {
+                $isHypo = true;
+            }
+            if(!$hasRelatedInsulin && !$isHypo && $lastBg > 110) {
+                $isMeal = true;
+            }
+            if($isMeal) {
+                $carbs['meal'][$time] = $value;
+            } elseif($isHypo) {
+                $carbs['hypo'][$time] = $value;
+            } else {
+                $carbs['unknown'][$time] = $value;
+            }
+        }
+        $this->m_analyzedCarbs = $carbs;
+
+    }
+
     private function computeDailyTimeInRange() {
         if(empty($this->m_bloodGlucoseData)) {
             return;

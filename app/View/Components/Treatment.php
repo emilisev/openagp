@@ -2,20 +2,27 @@
 
 namespace App\View\Components;
 
+use App\Helpers\LabelProviders;
 use App\Helpers\StatisticsComputer;
+use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
-use StringToColor\StringToColor;
+use App\Helpers\StringToColor;
 
 class Treatment extends HighChartsComponent {
 
     private array $m_bgData;
 
+    private $m_carbsData = [];
+
     private $m_dataStartPoint = null;
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    /**
-     * Get the view / contents that represent the component.
-     */
-    public function render() {
+    private $m_insulinData = [];
+
+    private string $m_type;
+
+    public function __construct(DiabetesData $data, string $renderTo = null, int $height = null, string $type = 'chart') {
+        $this->m_type = $type;
+        parent::__construct($data, $renderTo, $height);
 
         $statComputer = new StatisticsComputer();
         $data = $this->m_data->getBloodGlucoseData();
@@ -23,11 +30,37 @@ class Treatment extends HighChartsComponent {
         $this->m_dataStartPoint = array_key_first($this->m_bgData);
         ksort($this->m_bgData);
 
+        $insulinData = $this->m_data->getTreatmentsData()['insulin'];
+        foreach ($insulinData as $type => $datum) {
+            $datum = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
+            $this->m_insulinData[array_sum($datum)][$type] = $datum;
+        }
 
+        $carbsData = $this->m_data->getAnalyzedCarbs();
+        foreach($carbsData as $type => $datum) {
+            $this->m_carbsData[$type] = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
+        }
+
+
+    }
+
+    /**
+     * Get the view / contents that represent the component.
+     */
+    public function render() {
+        if($this->m_type == 'chart') {
+            return $this->renderChart();
+        } elseif($this->m_type == 'squares') {
+            return $this->renderSquares();
+        }
+    }
+
+
+    public function renderChart() {
         $chart = $this->createChart();
         $this->addBloodGlucoseSeries($chart);
         $this->addTreatmentsSeries($chart);
-        //$this->addCarbsSeries($chart);
+        $this->addCarbsSerie($chart);
         echo '<script type="module">'.$chart->render().'</script>';
     }
 
@@ -48,64 +81,56 @@ class Treatment extends HighChartsComponent {
             'data' => $this->formatTimeDataForChart($this->m_bgData),
             'zones' => $this->getDefaultZones(),
             'lineWidth' => 2,
-            //'marker' => ['enabled' => true, 'radius' => 1,]
+            //'marker' => ['enabled' => true, 'radius' => 1,],
+            'zIndex' => 100
         ];
     }
 
-    private function addCarbsSeries(Highchart $_chart, int $_weeks, float $_weeklyGraphHeight) {
-        //add 1 serie per week
-        $yAxisNumber = $xAxisNumber = $currentHeight = 0;
-        $statComputer = new StatisticsComputer();
-        for ($weekNum = $_weeks; $weekNum >= 1; $weekNum--) {
-            $data = $this->m_data->getDailyTreatmentsByMonth($weekNum)['carbs'];
-            $data = $statComputer->computeSum($data, 60 * 60 * 24, $this->m_dataStartPoint);
-            $this->addCarbsSerie($_chart, $data, $_weeklyGraphHeight, $currentHeight, $yAxisNumber, $xAxisNumber);
-            $currentHeight += $_weeklyGraphHeight;
-            $yAxisNumber++;
-            $xAxisNumber++;
-        }
-    }
-
-    private function addTreatmentsSeries(Highchart $_chart) {
-        $data = $this->m_data->getTreatmentsData()['insulin'];
-        if(empty($data)) {
+    private function addCarbsSerie(Highchart $_chart) {
+        if(empty($this->m_carbsData)) {
             return;
         }
-        $statComputer = new StatisticsComputer();
         $stringToColor = new StringToColor();
-        $sums = [];
-        $series = [];
-        $plotLines = [];
-        foreach ($data as $type => $datum) {
-            $datum = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
-            foreach($datum as $key => $value) {
-                if(array_key_exists($key, $sums)) {
-                    $sums[$key] += $value;
-                } else {
-                    $sums[$key] = $value;
-                }
-            }
-            $series[array_sum($datum)][] = [
-                'type' => 'area',
-                'name' => $type,
+        foreach($this->m_carbsData as $type => $datum) {
+            if(empty($datum)) continue;
+            $_chart->series[] = [
+                'type' => 'column',
+                'name' => LabelProviders::get($type),
                 'stacking' => 'normal',
                 'color' => $stringToColor->handle($type),
                 'data' => $this->formatTimeDataForChart($datum),
                 'yAxis' => 'insulin-yAxis',
+                'stack' => 'carbs',
             ];
-            $avgInsulin = round((array_sum($datum)/count($datum))*10)/10;
-            $plotLines[] = ['value' => last($datum), 'width' => 0, 'zIndex' => 1000, 'label' =>
-                ['align' => 'right', 'x' => 25, 'text' => "$type<br/>{$avgInsulin}UI"]];
         }
-        $max = max($sums);
+        /*$_chart->yAxis[] = [
+            'id' => 'carbs-yAxis',
+            'visible' => false,
+        ];*/
+    }
+
+    private function addTreatmentsSeries(Highchart $_chart) {
+        if(empty($this->m_insulinData)) {
+            return;
+        }
+        $stringToColor = new StringToColor();
+
         //place insulin type with less quantity at bottom
-        krsort($series);
-        foreach($series as $seriesList) {
-            foreach($seriesList as $serie) {
-                $_chart->series[] = $serie;
+        krsort($this->m_insulinData);
+        foreach ($this->m_insulinData as $insulinDatum) {
+            foreach($insulinDatum as $type => $datum) {
+                $_chart->series[] = [
+                    'type' => 'column',
+                    'name' => $type,
+                    'stacking' => 'normal',
+                    'color' => $stringToColor->handle($type),
+                    'data' => $this->formatTimeDataForChart($datum),
+                    'yAxis' => 'insulin-yAxis',
+                    'stack' => 'insulin'
+                ];
             }
         }
-        $_chart->yAxis[] = ['tickPositions' => [0, $max * 3], 'plotLines' => $plotLines] + $this->getTreatmentYAxis();
+        $_chart->yAxis[] = ['id' => 'insulin-yAxis', 'visible' => false, /*'type' => 'logarithmic'*/];
     }
 
     private function createChart(): Highchart {
@@ -114,9 +139,9 @@ class Treatment extends HighChartsComponent {
         $chart->chart->marginRight = 50;
 
         $bloodGlucoseYAxis = $this->getBloodGlucoseYAxis();
-        $avgBG = array_sum($this->m_bgData) / count($this->m_bgData);
+        /*$avgBG = array_sum($this->m_bgData) / count($this->m_bgData);
         $bloodGlucoseYAxis['plotLines'][] = ['value' => last($this->m_bgData), 'width' => 0, 'zIndex' => 1000, 'label' =>
-            ['align' => 'right', 'x' => 25, 'text' => 'Moy. gly.<br/>'.round($avgBG).'<br/>mg/dL']];
+            ['align' => 'right', 'x' => 25, 'text' => 'Moy. gly.<br/>'.round($avgBG).'<br/>mg/dL']];*/
 
         $chart->yAxis = [$bloodGlucoseYAxis];
         $xAxis = [
@@ -127,6 +152,37 @@ class Treatment extends HighChartsComponent {
         ] + $this->getBottomLabelledXAxis();
         $chart->xAxis = $xAxis;
         return $chart;
+    }
+
+    private function renderSquares() {
+        $stringToColor = new StringToColor();
+        foreach ($this->m_insulinData as $insulinDatum) {
+            foreach($insulinDatum as $type => $datum) {
+                echo view(
+                    'cards.square',
+                    [
+                        'color' => $stringToColor->handle($type),
+                        'value' => round((array_sum($datum)/count($datum))*10)/10,
+                        'unit' => 'UI/j',
+                        'label' => __("Moy. ").$type,
+                    ]);
+
+            }
+        }
+
+        $carbsData = $this->m_data->getAnalyzedCarbs();
+        foreach($this->m_carbsData as $type => $datum) {
+            if(!empty($datum)) {
+                echo view(
+                    'cards.square',
+                    [
+                        'color' => $stringToColor->handle($type),
+                        'value' => round((array_sum($datum) / count($datum)) * 10) / 10,
+                        'unit' => 'g/j',
+                        'label' => __("Moy. ").LabelProviders::get($type),
+                    ]);
+            }
+        }
     }
 
 }

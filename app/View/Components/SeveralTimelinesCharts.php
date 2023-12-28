@@ -4,7 +4,7 @@ namespace App\View\Components;
 
 use Ghunti\HighchartsPHP\Highchart;
 use Ghunti\HighchartsPHP\HighchartJsExpr;
-use StringToColor\StringToColor;
+use App\Helpers\StringToColor;
 
 abstract class SeveralTimelinesCharts extends HighChartsComponent {
 

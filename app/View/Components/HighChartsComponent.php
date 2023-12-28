@@ -10,7 +10,7 @@ use function App\Models\readableTime;
 abstract class HighChartsComponent extends Component {
     protected DiabetesData $m_data;
 
-    protected string $m_renderTo;
+    protected ?string $m_renderTo;
     protected ?int $m_height;
 
     public function __construct(DiabetesData $data, string $renderTo = null, int $height = null) {

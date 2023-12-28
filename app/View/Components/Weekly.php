@@ -5,7 +5,7 @@ namespace App\View\Components;
 use Ghunti\HighchartsPHP\Highchart;
 use Ghunti\HighchartsPHP\HighchartJsExpr;
 use Illuminate\Support\Facades\Request;
-use StringToColor\StringToColor;
+use App\Helpers\StringToColor;
 
 class Weekly extends SeveralTimelinesCharts {
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

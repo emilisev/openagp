@@ -3,10 +3,14 @@
     use \App\Helpers\CustomMenu;
     use Spatie\Menu\Laravel\Link;
 
+
     $languages = CustomMenu::new()->addClass('dropdown-menu');
-    $languages
-    ->addMenuLink(Link::toUrl(Request::route()->getName().'?language=gb', '<i class="fi fi-gb"></i>English'))
-    ->addMenuLink(Link::toUrl(Request::route()->getName().'?language=fr', '<i class="fi fi-fr"></i>Français'));
+    foreach(config('languages.list') as $full => $short) {
+        $languages->addMenuLink(
+        	Link::toUrl(Request::route()->getName()."?language=$short",
+             '<i class="fi fi-'.$short.'"></i>'.config('languages.labels')[$full])
+        );
+    }
 @endphp
 
 <div class="dropdown">

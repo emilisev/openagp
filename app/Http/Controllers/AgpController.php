@@ -127,9 +127,12 @@ class AgpController extends BaseController {
         $times = ['total' => round(($date5 * 1000 - $date1 * 1000)) / 1000, 'network' => round(($date3 * 1000 - $date2 * 1000)) / 1000];
         //var_dump(Route::currentRouteName());
         $dateFormatter = new IntlDateFormatter(
-            'fr_FR',
+            array_search(App::getLocale(), config('languages.list'))??config('app.locale'),
             IntlDateFormatter::FULL,
-            IntlDateFormatter::NONE
+            IntlDateFormatter::NONE,
+            null,
+            null,
+            'E dd MMM y'
         );
 
         return view(

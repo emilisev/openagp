@@ -395,7 +395,9 @@ class DiabetesData {
             }
 
             //fetch possible data : insulin, carbs, notes
-            if(@$item["pumpType"] == "OMNIPOD_DASH" || @$item["enteredBy"] == "freeaps-x") { //pumps
+            if(@$item["pumpType"] == "OMNIPOD_DASH"
+                || @$item["enteredBy"] == "freeaps-x"
+                || strpos(@$item["enteredBy"], 'medtronic') === 0) { //pumps
                 $this->m_hasBasalTreatment = true;
                 $type = $item["eventType"];
                 if(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
@@ -424,6 +426,13 @@ class DiabetesData {
                 $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];
             }
             if(array_key_exists("notes", $item) && !empty($item["notes"])) {
+                if(preg_match('/^carb ([0-9]+)g/', $item['notes'], $carbs)) {
+                    if(is_numeric($carbs[1])) {
+                        $this->m_treatmentsData['carbs'][$timestamp] = (int)$carbs[1];
+                        continue;
+                    }
+                }
+
                 $strings = explode(" → ", $item['notes']);
                 foreach($strings as $string) {
                     $filter = false;
@@ -440,7 +449,7 @@ class DiabetesData {
             }
         }
         /*echo "<pre>";
-        var_dump($this->m_treatmentsData['insulin']);*/
+        var_dump($this->m_treatmentsData['carbs']);*/
     }
 
     public function prepareDailyData(int $_increment): void {

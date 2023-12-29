@@ -158,6 +158,9 @@ class Treatment extends HighChartsComponent {
         $stringToColor = new StringToColor();
         foreach ($this->m_insulinData as $insulinDatum) {
             foreach($insulinDatum as $type => $datum) {
+                if(empty($datum)) {
+                    continue;
+                }
                 echo view(
                     'cards.square',
                     [

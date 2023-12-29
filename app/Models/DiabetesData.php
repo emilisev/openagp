@@ -366,7 +366,10 @@ class DiabetesData {
                     readableTime($item["date"] + $this->m_utcOffset));
             }*/
             if(array_key_exists("sgv", $item) && is_int($item["sgv"])) {
-                $this->m_bloodGlucoseData[$microTimestamp] = $item["sgv"];
+                //filter values < 5 - ex Perrine DF 2023-12-29
+                if($item["sgv"] > 5) {
+                    $this->m_bloodGlucoseData[$microTimestamp] = $item["sgv"];
+                }
             } elseif(array_key_exists("mbg", $item) && is_int($item["mbg"])) {
                 $this->m_bloodGlucoseData[$microTimestamp] = $item["mbg"];
             } /*else {

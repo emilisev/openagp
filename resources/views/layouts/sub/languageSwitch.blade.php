@@ -15,7 +15,7 @@
 
 <div class="dropdown">
     <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        <span class="fi fi-{{ App::currentLocale() }}"></span>
+        <span class="fi fi-{{ config('languages.list')[App::currentLocale()] }}"></span>
     </button>
     {{ $languages }}
 </div>

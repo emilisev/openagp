@@ -28,6 +28,12 @@
     font-size: 16px;
 }
 
+@include media-breakpoint-down(md) {
+    .card header a {
+        padding: 0 10px !important;
+    }
+}
+
 .card.big-title header {
     font-size: 24px;
 }

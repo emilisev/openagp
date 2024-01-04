@@ -29,8 +29,11 @@
 }
 
 @include media-breakpoint-down(md) {
-    .card header a {
-        padding: 0 10px !important;
+    .card header, .card header a {
+        padding: 0 5px !important;
+    }
+    .row > * {
+        --bs-gutter-x: 10px;
     }
 }
 

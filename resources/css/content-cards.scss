@@ -63,3 +63,13 @@
 #time-in-range-text {
     white-space: nowrap;
 }
+
+#time-in-range-chart {
+    height: 200px;
+}
+
+@media print {
+    #time-in-range-chart {
+        height: 100px;
+    }
+}

@@ -235,6 +235,9 @@ class DiabetesData {
             $this->m_treatmentsData['insulin'][$insulinType] = self::filterData($data, $_begin, $_end);
             //var_dump($this->m_treatmentsData[$insulinType]);
         }
+
+        $this->m_treatmentsData['carbs'] = self::filterData($this->m_treatmentsData['carbs'], $_begin, $_end);
+
         /*var_dump($this->m_treatmentsData);
         die();*/
     }
@@ -532,7 +535,7 @@ class DiabetesData {
             $lastBg = last(self::filterData($this->m_bloodGlucoseData, $minDate->format('U'), $carbDate->format('U')));
             $isMeal = $hasRelatedInsulin;
             $isHypo = !$hasRelatedInsulin && $lastBg < 90;
-            if(!$hasRelatedInsulin && !$isHypo && $lastBg < 110) {
+            if(!$hasRelatedInsulin && !$isHypo && $lastBg <= 110) {
                 $isHypo = true;
             }
             if(!$hasRelatedInsulin && !$isHypo && $lastBg > 110) {

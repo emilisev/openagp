@@ -15,8 +15,6 @@ class AvgTimeInRange extends HighChartsComponent {
             'target' => 'Dans la plage'];
 
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    /********************** PUBLIC METHODS *********************/
-/********************** PUBLIC METHODS *********************/
     /**
      * Get the view / contents that represent the component.
      */
@@ -28,7 +26,6 @@ class AvgTimeInRange extends HighChartsComponent {
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-//\t/********************** PRIVATE METHODS *********************/
     private function addBloodGlucoseSeries(Highchart $_chart) {
         $data = $this->m_data->getTimeInRangePercent();
         //var_dump($data);

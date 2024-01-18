@@ -7,6 +7,7 @@ use App\Helpers\StatisticsComputer;
 use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use App\Helpers\StringToColor;
+use function App\Models\readableDateArray;
 
 class Treatment extends HighChartsComponent {
 
@@ -60,7 +61,7 @@ class Treatment extends HighChartsComponent {
         $chart = $this->createChart();
         $this->addBloodGlucoseSeries($chart);
         $this->addTreatmentsSeries($chart);
-        $this->addCarbsSerie($chart);
+        //$this->addCarbsSerie($chart);
         echo '<script type="module">'.$chart->render().'</script>';
     }
 
@@ -80,7 +81,7 @@ class Treatment extends HighChartsComponent {
             'name' => "Glycémie",
             'data' => $this->formatTimeDataForChart($this->m_bgData),
             'zones' => $this->getDefaultZones(),
-            'lineWidth' => 2,
+            'lineWidth' => 1,
             //'marker' => ['enabled' => true, 'radius' => 1,],
             'zIndex' => 100
         ];
@@ -93,20 +94,28 @@ class Treatment extends HighChartsComponent {
         $stringToColor = new StringToColor();
         foreach($this->m_carbsData as $type => $datum) {
             if(empty($datum)) continue;
+
             $_chart->series[] = [
-                'type' => 'column',
+                //'type' => 'line',
                 'name' => LabelProviders::get($type),
                 'stacking' => 'normal',
                 'color' => $stringToColor->handle($type),
                 'data' => $this->formatTimeDataForChart($datum),
-                'yAxis' => 'insulin-yAxis',
+                'yAxis' => 'carbs-yAxis',
                 'stack' => 'carbs',
+                'lineWidth' => 0,
+                'marker' => [
+                    'symbol' => 'diamond',
+                    'radius' => 4,
+                    'lineWidth' => 1,
+                    'enabled' => true
+                ],
             ];
         }
-        /*$_chart->yAxis[] = [
+        $_chart->yAxis[] = [
             'id' => 'carbs-yAxis',
             'visible' => false,
-        ];*/
+        ];
     }
 
     private function addTreatmentsSeries(Highchart $_chart) {
@@ -120,17 +129,19 @@ class Treatment extends HighChartsComponent {
         foreach ($this->m_insulinData as $insulinDatum) {
             foreach($insulinDatum as $type => $datum) {
                 $_chart->series[] = [
-                    'type' => 'column',
+                    'type' => 'line',
                     'name' => $type,
                     'stacking' => 'normal',
                     'color' => $stringToColor->handle($type),
                     'data' => $this->formatTimeDataForChart($datum),
                     'yAxis' => 'insulin-yAxis',
-                    'stack' => 'insulin'
+                    'stack' => 'insulin',
+                    'zIndex' => 200,
+                    'lineWidth' => 2,
                 ];
             }
         }
-        $_chart->yAxis[] = ['id' => 'insulin-yAxis', 'visible' => false, /*'type' => 'logarithmic'*/];
+        $_chart->yAxis[] = ['id' => 'insulin-yAxis', 'visible' => false];
     }
 
     private function createChart(): Highchart {

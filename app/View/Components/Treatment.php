@@ -7,6 +7,7 @@ use App\Helpers\StatisticsComputer;
 use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use App\Helpers\StringToColor;
+use function App\Models\readableDate;
 use function App\Models\readableDateArray;
 
 class Treatment extends HighChartsComponent {
@@ -25,10 +26,11 @@ class Treatment extends HighChartsComponent {
         $this->m_type = $type;
         parent::__construct($data, $renderTo, $height);
 
+
+        $this->m_dataStartPoint = $this->m_data->getBegin()*DiabetesData::__1SECOND;
         $statComputer = new StatisticsComputer();
         $data = $this->m_data->getBloodGlucoseData();
-        $this->m_bgData = $statComputer->computeAverage($data, 60 * 60 * 24);
-        $this->m_dataStartPoint = array_key_first($this->m_bgData);
+        $this->m_bgData = $statComputer->computeAverage($data, 60 * 60 * 24, $this->m_dataStartPoint);
         ksort($this->m_bgData);
 
         $insulinData = $this->m_data->getTreatmentsData()['insulin'];
@@ -81,7 +83,7 @@ class Treatment extends HighChartsComponent {
             'name' => "Glycémie",
             'data' => $this->formatTimeDataForChart($this->m_bgData),
             'zones' => $this->getDefaultZones(),
-            'lineWidth' => 1,
+            'lineWidth' => 2,
             //'marker' => ['enabled' => true, 'radius' => 1,],
             'zIndex' => 100
         ];
@@ -149,7 +151,10 @@ class Treatment extends HighChartsComponent {
         $chart->chart->marginBottom = 30;
         $chart->chart->marginRight = 50;
 
-        $bloodGlucoseYAxis = $this->getBloodGlucoseYAxis();
+        $targets = $this->m_data->getTargets();
+        $bloodGlucoseYAxis = ['plotLines' => [],
+                'tickPositions' => [0, $targets['low'], $targets['high'], 350],
+                'title' => []] + $this->getBloodGlucoseYAxis();
         /*$avgBG = array_sum($this->m_bgData) / count($this->m_bgData);
         $bloodGlucoseYAxis['plotLines'][] = ['value' => last($this->m_bgData), 'width' => 0, 'zIndex' => 1000, 'label' =>
             ['align' => 'right', 'x' => 25, 'text' => 'Moy. gly.<br/>'.round($avgBG).'<br/>mg/dL']];*/

@@ -238,6 +238,8 @@ class DiabetesData {
 
         $this->m_treatmentsData['carbs'] = self::filterData($this->m_treatmentsData['carbs'], $_begin, $_end);
 
+        /*echo "<pre>";
+        var_dump(readableDateArray($this->m_treatmentsData['insulin']["Novorapid"]));*/
         /*var_dump($this->m_treatmentsData);
         die();*/
     }

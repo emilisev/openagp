@@ -129,7 +129,7 @@ class Daily extends HighChartsComponent {
 
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
-        //$chart->chart->height = 500;
+        $chart->chart->zoomType = 'x';
         $chart->tooltip = [
             'stickOnContact' => true
         ];

@@ -4,6 +4,9 @@ namespace App\DataProviders;
 
 use DateTime;
 use GuzzleHttp\Client;
+use GuzzleHttp\Pool;
+use GuzzleHttp\Psr7\Request as Psr7Request;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Request;
 
 class NightscoutProvider {
@@ -18,18 +21,27 @@ class NightscoutProvider {
     private $m_apiSecret;
     private $m_endDate;
     private $m_startDate;
-    private $m_url;
+
+    private string $m_url;
+    private $m_urlV1;
 
     public function __construct($_url, $_apiSecret, DateTime $_startDate, DateTime $_endDate) {
 
         $this->m_url = $_url;
-        if(!empty($_apiSecret)) {
-            $this->m_url = str_replace('//', '//'.$_apiSecret.'@', $this->m_url);
-            $this->m_apiSecret = sha1($_apiSecret);
-        }
         if(!str_ends_with($this->m_url, '/')) {
             $this->m_url .= '/';
         }
+        //api v1
+        if(!empty($_apiSecret)) {
+            $this->m_urlV1 = str_replace('//', '//'.$_apiSecret.'@', $this->m_url);
+            $this->m_apiSecret = sha1($_apiSecret);
+        }
+        //api v3 - get token
+        $client = new Client();
+        $response = $client->request('GET', $this->m_url.'api/v2/authorization/request/'.$_apiSecret);
+        $data = json_decode($response->getBody()->getContents(), true);
+        $this->m_token = $data['token'];
+
         $this->m_startDate = clone($_startDate);
         $this->m_endDate = clone($_endDate);
         $this->m_actualEndDate = $_endDate;
@@ -42,7 +54,15 @@ class NightscoutProvider {
 
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     public function fetchEntries() {
-        $url = $this->m_url.'api/v1/entries.json';
+        return $this->fetchEntriesV3();
+    }
+
+    public function fetchTreatments() {
+        return $this->fetchTreatmentsV3();
+    }
+
+    private function fetchEntriesV1() {
+        $url = $this->m_urlV1.'api/v1/entries.json';
         $params = [
             'query' => [
                 'find[date][$gte]' => $this->m_actualStartDate->format('U')*1000,
@@ -55,12 +75,17 @@ class NightscoutProvider {
                 'API-SECRET' => $this->m_apiSecret,
             ];
         }
-        return $this->getCacheOrLive($url, $params);
+        $result = $this->getCacheOrLive($url, $params);
+        return($result);
 
     }
 
-    public function fetchTreatments() {
-        $url = $this->m_url.'api/v1/treatments.json';
+    private function fetchEntriesV3() {
+        return $this->fetchCollectionV3('entries');
+    }
+
+    private function fetchTreatmentsV1() {
+        $url = $this->m_urlV1.'api/v1/treatments.json';
 
         $client = new Client();
         $params = [
@@ -80,9 +105,77 @@ class NightscoutProvider {
         return $this->getCacheOrLive($url, $params);
     }
 
+
+    private function fetchTreatmentsV3() {
+        return $this->fetchCollectionV3('treatments');
+    }
+
+    private function fetchCollectionV3($_collection) {
+        $url = $this->m_url.'api/v3/'.$_collection;
+        $currentDate = clone($this->m_actualStartDate);
+        $rawResults = [];
+        $result = [];
+        $pool = [];
+        $cacheKeys = [];
+        while($currentDate < $this->m_actualEndDate) {
+            $dateField = ($_collection == 'entries'?'date': 'created_at');
+            $fields = ($_collection == 'entries' ? 'date,sgv,mbg' : 'timestamp,srvCreated,'.
+            'created_at,pumpType,enteredBy,insulin,rate,durationInMilliseconds,duration,insulinInjections,'.
+            'notes,carbs');
+            $params = [
+                'query' => [
+                    $dateField.'$gte' => $currentDate->format('U'),
+                    'fields' => $fields,
+                    'limit' => 400,
+                ],
+            ];
+            if(!empty($this->m_token)) {
+                $params['headers'] = [
+                    'Authorization' => "Bearer $this->m_token",
+                ];
+            }
+            $currentDate->add(new \DateInterval('P1D'));
+            $cacheKey = $currentDate < new DateTime()?sha1($url.json_encode($params['query'])):null;
+            if(!empty($cacheKey) && Request::session()->has($cacheKey)) {
+                $rawResults[] = Request::session()->get($cacheKey);
+            } else {
+                $pool[] = new Psr7Request('GET', $url.'?'.http_build_query($params['query']), $params['headers']);
+                $cacheKeys[] = $cacheKey;
+            }
+        }
+        //echo '<pre>';
+        $options = array(
+            'fulfilled' => function (Response $response, $index) use(&$rawResults, $cacheKeys) {
+                $contents = $response->getBody()->getContents();
+                if(!empty($cacheKeys[$index])) {
+                    Request::session()->put($cacheKeys[$index], $contents);
+                }
+                $rawResults[] = $contents;
+            },
+            'rejected' => function ($exception) {
+                var_dump('rejected', $exception->getMessage());
+            }
+        );
+        //var_dump("parallel $_collection: ", count($pool));
+        $guzzlePool = new Pool(new Client(), $pool, $options);
+        $promise = $guzzlePool->promise();
+        $promise->wait();
+        foreach($rawResults as $rawResult) {
+            //var_dump($rawResult);
+            $rawResult = json_decode($rawResult, true);
+            if(array_key_exists('result', $rawResult)) {
+                $rawResult = $rawResult['result'];
+            }
+            $result = array_merge($result, $rawResult);
+        }
+        return($result);
+
+    }
+
+
     private function getCacheOrLive($_url, $_params) {
-        $cacheKey = sha1($_url.json_encode($_params));
-        //var_dump($_url, $this->m_endDate > new DateTime(), Request::session()->has($cacheKey));
+        $cacheKey = sha1($_url.json_encode($_params['query']));
+        //var_dump($_url, $this->m_endDate > new DateTime(), Request::session()->has($cacheKey), $cacheKey);
         if(Request::session()->has($cacheKey)) {
             $data = Request::session()->get($cacheKey);
             /*if($this->m_endDate > new DateTime()) {
@@ -96,9 +189,13 @@ class NightscoutProvider {
             $data = $response->getBody()->getContents();
             if($this->m_actualEndDate < new DateTime()) {
                 Request::session()->put($cacheKey, $data);
+                //var_dump("put $cacheKey");
             }
         }
         $result = json_decode($data, true);
+        if(array_key_exists('result', $result)) {
+            $result = $result['result'];
+        }
         return $result;
     }
 }

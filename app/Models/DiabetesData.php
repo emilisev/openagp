@@ -233,6 +233,7 @@ class DiabetesData {
         foreach($this->m_treatmentsData['insulin'] as $insulinType => $data) {
             //var_dump($insulinType, readableDateArray($data), readableDate($_begin * self::__1SECOND), readableDate($_end * self::__1SECOND));
             $this->m_treatmentsData['insulin'][$insulinType] = self::filterData($data, $_begin, $_end);
+            ksort($this->m_treatmentsData['insulin'][$insulinType]);
             //var_dump($this->m_treatmentsData[$insulinType]);
         }
 
@@ -382,7 +383,6 @@ class DiabetesData {
                 var_dump($item);
             }*/
         }
-        //echo "<pre>";
         //var_dump($this->m_rawData['treatments']);
         foreach($this->m_rawData['treatments'] as $item) {
             //compute timestamp from various possibilities
@@ -454,7 +454,7 @@ class DiabetesData {
             }
         }
         /*echo "<pre>";
-        var_dump($this->m_treatmentsData['carbs']);*/
+        var_dump($this->m_rawData['bloodGlucose'], $this->m_bloodGlucoseData, $this->m_treatmentsData['carbs']);*/
     }
 
     public function prepareDailyData(int $_increment): void {

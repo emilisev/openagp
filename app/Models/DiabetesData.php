@@ -426,6 +426,7 @@ class DiabetesData {
                     $type = $item["notes"];
                 }
                 $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
+                $this->m_treatmentsData['insulinId'][$type][$timestamp] = $item["identifier"];
             }
             if(array_key_exists("carbs", $item) && is_numeric($item["carbs"])) {
                 $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];

@@ -45,3 +45,14 @@ $(document).ready(function() {
         $(this).attr("transform", 'translate(0'+currentY+')');
     });
 });
+
+Highcharts.setNullTreatment = function(identifier) {
+    if(confirm("Voulez-vous vraiment effacer ce traitement ?")) {
+        if(document.location.href.includes('?')) {
+            var url = document.location.href+"&setNullTreatment="+identifier;
+        } else{
+            var url = document.location.href+"?setNullTreatment="+identifier;
+        }
+        document.location = url;
+    }
+}

@@ -57,8 +57,26 @@ class NightscoutProvider {
         return $this->fetchEntriesV3();
     }
 
-    public function fetchTreatments() {
-        return $this->fetchTreatmentsV3();
+    public function fetchTreatments($_forceRefresh = false) {
+        return $this->fetchTreatmentsV3($_forceRefresh);
+    }
+
+    public function setNullTreatment($_identifier) {
+        $client = new Client();
+        $file = fopen(__DIR__.'/log.txt', 'w');
+        $params = [
+            'debug' => $file, 'json' => [
+                "insulin"=> null,
+                "enteredBy"=>"openAgp"
+            ],
+            'headers' => [
+                'Authorization' => "Bearer $this->m_token"
+            ]
+        ];
+        $response = $client->request('PATCH', $this->m_url.'api/v3/treatments/'.$_identifier, $params);
+
+        $data = $response->getBody()->getContents();
+
     }
 
     private function fetchEntriesV1() {
@@ -106,11 +124,11 @@ class NightscoutProvider {
     }
 
 
-    private function fetchTreatmentsV3() {
-        return $this->fetchCollectionV3('treatments');
+    private function fetchTreatmentsV3($_forceRefresh = false) {
+        return $this->fetchCollectionV3('treatments', $_forceRefresh);
     }
 
-    private function fetchCollectionV3($_collection) {
+    private function fetchCollectionV3($_collection, $_forceRefresh = false) {
         $url = $this->m_url.'api/v3/'.$_collection;
         $currentDate = clone($this->m_actualStartDate);
         $rawResults = [];
@@ -121,7 +139,7 @@ class NightscoutProvider {
             $dateField = ($_collection == 'entries'?'date': 'created_at');
             $fields = ($_collection == 'entries' ? 'date,sgv,mbg' : 'timestamp,srvCreated,'.
             'created_at,pumpType,enteredBy,insulin,rate,durationInMilliseconds,duration,insulinInjections,'.
-            'notes,carbs');
+            'notes,carbs,identifier');
             $params = [
                 'query' => [
                     $dateField.'$gte' => $currentDate->format('U'),
@@ -135,7 +153,7 @@ class NightscoutProvider {
                 ];
             }
             $currentDate->add(new \DateInterval('P1D'));
-            $cacheKey = $currentDate < new DateTime()?sha1($url.json_encode($params['query'])):null;
+            $cacheKey = (!$_forceRefresh && $currentDate < new DateTime())?sha1($url.json_encode($params['query'])):null;
             if(!empty($cacheKey) && Request::session()->has($cacheKey)) {
                 $rawResults[] = Request::session()->get($cacheKey);
             } else {

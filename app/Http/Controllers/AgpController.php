@@ -17,7 +17,7 @@ use IntlDateFormatter;
 class AgpController extends BaseController {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-/********************** PUBLIC METHODS *********************/
+    /********************** PUBLIC METHODS *********************/
     public function view() {
         $date1 = microtime(true);
         $url = Request::post()['url'] ?? Request::session()->get('url');
@@ -73,10 +73,15 @@ class AgpController extends BaseController {
             $endDate = DateTime::createFromFormat('d/m/Y H:i:s', '04/11/2023 23:59:00');*/
 
             $nightscoutProvider = new NightscoutProvider($url, $apiSecret, $startDateObject, $endDateObject);
+            $forceTreatmentRefresh = false;
+            if(Request::route()->getName() == 'daily' && !empty(Request::get('setNullTreatment'))) {
+                $this->setNullTreatment($nightscoutProvider, Request::get('setNullTreatment'));
+                $forceTreatmentRefresh = true;
+            }
             $date2 = microtime(true);
             $rawData = ['bloodGlucose' => $nightscoutProvider->fetchEntries()];
             $date2b = microtime(true);
-            $rawData['treatments'] = $nightscoutProvider->fetchTreatments();
+            $rawData['treatments'] = $nightscoutProvider->fetchTreatments($forceTreatmentRefresh);
         } catch(\Exception $e) {
             return view(
                 'web.welcome', ['error' => $e->getMessage(),
@@ -136,5 +141,12 @@ class AgpController extends BaseController {
                 'times' => $times,
                 'dateFormatter' => $dateFormatter
             ]);
+    }
+
+    private function setNullTreatment(NightscoutProvider $_nightscoutProvider, $_identifier) {
+        $_nightscoutProvider->setNullTreatment($_identifier);
+
+
+
     }
 }

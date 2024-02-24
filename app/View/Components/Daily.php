@@ -17,7 +17,7 @@ class Daily extends HighChartsComponent {
         $this->addBloodGlucoseSeries($chart);
         $this->addTreatmentsSeries($chart);
         $this->addCarbsSeries($chart);
-        echo '<script type="module">'.$chart->render().'</script>';
+        echo '<script type="module">Highcharts.AST.allowedAttributes.push(\'onclick\');'.$chart->render().'</script>';
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -90,12 +90,17 @@ class Daily extends HighChartsComponent {
         }
         $_chart->yAxis[] = ['visible' => false] + $this->getTreatmentYAxis();
         $stringToColor = new StringToColor();
+        $jsSetNullTreatment = "Highcharts.setNullTreatment('{point.identifier}');";
+
         foreach ($data as $type => $datum) {
             if(empty($datum)) continue;
             $serieType = 'column';
             $basal = false;
+
+            $dataId = @$this->m_data->getTreatmentsData()['insulinId'][$type];
+            $insulinDuration = @$this->m_data->getTreatmentsData()['insulinDuration'][$type];
             if($this->m_data->hasBasalTreatment() && $type == 'Temp Basal') {
-                if(!empty(@$this->m_data->getTreatmentsData()['insulinDuration'][$type])) {
+                if(!empty($insulinDuration)) {
                     $serieType = 'variwide';
                 }
                 $basal = true;
@@ -104,13 +109,20 @@ class Daily extends HighChartsComponent {
                 'name' => $type,
                 'type' => $serieType,
                 'color' => $stringToColor->handle($type),
-                'data' => $this->formatTimeDataForChart($datum, @$this->m_data->getTreatmentsData()['insulinDuration'][$type]),
+                'data' => $this->formatTimeDataForChart($datum, $insulinDuration??$dataId),
+                'keys' => ['x','y','identifier'],
                 'yAxis' => 'insulin-yAxis',
                 'borderColor' => $basal?$stringToColor->handle($type):'white',
                 'borderRadius' => $basal?0:3,
                 'pointRange' => 60 * 60 * 1000, //largeur
                 'dataLabels' => ['enabled' => !$basal, 'format' => '{y}UI'],
-                'zIndex' => $basal?1:2
+                'zIndex' => $basal?1:2,
+                'tooltip' => [
+                    'useHTML' => true,
+                    'pointFormat' => '<span style="color:{color}">●</span> '.
+                    '{series.name}: <b>{point.y}</b><br/><a href="#" onclick="'.$jsSetNullTreatment.'">Supprimer</a><br/>',
+                    'stickOnContact' => true
+                ],
             ];
         }
     }
@@ -118,7 +130,9 @@ class Daily extends HighChartsComponent {
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
         //$chart->chart->height = 500;
-
+        $chart->tooltip = [
+            'stickOnContact' => true
+        ];
         $chart->yAxis = [
             $this->getBloodGlucoseYAxis(),
         ];

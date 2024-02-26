@@ -129,6 +129,7 @@ class NightscoutProvider {
     }
 
     private function fetchCollectionV3($_collection, $_forceRefresh = false) {
+        //echo '<pre>';
         $url = $this->m_url.'api/v3/'.$_collection;
         $currentDate = clone($this->m_actualStartDate);
         $rawResults = [];
@@ -157,12 +158,14 @@ class NightscoutProvider {
             if(!empty($cacheKey) && Request::session()->has($cacheKey)) {
                 $rawResults[] = Request::session()->get($cacheKey);
             } else {
+                //var_dump(http_build_query($params['query']));
                 $pool[] = new Psr7Request('GET', $url.'?'.http_build_query($params['query']), $params['headers']);
                 $cacheKeys[] = $cacheKey;
             }
         }
         //echo '<pre>';
         $options = array(
+            'concurrency' => 5,
             'fulfilled' => function (Response $response, $index) use(&$rawResults, $cacheKeys) {
                 $contents = $response->getBody()->getContents();
                 if(!empty($cacheKeys[$index])) {
@@ -186,6 +189,7 @@ class NightscoutProvider {
             }
             $result = array_merge($result, $rawResult);
         }
+        //echo '</pre>';
         return($result);
 
     }

@@ -530,7 +530,8 @@ class DiabetesData {
             $maxDate = clone $carbDate;
             $maxDate->modify("+15 minutes");
 
-            $hasRelatedInsulin = count(array_filter($this->filterTreatementsData($minDate, $maxDate)['insulin']));
+            $relatedInsulin = @$this->filterTreatementsData($minDate, $maxDate)['insulin'];
+            $hasRelatedInsulin = !empty($relatedInsulin) && count(array_filter($relatedInsulin));
 
             $minDate = clone $carbDate;
             $minDate->modify("-15 minutes");

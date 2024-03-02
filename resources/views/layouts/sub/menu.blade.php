@@ -19,6 +19,7 @@
         ->add(\Spatie\Menu\Html::raw($searchForm))
         ->addMenuLink(Link::toUrl('/weekly', __('Hebdo')))
         ->addMenuLink(Link::toUrl('/monthly', __('Mensuel')))
+        ->addMenuLink(Link::toUrl('/ratio', __('Ratios')))
     );
 
     /*$menu->url('/login', "Se connecter");

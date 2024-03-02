@@ -24,5 +24,13 @@ return [
     ],
     'treatments' => [
         'relativeAxisHeight' => 1/3
+    ],
+    'lunchTypes' => [
+        '0700' => 'night',
+        '1100' => 'breakfast',
+        '1500' => 'lunch',
+        '1800' => 'afternoonsnack',
+        '2200' => 'diner',
+        '2359' => 'night'
     ]
 ];

@@ -31,7 +31,7 @@ abstract class HighChartsComponent extends Component {
         $chart->chart->marginTop = 0;
         $chart->chart->marginRight = 0;
         $chart->chart->marginLeft = 25;
-        $chart->chart->marginBottom = 20;
+        $chart->chart->marginBottom = 30;
         $chart->plotOptions->series = ['marker' => ['enabled' => false]];
         //$chart->tooltip->enabled = false;
         $chart->tooltip = ['shared' => true];

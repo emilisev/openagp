@@ -39,7 +39,9 @@ class DiabetesData {
 
     private array $m_insulinAgpData = [];
 
-    private array $m_ratios;
+    private array $m_ratios = [];
+
+    private $m_ratiosByLunchType = [];
 
     private array $m_rawData;
 
@@ -349,6 +351,14 @@ class DiabetesData {
         return $this->m_ratios;
     }
 
+    public function getRatiosByLunchType() {
+        if(is_null($this->m_analyzedCarbs)) {
+            $this->computeAnalyzedCarbs();
+        }
+        return $this->m_ratiosByLunchType;
+    }
+
+
     public function getTargets(): array {
         return $this->m_targets;
     }
@@ -531,8 +541,7 @@ class DiabetesData {
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private function computeAnalyzedCarbs() {
         $carbs = ['meal' => [], 'hypo' => [], 'unknown' => []];
-        $ratios = [];
-        echo "<pre>";
+        $ratios = $ratiosByLunchType = [];
         foreach($this->getTreatmentsData()['carbs'] as $time => $value) {
             $carbDate = new DateTime();
             $carbDate->setTimestamp($time/self::__1SECOND);
@@ -550,24 +559,42 @@ class DiabetesData {
             $minDate->modify("-15 minutes");
 
             $lastBg = last(self::filterData($this->m_bloodGlucoseData, $minDate->format('U'), $carbDate->format('U')));
-            $isMeal = $hasRelatedInsulin;
-            $isHypo = !$hasRelatedInsulin && $lastBg < 90;
-            if(!$hasRelatedInsulin && !$isHypo && $lastBg <= 110) {
-                $isHypo = true;
-            }
-            if(!$hasRelatedInsulin && !$isHypo && $lastBg > 110) {
-                $isMeal = true;
+            $isMeal = $hasRelatedInsulin && $value > 10;
+            $isHypo = !$hasRelatedInsulin && $lastBg < 90 && $value < 20;
+            if(!$isMeal && !$isHypo) {
+                if($lastBg <= 110) {
+                    $isHypo = true;
+                } else {
+                    $isMeal = true;
+                }
             }
             if($isMeal) {
                 $carbs['meal'][$time] = $value;
-                if(!empty($relatedInsulin)) {
-                    $insulinDoses = array_intersect_key($relatedInsulin, array_flip($this->m_bolusType));
-                    $insulinDose = 0;
-                    foreach($insulinDoses as $doses) {
-                        $insulinDose += array_sum($doses);
-                    }
-                    if($insulinDose > 0) {
-                        $ratios[$time] = round($value/$insulinDose);
+                //ratio part
+                if($lastBg > config('diabetes.bloodGlucose.targets.low')
+                    && $lastBg < config('diabetes.bloodGlucose.targets.high')
+                    && !empty($relatedInsulin)) {
+                    $minDate->modify("+02 hours 15 minutes");
+                    $bgPlus2Hrs = last(self::filterData($this->m_bloodGlucoseData, $carbDate->format('U'), $minDate->format('U')));
+                    if($bgPlus2Hrs > config('diabetes.bloodGlucose.targets.low')
+                        && $bgPlus2Hrs < config('diabetes.bloodGlucose.targets.high')) {
+                        $insulinDoses = array_intersect_key($relatedInsulin, array_flip($this->m_bolusType));
+                        $insulinDose = 0;
+                        foreach($insulinDoses as $doses) {
+                            $insulinDose += array_sum($doses);
+                        }
+                        if($insulinDose > 0) {
+                            $ratios[$time] = round($value / $insulinDose);
+                            $timeInDay = $carbDate->format('Hi');
+                            $lunchType = null;
+                            foreach(array_reverse(config('diabetes.lunchTypes'), true) as $maxTime => $type) {
+                                if($timeInDay <= $maxTime) {
+                                    $lunchType = $type;
+                                    continue;
+                                }
+                            }
+                            $ratiosByLunchType[$lunchType][$time] = round($value / $insulinDose);
+                        }
                     }
                 }
             } elseif($isHypo) {
@@ -578,6 +605,7 @@ class DiabetesData {
         }
         $this->m_analyzedCarbs = $carbs;
         $this->m_ratios = $ratios;
+        $this->m_ratiosByLunchType = $ratiosByLunchType;
 
     }
 

@@ -1,6 +1,9 @@
 @extends('layouts.mainlayout')
 @php
 /** @var $data \App\Models\DiabetesData */
+if(is_array($data) && count($data) == 1) {
+    $data = $data[0];
+}
 if($data instanceof \App\Models\DiabetesData) {
     $previousDay = $data->getBegin() - 60*60*24;
     $nextDay = $data->getBegin() + 60*60*24;

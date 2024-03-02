@@ -62,9 +62,9 @@ class AgpController extends BaseController {
                 foreach($matchingDates as $timestamp) {
                     $date = new DateTime();
                     $date->setTimestamp(($timestamp['timestamp']??$timestamp['srvCreated']) / DiabetesData::__1SECOND);
-                    $startDate = $date->format('d/m/Y');
-                    $matchingStringDates[$startDate] = $startDate;
+                    $matchingStringDates[$date->format('Ymd')] = $date->format('d/m/Y');
                 }
+                krsort($matchingStringDates);
                 foreach($matchingStringDates as $startDate) {
                     $endDate = $startDate;
                     Request::session()->put('startDate', $startDate);

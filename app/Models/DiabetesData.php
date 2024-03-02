@@ -18,6 +18,8 @@ class DiabetesData {
 
     private array $m_bloodGlucoseDataByRoundedTime;
 
+    private array $m_bolusType = ['Novorapid'];
+
     private float $m_cgmActivePercent;
 
     private $m_dailyTimeInRange;
@@ -36,6 +38,8 @@ class DiabetesData {
     private bool $m_hasBasalTreatment = false;
 
     private array $m_insulinAgpData = [];
+
+    private array $m_ratios;
 
     private array $m_rawData;
 
@@ -338,6 +342,13 @@ class DiabetesData {
         return $this->m_insulinAgpData;
     }
 
+    public function getRatios() {
+        if(is_null($this->m_analyzedCarbs)) {
+            $this->computeAnalyzedCarbs();
+        }
+        return $this->m_ratios;
+    }
+
     public function getTargets(): array {
         return $this->m_targets;
     }
@@ -520,6 +531,8 @@ class DiabetesData {
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private function computeAnalyzedCarbs() {
         $carbs = ['meal' => [], 'hypo' => [], 'unknown' => []];
+        $ratios = [];
+        echo "<pre>";
         foreach($this->getTreatmentsData()['carbs'] as $time => $value) {
             $carbDate = new DateTime();
             $carbDate->setTimestamp($time/self::__1SECOND);
@@ -547,6 +560,16 @@ class DiabetesData {
             }
             if($isMeal) {
                 $carbs['meal'][$time] = $value;
+                if(!empty($relatedInsulin)) {
+                    $insulinDoses = array_intersect_key($relatedInsulin, array_flip($this->m_bolusType));
+                    $insulinDose = 0;
+                    foreach($insulinDoses as $doses) {
+                        $insulinDose += array_sum($doses);
+                    }
+                    if($insulinDose > 0) {
+                        $ratios[$time] = round($value/$insulinDose);
+                    }
+                }
             } elseif($isHypo) {
                 $carbs['hypo'][$time] = $value;
             } else {
@@ -554,6 +577,7 @@ class DiabetesData {
             }
         }
         $this->m_analyzedCarbs = $carbs;
+        $this->m_ratios = $ratios;
 
     }
 

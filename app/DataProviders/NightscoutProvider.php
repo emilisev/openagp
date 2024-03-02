@@ -69,7 +69,7 @@ class NightscoutProvider {
         $params = [
             'query' => [
                 'notes$re' => $_notes,
-                'sort$desc' => 'timestamp',
+                'sort$desc' => 'srvCreated',
                 'fields' => 'timestamp,srvCreated',
                 'limit' => 10,
             ],
@@ -84,6 +84,8 @@ class NightscoutProvider {
 
         $data = $response->getBody()->getContents();
         $rawResult = json_decode($data, true);
+        /*echo "<pre>";
+        var_dump($params, $rawResult);*/
         return $rawResult['result'];
     }
 

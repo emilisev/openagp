@@ -57,6 +57,7 @@ class Daily extends HighChartsComponent {
             return;
         }
         $notes = $this->m_data->getTreatmentsData()['notes'];
+        $ratios = $this->m_data->getRatios();
         $_chart->yAxis[] = [
             'id' => 'carbs-yAxis',
             'visible' => false,
@@ -68,15 +69,18 @@ class Daily extends HighChartsComponent {
             if(empty($datum)) continue;
             $dataForChart = [];
             foreach($datum as $key => $value) {
-                $item = ['x' => $key, 'y' => $value, 'name' => "{$value}g"];
+                $item = ['x' => $key, 'y' => $value, 'label' => "{$value}g"];
                 if(array_key_exists($key, $notes)) {
-                    $item['name'] .= ' ('.$notes[$key].')';
+                    $item['label'] .= ' ('.$notes[$key].')';
+                }
+                if(array_key_exists($key, $ratios)) {
+                    $item['label'] .= ' (1U:'.$ratios[$key].'g)';
                 }
                 $dataForChart[] = $item;
             }
             foreach ($notes as $key => $value) {
                 if(!array_key_exists($key, $data)) {
-                    $item = ['x' => $key, 'y' => 0, 'name' => $value];
+                    $item = ['x' => $key, 'y' => 0, 'label' => $value];
                     $dataForChart[] = $item;
                 }
             }
@@ -88,7 +92,12 @@ class Daily extends HighChartsComponent {
                 'yAxis' => 'carbs-yAxis',
                 'pointRange' => 60 * 60 * 1000, //largeur
                 'opacity' => 1,
-                'dataLabels' => ['enabled' => true, 'format' => '{point.name}']
+                'dataLabels' => ['enabled' => true, 'format' => '{point.label}'],
+                'tooltip' => [
+                    'useHTML' => true,
+                    'pointFormat' => '<span style="color:{color}">●</span> '.
+                        '{series.name}: <b>{point.label}</b><br/>',
+                ]
             ];
         }
     }

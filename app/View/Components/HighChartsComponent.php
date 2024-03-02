@@ -72,10 +72,15 @@ abstract class HighChartsComponent extends Component {
 
     protected function getBloodGlucoseYAxis($_greenLineWidth = 2) {
         $targets = $this->m_data->getTargets();
+        $yMax = max($this->m_data->getBloodGlucoseData());
+        $tickPositions = [0, $targets['veryLow'], $targets['low'], $targets['high'], $targets['veryHigh']];
+        if($yMax > $targets['veryHigh'] - 10) {
+            $tickPositions[] = 350;
+        }
         return [
             'title' => ['text' => 'mg/dL', 'rotation' => -90, 'offset' => 15, 'align' => 'high', 'y' => 25, 'style' => ['fontSize' => '0.8rem']],
             'id' => 'gloodGlucose-yAxis',
-            'tickPositions' => [0, $targets['veryHigh'], $targets['veryLow'], $targets['low'], $targets['high'], 350],
+            'tickPositions' => $tickPositions,
             'offset' => -10,
             'showFirstLabel' => false,
             'showLastLabel' => false,

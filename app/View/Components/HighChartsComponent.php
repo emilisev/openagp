@@ -27,6 +27,7 @@ abstract class HighChartsComponent extends Component {
         if(is_int($this->m_height)) {
             $chart->chart->height = $this->m_height;
         }
+        //$chart->chart->width = 200;
         $chart->chart->marginTop = 0;
         $chart->chart->marginRight = 0;
         $chart->chart->marginLeft = 25;

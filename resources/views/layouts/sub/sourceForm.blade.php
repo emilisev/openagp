@@ -3,7 +3,7 @@
     $agent = new Agent();
 
 $formAction = Request::route()->getName()??($agent->isMobile()?'/daily':'/agp');
-if(strpos($formAction, 'generated') === 0) {
+if(strpos($formAction, 'generated') === 0 || $formAction == 'welcome') {
 	$formAction = ($agent->isMobile()?'/daily':'/agp');
 }
 @endphp

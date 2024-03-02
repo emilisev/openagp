@@ -134,13 +134,13 @@ class Daily extends HighChartsComponent {
             'stickOnContact' => true
         ];
         $chart->yAxis = [
-            $this->getBloodGlucoseYAxis(),
+            $this->getBloodGlucoseYAxis($this->m_height<200?0:null),
         ];
         $xAxis = ['showLastLabel' => false] + $this->getBottomLabelledXAxis();
-        $min = $this->m_data->getBegin();
-        $max = $min + 60 * 60 * 24;
-        $xAxis['min'] = $min * 1000;
-        $xAxis['max'] = $max * 1000;
+        $xMin = $this->m_data->getBegin();
+        $xMax = $xMin + 60 * 60 * 24;
+        $xAxis['min'] = $xMin * 1000;
+        $xAxis['max'] = $xMax * 1000;
         $chart->xAxis = $xAxis;
         return $chart;
     }

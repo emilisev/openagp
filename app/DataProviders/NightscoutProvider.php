@@ -2,6 +2,7 @@
 
 namespace App\DataProviders;
 
+use BeyondCode\ServerTiming\Facades\ServerTiming;
 use DateTime;
 use GuzzleHttp\Client;
 use GuzzleHttp\Pool;
@@ -25,7 +26,7 @@ class NightscoutProvider {
     private string $m_url;
     private $m_urlV1;
 
-    public function __construct($_url, $_apiSecret, DateTime $_startDate, DateTime $_endDate) {
+    public function __construct($_url, $_apiSecret, ?DateTime $_startDate, ?DateTime $_endDate) {
 
         $this->m_url = $_url;
         if(!str_ends_with($this->m_url, '/')) {
@@ -42,14 +43,16 @@ class NightscoutProvider {
         $data = json_decode($response->getBody()->getContents(), true);
         $this->m_token = $data['token'];
 
-        $this->m_startDate = clone($_startDate);
-        $this->m_endDate = clone($_endDate);
-        $this->m_actualEndDate = $_endDate;
-        $this->m_actualStartDate = $_startDate;
+        if(!empty($_startDate) && !empty($_endDate)) {
+            $this->m_startDate = clone($_startDate);
+            $this->m_endDate = clone($_endDate);
+            $this->m_actualEndDate = $_endDate;
+            $this->m_actualStartDate = $_startDate;
 
-        //add 1 day before and after to recompute with time offset
-        $this->m_startDate->sub(new \DateInterval('P1D'));
-        $this->m_endDate->add(new \DateInterval('P1D'));
+            //add 1 day before and after to recompute with time offset
+            $this->m_startDate->sub(new \DateInterval('P1D'));
+            $this->m_endDate->add(new \DateInterval('P1D'));
+        }
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -59,6 +62,28 @@ class NightscoutProvider {
 
     public function fetchTreatments($_forceRefresh = false) {
         return $this->fetchTreatmentsV3($_forceRefresh);
+    }
+
+    public function searchNotes($_notes) {
+        $url = $this->m_url.'api/v3/treatments';
+        $params = [
+            'query' => [
+                'notes$re' => $_notes,
+                'fields' => 'timestamp',
+                'limit' => 10,
+            ],
+        ];
+        if(!empty($this->m_token)) {
+            $params['headers'] = [
+                'Authorization' => "Bearer $this->m_token",
+            ];
+        }
+        $client = new Client();
+        $response = $client->request('GET', $url, $params);
+
+        $data = $response->getBody()->getContents();
+        $rawResult = json_decode($data, true);
+        return $rawResult['result'];
     }
 
     public function setNullTreatment($_identifier) {
@@ -178,9 +203,11 @@ class NightscoutProvider {
             }
         );
         //var_dump("parallel $_collection: ", count($pool));
+        ServerTiming::start('Nightscout');
         $guzzlePool = new Pool(new Client(), $pool, $options);
         $promise = $guzzlePool->promise();
         $promise->wait();
+        ServerTiming::stop('Nightscout');
         foreach($rawResults as $rawResult) {
             //var_dump($rawResult);
             $rawResult = json_decode($rawResult, true);

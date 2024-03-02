@@ -15,12 +15,16 @@ use App\Http\Controllers\AgpController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::view('/', 'web.welcome');
+Route::view('/', 'web.welcome')->name('welcome');
 Route::any('/agp', [AgpController::class, 'view'])->name('agp');
 Route::any('/timeInRange', [AgpController::class, 'view'])->name('timeInRange');
 Route::any('/treatment', [AgpController::class, 'view'])->name('treatment');
 
+
+Route::any('/daily/notes/{notes}', [AgpController::class, 'view'])->name('daily');
 Route::any('/daily', [AgpController::class, 'view'])->name('daily');
+Route::post('daily', [AgpController::class, 'postToGet'])->name('daily');
+
 Route::any('/weekly', [AgpController::class, 'view'])->name('weekly');
 Route::any('/monthly', [AgpController::class, 'view'])->name('monthly');
 
@@ -35,4 +39,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+
+Route::fallback(function() { return view('web.welcome');});
 //require __DIR__.'/auth.php';

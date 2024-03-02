@@ -3,7 +3,6 @@
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
-$date1 = microtime(true);
 define('LARAVEL_START', microtime(true));
 
 /*
@@ -54,6 +53,3 @@ $response = $kernel->handle(
 )->send();
 
 $kernel->terminate($request, $response);
-
-$date2 = microtime(true);
-echo '<footer class="fixed-bottom">Laravel total time : '. (round(($date2 * 1000 - $date1 * 1000)) / 1000).'s</footer>';

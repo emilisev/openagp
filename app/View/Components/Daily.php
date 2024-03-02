@@ -3,12 +3,22 @@
 namespace App\View\Components;
 
 use App\Helpers\LabelProviders;
+use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use App\Helpers\StringToColor;
 
 class Daily extends HighChartsComponent {
 
+    private $m_compressedView;
+
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    public function __construct(DiabetesData $data, string $renderTo = null, int $height = null) {
+        parent::__construct($data, $renderTo, $height);
+        $this->m_compressedView = !empty($this->m_height) && $this->m_height < 200;
+    }
+
+
     /**
      * Get the view / contents that represent the component.
      */
@@ -90,7 +100,6 @@ class Daily extends HighChartsComponent {
         }
         $_chart->yAxis[] = ['visible' => false] + $this->getTreatmentYAxis();
         $stringToColor = new StringToColor();
-        $jsSetNullTreatment = "Highcharts.setNullTreatment('{point.identifier}');";
 
         foreach ($data as $type => $datum) {
             if(empty($datum)) continue;
@@ -105,6 +114,16 @@ class Daily extends HighChartsComponent {
                 }
                 $basal = true;
             }
+            if($this->m_compressedView) {
+                $tooltip = [];
+            } else {
+                $tooltip = [
+                    'useHTML' => true,
+                    'pointFormat' => '<span style="color:{color}">●</span> '.
+                        '{series.name}: <b>{point.y}</b><br/><a href="#" onclick="Highcharts.setNullTreatment(\'{point.identifier}\');">Supprimer</a><br/>',
+                    'stickOnContact' => true
+                ];
+            }
             $_chart->series[] = [
                 'name' => $type,
                 'type' => $serieType,
@@ -117,12 +136,7 @@ class Daily extends HighChartsComponent {
                 'pointRange' => 60 * 60 * 1000, //largeur
                 'dataLabels' => ['enabled' => !$basal, 'format' => '{y}UI'],
                 'zIndex' => $basal?1:2,
-                'tooltip' => [
-                    'useHTML' => true,
-                    'pointFormat' => '<span style="color:{color}">●</span> '.
-                    '{series.name}: <b>{point.y}</b><br/><a href="#" onclick="'.$jsSetNullTreatment.'">Supprimer</a><br/>',
-                    'stickOnContact' => true
-                ],
+                'tooltip' => $tooltip,
             ];
         }
     }
@@ -133,8 +147,9 @@ class Daily extends HighChartsComponent {
         $chart->tooltip = [
             'stickOnContact' => true
         ];
+
         $chart->yAxis = [
-            $this->getBloodGlucoseYAxis($this->m_height<200?0:null),
+            $this->getBloodGlucoseYAxis($this->m_compressedView ?0:null),
         ];
         $xAxis = ['showLastLabel' => false] + $this->getBottomLabelledXAxis();
         $xMin = $this->m_data->getBegin();

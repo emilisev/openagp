@@ -48,7 +48,6 @@ class AgpController extends BaseController {
 
 
     public function view(Request $_request, string $_notes = null) {
-        $date1 = microtime(true);
         try {
             if(Request::route()->getName() == 'daily' && !empty($_notes)) {
                 $nightscoutProvider = new NightscoutProvider(
@@ -56,13 +55,13 @@ class AgpController extends BaseController {
                     null, null);
                 $matchingDates = $nightscoutProvider->searchNotes($_notes);
                 if(empty($matchingDates)) {
-                    throw new \Exception(__("Aucune donnée contenant les notes :notes", ['notes' => $_notes]));
+                    throw new \Exception(__("Aucune donnée contenant les notes \":notes\"", ['notes' => $_notes]));
                 }
                 $data = [];
                 $matchingStringDates = [];
                 foreach($matchingDates as $timestamp) {
                     $date = new DateTime();
-                    $date->setTimestamp($timestamp['timestamp'] / DiabetesData::__1SECOND);
+                    $date->setTimestamp(($timestamp['timestamp']??$timestamp['srvCreated']) / DiabetesData::__1SECOND);
                     $startDate = $date->format('d/m/Y');
                     $matchingStringDates[$startDate] = $startDate;
                 }
@@ -81,21 +80,10 @@ class AgpController extends BaseController {
             return view(
                 'web.welcome', ['error' => $e->getMessage(),
                 'formDefault' => ['url' => Request::session()->get('url'),
-                    'apiSecret' => Request::session()->get('apiSecret'),
-                    'dates' => "$startDate - $endDate"]]);
+                    'apiSecret' => Request::session()->get('apiSecret')]]);
         }
         $chart = new Highchart();
 
-        $date2 = microtime(true);
-        $date3 = microtime(true);
-        $date5 = microtime(true);
-        /*var_dump('1 => 2', round(($date2 * 1000 - $date1 * 1000)) / 1000);
-        var_dump('2 => 3', );
-        var_dump('2b => 3', round(($date3 * 1000 - $date2b * 1000)) / 1000);
-        var_dump('3 => 4', round(($date4 * 1000 - $date3 * 1000)) / 1000);
-        var_dump('4 => 5', round(($date5 * 1000 - $date4 * 1000)) / 1000);
-        var_dump('1 => 5', );*/
-        //$times = ['total' => round(($date5 * 1000 - $date1 * 1000)) / 1000, 'network' => round(($date3 * 1000 - $date2 * 1000)) / 1000];
         //var_dump(Route::currentRouteName());
         $dateFormatter = new IntlDateFormatter(
             array_search(App::getLocale(), config('languages.list'))??config('app.locale'),

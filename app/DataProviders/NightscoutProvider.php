@@ -69,7 +69,8 @@ class NightscoutProvider {
         $params = [
             'query' => [
                 'notes$re' => $_notes,
-                'fields' => 'timestamp',
+                'sort$desc' => 'timestamp',
+                'fields' => 'timestamp,srvCreated',
                 'limit' => 10,
             ],
         ];

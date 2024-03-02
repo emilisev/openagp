@@ -18,7 +18,9 @@ $graphHeight = count($data) > 1?130:null;
         @if(isset($previousDay))
         <a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
         @endif
+        @if(count($data) > 1) <a href="/daily?day={{ date('d/m/Y', $dailyData->getBegin())}}"> @endif
         {{ $dateFormatter->format($dailyData->getBegin()) }}
+        @if(count($data) > 1) </a> @endif
         @if(isset($nextDay))
             <a href="?day={{ date('d/m/Y',  $nextDay) }}"><i class="bi bi-caret-right-fill"></i></a>
         @endif

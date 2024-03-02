@@ -421,7 +421,7 @@ class DiabetesData {
                 $type = 'unknown';
                 if(!empty($item["insulinInjections"])) { //sync pen in xdrip
                     $details = json_decode($item["insulinInjections"], true);
-                    $type = $details[0]['insulin'];
+                    $type = @$details[0]['insulin'];
                 } elseif(!empty($item["notes"])) { //manually entered in xdrip
                     $type = $item["notes"];
                 }

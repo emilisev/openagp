@@ -35,14 +35,8 @@ class NightscoutProvider {
         //api v1
         if(!empty($_apiSecret)) {
             $this->m_urlV1 = str_replace('//', '//'.$_apiSecret.'@', $this->m_url);
-            $this->m_apiSecret = sha1($_apiSecret);
         }
-        //api v3 - get token
-        $client = new Client();
-        $response = $client->request('GET', $this->m_url.'api/v2/authorization/request/'.$_apiSecret);
-        $data = json_decode($response->getBody()->getContents(), true);
-        $this->m_token = $data['token'];
-
+        $this->m_apiSecret = $_apiSecret;
         if(!empty($_startDate) && !empty($_endDate)) {
             $this->m_startDate = clone($_startDate);
             $this->m_endDate = clone($_endDate);
@@ -65,6 +59,7 @@ class NightscoutProvider {
     }
 
     public function searchNotes($_notes) {
+        $this->openSession();
         $url = $this->m_url.'api/v3/treatments';
         $params = [
             'query' => [
@@ -90,6 +85,7 @@ class NightscoutProvider {
     }
 
     public function setNullTreatment($_identifier) {
+        $this->openSession();
         $client = new Client();
         $file = fopen(__DIR__.'/log.txt', 'w');
         $params = [
@@ -176,16 +172,18 @@ class NightscoutProvider {
                     'limit' => 400,
                 ],
             ];
-            if(!empty($this->m_token)) {
-                $params['headers'] = [
-                    'Authorization' => "Bearer $this->m_token",
-                ];
-            }
             $currentDate->add(new \DateInterval('P1D'));
             $cacheKey = (!$_forceRefresh && $currentDate < new DateTime())?sha1($url.json_encode($params['query'])):null;
             if(!empty($cacheKey) && Request::session()->has($cacheKey)) {
                 $rawResults[] = Request::session()->get($cacheKey);
             } else {
+                $this->openSession();
+                if(!empty($this->m_token)) {
+                    $params['headers'] = [
+                        'Authorization' => "Bearer $this->m_token",
+                    ];
+                }
+
                 //var_dump(http_build_query($params['query']));
                 $pool[] = new Psr7Request('GET', $url.'?'.http_build_query($params['query']), $params['headers']);
                 $cacheKeys[] = $cacheKey;
@@ -206,11 +204,14 @@ class NightscoutProvider {
             }
         );
         //var_dump("parallel $_collection: ", count($pool));
-        ServerTiming::start('Nightscout');
-        $guzzlePool = new Pool(new Client(), $pool, $options);
-        $promise = $guzzlePool->promise();
-        $promise->wait();
-        ServerTiming::stop('Nightscout');
+        if(!empty($pool)) {
+            ServerTiming::start('Nightscout');
+            $guzzlePool = new Pool(new Client(), $pool, $options);
+            $promise = $guzzlePool->promise();
+            $promise->wait();
+            ServerTiming::stop('Nightscout');
+        }
+
         foreach($rawResults as $rawResult) {
             //var_dump($rawResult);
             $rawResult = json_decode($rawResult, true);
@@ -249,5 +250,18 @@ class NightscoutProvider {
             $result = $result['result'];
         }
         return $result;
+    }
+
+    private function openSession(): void {
+        if(!empty($this->m_token)) {
+            return;
+        }
+        //api v3 - get token
+        $client = new Client();
+        ServerTiming::start('Nightscout');
+        $response = $client->request('GET', $this->m_url.'api/v2/authorization/request/'.$this->m_apiSecret);
+        $data = json_decode($response->getBody()->getContents(), true);
+        ServerTiming::stop('Nightscout');
+        $this->m_token = $data['token'];
     }
 }

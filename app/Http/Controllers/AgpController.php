@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataProviders\NightscoutProvider;
+use BeyondCode\ServerTiming\Facades\ServerTiming;
 use DateTime;
 use Ghunti\HighchartsPHP\Highchart;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -48,6 +49,7 @@ class AgpController extends BaseController {
 
 
     public function view(Request $_request, string $_notes = null) {
+        ServerTiming::start('AgpController');
         try {
             if(Request::route()->getName() == 'daily' && !empty($_notes)) {
                 $nightscoutProvider = new NightscoutProvider(
@@ -94,7 +96,7 @@ class AgpController extends BaseController {
             'E dd MMM y'
         );
 
-        return view(
+        $result = view(
             'web.'.Request::route()->getName(),
             [
                 'data' => $data,
@@ -103,6 +105,8 @@ class AgpController extends BaseController {
                 //'times' => $times,
                 'dateFormatter' => $dateFormatter
             ]);
+        ServerTiming::stop('AgpController');
+        return $result;
     }
 
     private function fetchAndPrepareData($_startDate, $_endDate) {

@@ -20,9 +20,9 @@ class ServerTimingMiddleware extends \BeyondCode\ServerTiming\Middleware\ServerT
         unset($events['App']);
         foreach($events as $label => $duration) {
             $duration = round($duration)/1000;
-            $footer .= "$label : {$duration}s<br/>";
+            $footer .= "$label : {$duration}s, ";
         }
-        $footer .= '<br/><br/></footer>';
+        $footer .= '</footer>';
         return $footer;
     }
 }

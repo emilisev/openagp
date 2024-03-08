@@ -29,24 +29,73 @@ class Ratios extends HighChartsComponent {
         $dataStartPoint = $this->m_data->getBegin()*DiabetesData::__1SECOND;
         $statComputer = new StatisticsComputer();
         $stringToColor = new StringToColor();
-        foreach($ratios as $type => $datum) {
+        $yAxisNumber = $xAxisNumber = 0;
+        $xAxis = ['tickInterval' => 24 * 60 * 60 * 1000, 'labels' => ['format' => '{value:%d/%m}']]+$this->getBottomLabelledXAxis();
+        $validTimesInDay = array_intersect(config('diabetes.lunchTypes'), array_keys($ratios));
+        $percentInc = 100 / count($validTimesInDay);
+        $max = 0;
+        foreach($validTimesInDay as $timeInDay) {
+            $max = max($max, max(@$ratios[$timeInDay]));
+        }
+        foreach($validTimesInDay as $timeInDay) {
+            $datum = @$ratios[$timeInDay];
             if(empty($datum)) continue;
-            ksort($datum);
             $datum = $statComputer->computeAverage($datum, 60 * 60 * 24, $dataStartPoint);
+            foreach($datum as &$value) {
+                $value = $max - $value;
+            }
+            unset($value);
             $_chart->series[] = [
-                'type' => 'line',
-                'name' => LabelProviders::get($type),
-                'color' => $stringToColor->handle($type),
+                'type' => 'bar',
+                'name' => LabelProviders::get($timeInDay),
+                'color' => $stringToColor->handle($timeInDay),
                 'data' => $this->formatTimeDataForChart($datum),
                 'lineWidth' => 2,
+                //'xAxis' => "xAxis$xAxisNumber",
+                'yAxis' => "yAxis$yAxisNumber",
+                'dataLabels' => ['enabled' => true, 'format' => '1U:{subtract '.$max.' y}g'],
+                'tooltip' => [
+                    'useHTML' => true,
+                    'pointFormat' => '<span style="color:{point.color}">●</span> '.
+                        '{series.name}: <b>1U:{subtract '.$max.' point.y}g</b><br/>',
+                ]
             ];
+            //barres
+            $_chart->yAxis[] = [
+                'id' => "yAxis$yAxisNumber",
+                'left' => ($yAxisNumber * $percentInc).'%',
+                'width' => ($percentInc-5).'%',
+                'tickPositions' => [0, ceil($max/10)*10],
+                'visible' => false,
+            ];
+            //grille
+            /*$_chart->xAxis[] = [
+                'id' => "xAxis$xAxisNumber",
+                'left' => (($xAxisNumber * ($percentInc+4))).'%',
+                'width' => ($percentInc-5).'%',
+            ] + $xAxis;*/
+            //barres
+            /*$_chart->yAxis[] = [
+                'id' => "yAxis$yAxisNumber",
+                'left' => 50+($yAxisNumber * 200),
+                'width' => 100,
+            ];*/
+            //grille
+            /*$_chart->xAxis[] = [
+                    'id' => "xAxis$xAxisNumber",
+                    'left' => 50+($xAxisNumber * 200),
+                    'width' => 100,
+                ] + $xAxis;*/
+            $yAxisNumber++;
+            $xAxisNumber++;
         }
     }
 
 
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
-        $chart->chart->marginBottom = 50;
+        $chart->chart->marginLeft = 50;
+        $chart->chart->marginBottom = 0;
         $xAxis = ['tickInterval' => 24 * 60 * 60 * 1000, 'labels' => ['format' => '{value:%d/%m}']]+$this->getBottomLabelledXAxis();
         $chart->xAxis = [$xAxis];
         return $chart;

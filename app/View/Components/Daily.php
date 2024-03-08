@@ -57,33 +57,28 @@ class Daily extends HighChartsComponent {
             return;
         }
         $notes = $this->m_data->getTreatmentsData()['notes'];
-        $ratios = $this->m_data->getRatios();
         $_chart->yAxis[] = [
             'id' => 'carbs-yAxis',
             'visible' => false,
             'max' => $maxCarbs / config('diabetes.treatments.relativeAxisHeight')
         ];
-
+    echo '<pre>';
         $stringToColor = new StringToColor();
+        $serieIndex = 0;
         foreach($data as $type => $datum) {
             if(empty($datum)) continue;
             $dataForChart = [];
             foreach($datum as $key => $value) {
                 $item = ['x' => $key, 'y' => $value, 'label' => "{$value}g"];
-                if(array_key_exists($key, $notes)) {
-                    $item['label'] .= ' ('.$notes[$key].')';
-                }
-                if(array_key_exists($key, $ratios)) {
-                    $item['label'] .= ' (1U:'.$ratios[$key].'g)';
-                }
                 $dataForChart[] = $item;
             }
-            foreach ($notes as $key => $value) {
-                if(!array_key_exists($key, $data)) {
+            if($serieIndex == 0) {
+                foreach($notes as $key => $value) {
                     $item = ['x' => $key, 'y' => 0, 'label' => $value];
                     $dataForChart[] = $item;
                 }
             }
+            $serieIndex ++;
             $_chart->series[] = [
                 'type' => 'column',
                 'name' => LabelProviders::get($type),

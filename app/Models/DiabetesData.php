@@ -547,7 +547,7 @@ class DiabetesData {
             $carbDate->setTimestamp($time/self::__1SECOND);
 
             $minDate = clone $carbDate;
-            $minDate->modify("-90 minutes");
+            $minDate->modify("-60 minutes");
 
             $maxDate = clone $carbDate;
             $maxDate->modify("+15 minutes");
@@ -562,7 +562,9 @@ class DiabetesData {
             $isMeal = $hasRelatedInsulin && $value > 10;
             $isHypo = !$hasRelatedInsulin && $lastBg < 90 && $value < 20;
             if(!$isMeal && !$isHypo) {
-                if($lastBg <= 110) {
+                if($value > 15) {
+                    $isMeal = true;
+                }elseif($lastBg <= 110) {
                     $isHypo = true;
                 } else {
                     $isMeal = true;

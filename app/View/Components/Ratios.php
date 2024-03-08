@@ -37,6 +37,7 @@ class Ratios extends HighChartsComponent {
         foreach($validTimesInDay as $timeInDay) {
             $max = max($max, max(@$ratios[$timeInDay]));
         }
+        $max +=5;
         foreach($validTimesInDay as $timeInDay) {
             $datum = @$ratios[$timeInDay];
             if(empty($datum)) continue;
@@ -65,7 +66,7 @@ class Ratios extends HighChartsComponent {
                 'id' => "yAxis$yAxisNumber",
                 'left' => ($yAxisNumber * $percentInc).'%',
                 'width' => ($percentInc-5).'%',
-                'tickPositions' => [0, ceil($max/10)*10],
+                'tickPositions' => [0, $max],
                 'visible' => false,
             ];
             //grille

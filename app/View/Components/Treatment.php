@@ -7,6 +7,7 @@ use App\Helpers\StatisticsComputer;
 use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use App\Helpers\StringToColor;
+use Ghunti\HighchartsPHP\HighchartJsExpr;
 use function App\Models\readableDate;
 use function App\Models\readableDateArray;
 
@@ -83,6 +84,7 @@ class Treatment extends HighChartsComponent {
             'name' => "Glycémie",
             'data' => $this->formatTimeDataForChart($this->m_bgData),
             'zones' => $this->getDefaultZones(),
+            'color' => config('colors.timeInRange.target'),
             'lineWidth' => 2,
             //'marker' => ['enabled' => true, 'radius' => 1,],
             'zIndex' => 100
@@ -143,13 +145,51 @@ class Treatment extends HighChartsComponent {
                 ];
             }
         }
-        $_chart->yAxis[] = ['id' => 'insulin-yAxis', 'visible' => false];
+        $_chart->yAxis[] = ['id' => 'insulin-yAxis',
+            'gridLineDashStyle' => 'LongDashDot',
+            'opposite' => true,
+            'gridLineColor' => $stringToColor->handle($type),
+            'showLastLabel' => false,
+            'title' => ['text' => 'UI', 'rotation' => 0, 'offset' => 15, 'align' => 'high',
+                'y' => 25, 'style' => ['fontSize' => '0.8rem', 'color' => $stringToColor->handle($type)]],
+            'labels' => ['style' => ['color' => $stringToColor->handle($type)]]
+        ];
     }
 
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
-        $chart->chart->marginBottom = 30;
+        $chart->chart->marginBottom = 100;
         $chart->chart->marginRight = 50;
+        $chart->legend = ['enabled' => true,
+            'labelFormatter' => new HighchartJsExpr("function() {
+                var lastVal = this.yData[this.yData.length - 1],
+                chart = this.chart,
+                xAxis = this.xAxis,
+                points = this.points,
+                avg = 0,
+                counter = 0,
+                min, max;
+                this.yData.forEach(function(actualValue, inx) {
+                    if (!min || min > actualValue) {
+                        min = actualValue;
+                    }
+
+                    if (!max || max < actualValue) {
+                        max = actualValue;
+                    }
+
+                    counter++;
+                    avg += actualValue;
+                });
+                avg /= counter;
+
+                return this.name + '<br>' +
+                '<span>Min: ' + min + '</span><br/>' +
+                '<span>Max: ' + max + '</span><br/>' +
+                '<span>Moy: ' + avg.toFixed(2) + '</span><br/>'
+              }"
+            )
+        ];
 
         $targets = $this->m_data->getTargets();
         $bloodGlucoseYAxis = ['plotLines' => [],

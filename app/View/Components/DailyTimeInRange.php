@@ -62,7 +62,7 @@ class DailyTimeInRange extends HighChartsComponent {
 
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
-        $chart->chart->type = "bar";
+        $this->setChartHeightBasedOnDuration($chart);
         $chart->plotOptions->series->stacking = "percent";
         $chart->chart->marginLeft = 90;
         $chart->chart->marginBottom = 40;
@@ -82,8 +82,6 @@ class DailyTimeInRange extends HighChartsComponent {
                 ['value' => 70, 'width' => 2, 'color' => config('colors.dailyTimeInRange.belowTarget'), 'zIndex' => 10],
             ],
         ];
-
-        $chart->chart->height = count($categories) * 20;
 
         return $chart;
     }

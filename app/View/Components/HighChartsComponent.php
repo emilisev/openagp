@@ -90,8 +90,8 @@ abstract class HighChartsComponent extends Component {
                 ['value' => 350, 'width' => 1, 'color' => '#777777'],
                 ['value' => $targets['veryHigh'], 'width' => 1, 'color' => '#777777'],
                 ['value' => $targets['veryLow'], 'width' => 1, 'color' => '#777777'],
-                ['value' => $targets['low'], 'width' => $_greenLineWidth, 'color' => '#00b657', 'zIndex' => 5],
-                ['value' => $targets['high'], 'width' => $_greenLineWidth, 'color' => '#00b657', 'zIndex' => 5],
+                ['value' => $targets['low'], 'width' => $_greenLineWidth, 'color' => config('colors.timeInRange.target'), 'zIndex' => 5],
+                ['value' => $targets['high'], 'width' => $_greenLineWidth, 'color' => config('colors.timeInRange.target'), 'zIndex' => 5],
             ]
         ];
 
@@ -154,5 +154,10 @@ abstract class HighChartsComponent extends Component {
             }
         }
         return $dataForChart;
+    }
+
+    protected function setChartHeightBasedOnDuration($_chart) {
+        $_chart->chart->height = (round(($this->m_data->getEnd() - $this->m_data->getBegin())/(60*60*24)) * 20)+100;
+        $_chart->chart->type = "bar";
     }
 }

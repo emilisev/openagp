@@ -34,8 +34,10 @@ class Weekly extends SeveralTimelinesCharts {
         $yAxisBase['id'] = 'gloodGlucose-yAxis1';
 
         $this->addBloodGlucoseSeries($chart, $yAxisBase, $plotLines, $ticks, $weeks, $weeklyGraphHeight);
-        $this->addTreatmentsSeries($chart, $weeks, $weeklyGraphHeight);
-        $this->addCarbsSeries($chart, $weeks, $weeklyGraphHeight);
+        if(Request::route()->getName() != 'agp') {
+            $this->addTreatmentsSeries($chart, $weeks, $weeklyGraphHeight);
+            $this->addCarbsSeries($chart, $weeks, $weeklyGraphHeight);
+        }
 
         //echo "<pre>".$chart->render()."</pre>";
         echo '<script type="module">'.$chart->render().'</script>';

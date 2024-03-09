@@ -6,11 +6,6 @@
     <div id="time-in-range" class="card col-6">
         <header class="card-title">{{ __("Temps dans la cible") }}</header>
         <content class="card-body">
-            {{--<span class="agp-target-settings">
-                Chaque augmentation de 5 % dans la plage cible est cliniquement bénéfique.
-                <br/>
-                Chaque temps dans la plage de 1 % = environ 15 minutes par jour
-            </span>--}}
             <div class="row">
                 <div class="col-2" id="time-in-range-chart"></div>
                 <x-avgTimeInRange renderTo="time-in-range-chart" :data="$data"/>

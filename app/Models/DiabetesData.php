@@ -10,6 +10,8 @@ class DiabetesData {
 
     private $m_analyzedCarbs;
 
+    private $m_appliedProfile = [];
+
     private int $m_average;
 
     private int $m_begin;
@@ -404,12 +406,13 @@ class DiabetesData {
                 var_dump($item);
             }*/
         }
-        //var_dump($this->m_rawData['treatments']);
         foreach($this->m_rawData['treatments'] as $item) {
             //compute timestamp from various possibilities
             $timestamp = null;
             if(array_key_exists("timestamp", $item)) {
                 $timestamp = $item["timestamp"];
+            } elseif(array_key_exists("date", $item)) {
+                $timestamp = $item["date"];
             } elseif(array_key_exists("srvCreated", $item)) {
                 $timestamp = $item["srvCreated"];
             } elseif(array_key_exists("created_at", $item)) {
@@ -440,11 +443,13 @@ class DiabetesData {
                 }
             } elseif(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
                 $type = 'unknown';
-                if(!empty($item["insulinInjections"])) { //sync pen in xdrip
-                    $details = json_decode($item["insulinInjections"], true);
+                if(!empty($item["insulinInjections"])
+                    && ($details = json_decode($item["insulinInjections"], true))
+                    && !(empty($details))) { //sync pen in xdrip
                     $type = @$details[0]['insulin'];
                 } elseif(!empty($item["notes"])) { //manually entered in xdrip
                     $type = $item["notes"];
+                    unset($item["notes"]);
                 }
                 $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
                 $this->m_treatmentsData['insulinId'][$type][$timestamp] = $item["identifier"];
@@ -474,9 +479,20 @@ class DiabetesData {
                     }
                 }
             }
+            if(array_key_exists("eventType", $item) && $item["eventType"] == "Profile Switch"
+                && array_key_exists("profileJson", $item) && !empty($item["profileJson"])
+            ) {
+                $profile = json_decode($item["profileJson"], true);
+                $this->m_appliedProfile[$timestamp] = $profile;
+            }
+        }
+        if(!empty($this->m_appliedProfile)) {
+            $this->computeBasalFromProfile();
         }
         /*echo "<pre>";
         var_dump($this->m_rawData['bloodGlucose'], $this->m_bloodGlucoseData, $this->m_treatmentsData['carbs']);*/
+
+        //echo "</pre>";
     }
 
     public function prepareDailyData(int $_increment): void {
@@ -609,6 +625,66 @@ class DiabetesData {
         $this->m_ratios = $ratios;
         $this->m_ratiosByLunchType = $ratiosByLunchType;
 
+    }
+
+    private function computeBasalFromProfile() {
+        ksort($this->m_appliedProfile);
+        $times = array_keys($this->m_appliedProfile);
+        foreach($times as $index => $time) {
+            $profile = &$this->m_appliedProfile[$time];
+            $profile['appliesFrom'] = $time;
+            if(array_key_exists($index +1, $times)) {
+                $profile['appliesTo'] = $times[$index +1];
+            } /*elseif($this->getEnd() > time()) {
+                $profile['appliesTo'] = microtime();
+            } */else {
+                $profile['appliesTo'] = strtotime('23:59:59', $time/self::__1SECOND)*self::__1SECOND;
+            }
+            $profile['appliesToR'] = readableDate($profile['appliesTo']);
+            $profile['appliesFromR'] = readableDate($profile['appliesFrom']);
+            unset($profile['sens']);
+            unset($profile['carbratio']);
+            unset($profile['target_low']);
+            unset($profile['target_high']);
+            $profile['actualInsulin'] = [];
+            $currentTime = $profile['appliesFrom'];
+            while($currentTime < $profile['appliesTo']) {
+                foreach($profile['basal'] as $key => $basalDef) {
+                    $timeFrom = strtotime($basalDef['time'], $currentTime / self::__1SECOND) * self::__1SECOND;
+                    //var_dump($basalDef['time'], readableDate($timeFrom), readableDate($time));
+                    $timeTo = strtotime($profile['basal'][$key + 1]['time'] ?? '23:59', $currentTime / self::__1SECOND) * self::__1SECOND;
+                    if($timeTo < $profile['appliesFrom']) { //ends before profile start
+                        //var_dump('ends before profile start');
+                        continue;
+                    }
+                    if($timeFrom > $profile['appliesTo']) { //starts after profile end
+                        //var_dump('starts after profile end');
+                        continue;
+                    }
+                    if($timeFrom > microtime(true) * self::__1SECOND) { //starts in the future
+                        //var_dump('starts in the future');
+                        continue;
+                    }
+                    $timeFromReal = max($timeFrom, $profile['appliesFrom']);
+                    $timeToReal = min($timeTo, $profile['appliesTo'], microtime(true) * self::__1SECOND);
+                    $actualInsulin = sprintf('%.3f', (($timeToReal - $timeFromReal) / self::__1MINUTE / 60 * $basalDef['value']));
+                    /*var_dump($profile['appliesFromR'], $profile['appliesToR'], readableDate($timeFromReal), readableDate($timeToReal), $profile['basal']);
+                    echo "<hr/>";*/
+                    $profile['actualInsulin'][$timeFromReal] = ['from' => $timeFromReal,
+                        'to' => $timeToReal,
+                        'valuePerHour' => $basalDef['value'],
+                        'actualValue' => $actualInsulin];
+                    $lastTimeToReal = $timeToReal;
+                    $lastValuePerHour = $basalDef['value'];
+                    $this->m_treatmentsData['insulin']['basal'][$timeFromReal] = $basalDef['value'];
+                    $this->m_hasBasalTreatment = true;
+                }
+                $this->m_treatmentsData['insulin']['basal'][$lastTimeToReal] = $lastValuePerHour;
+                $currentTime = strtotime('midnight next day', $currentTime / self::__1SECOND) * self::__1SECOND;
+            }
+        }
+        unset($profile);
+        //var_dump(readableDateArray($this->m_treatmentsData['insulin']['basal']));
     }
 
     private function computeDailyTimeInRange() {

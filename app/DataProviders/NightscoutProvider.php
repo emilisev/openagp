@@ -149,7 +149,28 @@ class NightscoutProvider {
 
 
     private function fetchTreatmentsV3($_forceRefresh = false) {
-        return $this->fetchCollectionV3('treatments', $_forceRefresh);
+        $result = $this->fetchCollectionV3('treatments', $_forceRefresh);
+        $hasProfileSwitch = array_filter($result, function($_item) {
+            return array_key_exists("eventType", $_item) && $_item["eventType"] == "Profile Switch"; }
+        );
+        if($hasProfileSwitch) {
+            $this->openSession();
+            $url = $this->m_url.'api/v3/treatments';
+            $params = [
+                'query' => [
+                    'date$lte' => $this->m_actualStartDate->format('U'),
+                    'sort$desc' => 'date',
+                    'limit' => 1,
+                    'eventType' => 'Profile Switch',
+                ],
+            ];
+            $params['headers'] = [
+                'Authorization' => "Bearer $this->m_token",
+            ];
+            $lastProfileSwitchBeforeStart = $this->getCacheOrLive($url, $params);
+            $result = array_merge($result, $lastProfileSwitchBeforeStart);
+        }
+        return $result;
     }
 
     private function fetchCollectionV3($_collection, $_forceRefresh = false) {
@@ -164,7 +185,7 @@ class NightscoutProvider {
             $dateField = ($_collection == 'entries'?'date': 'created_at');
             $fields = ($_collection == 'entries' ? 'date,sgv,mbg' : 'timestamp,srvCreated,'.
             'created_at,pumpType,enteredBy,insulin,rate,durationInMilliseconds,duration,insulinInjections,'.
-            'notes,carbs,identifier');
+            'notes,carbs,identifier,date,eventType,profileJson');
             $params = [
                 'query' => [
                     $dateField.'$gte' => $currentDate->format('U'),

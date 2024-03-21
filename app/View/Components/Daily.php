@@ -62,7 +62,6 @@ class Daily extends HighChartsComponent {
             'visible' => false,
             'max' => $maxCarbs / config('diabetes.treatments.relativeAxisHeight')
         ];
-    echo '<pre>';
         $stringToColor = new StringToColor();
         $serieIndex = 0;
         foreach($data as $type => $datum) {
@@ -109,12 +108,16 @@ class Daily extends HighChartsComponent {
             if(empty($datum)) continue;
             $serieType = 'column';
             $basal = false;
+            $step = false;
 
             $dataId = @$this->m_data->getTreatmentsData()['insulinId'][$type];
             $insulinDuration = @$this->m_data->getTreatmentsData()['insulinDuration'][$type];
-            if($this->m_data->hasBasalTreatment() && $type == 'Temp Basal') {
+            if($this->m_data->hasBasalTreatment() && strpos(strtolower($type), 'basal') !== false) {
                 if(!empty($insulinDuration)) {
                     $serieType = 'variwide';
+                } else {
+                    $serieType = 'line';
+                    $step = 'left';
                 }
                 $basal = true;
             }
@@ -141,6 +144,7 @@ class Daily extends HighChartsComponent {
                 'dataLabels' => ['enabled' => !$basal, 'format' => '{y}UI'],
                 'zIndex' => $basal?1:2,
                 'tooltip' => $tooltip,
+                'step' => $step
             ];
         }
     }

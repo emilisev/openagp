@@ -56,7 +56,6 @@ class Daily extends HighChartsComponent {
         if($maxCarbs == 0) {
             return;
         }
-        $notes = $this->m_data->getTreatmentsData()['notes'];
         $_chart->yAxis[] = [
             'id' => 'carbs-yAxis',
             'visible' => false,
@@ -70,12 +69,6 @@ class Daily extends HighChartsComponent {
             foreach($datum as $key => $value) {
                 $item = ['x' => $key, 'y' => $value, 'label' => "{$value}g"];
                 $dataForChart[] = $item;
-            }
-            if($serieIndex == 0) {
-                foreach($notes as $key => $value) {
-                    $item = ['x' => $key, 'y' => 0, 'label' => $value];
-                    $dataForChart[] = $item;
-                }
             }
             $serieIndex ++;
             $_chart->series[] = [
@@ -164,6 +157,12 @@ class Daily extends HighChartsComponent {
         $xMax = $xMin + 60 * 60 * 24;
         $xAxis['min'] = $xMin * 1000;
         $xAxis['max'] = $xMax * 1000;
+
+        $notes = $this->m_data->getTreatmentsData()['notes'];
+        foreach($notes as $key => $value) {
+            $xAxis['plotLines'][] = ['value' => $key, 'label' => ['text' => $value]];
+        }
+
         $chart->xAxis = $xAxis;
         return $chart;
     }

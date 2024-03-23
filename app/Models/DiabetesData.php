@@ -448,6 +448,8 @@ class DiabetesData {
                 } elseif(!empty($item["notes"])) { //manually entered in xdrip
                     $type = $item["notes"];
                     unset($item["notes"]);
+                }elseif(!empty($item["eventType"])) { //manually entered in xdrip
+                    $type = $item["eventType"];
                 }
                 $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
                 $this->m_treatmentsData['insulinId'][$type][$timestamp] = $item["identifier"];
@@ -640,11 +642,11 @@ class DiabetesData {
             }
             $profile['appliesToR'] = readableDate($profile['appliesTo']);
             $profile['appliesFromR'] = readableDate($profile['appliesFrom']);
-            unset($profile['sens']);
+            /*unset($profile['sens']);
             unset($profile['carbratio']);
             unset($profile['target_low']);
             unset($profile['target_high']);
-            $profile['actualInsulin'] = [];
+            $profile['actualInsulin'] = [];*/
             $currentTime = $profile['appliesFrom'];
             while($currentTime < $profile['appliesTo']) {
                     foreach($profile['basal'] as $key => $basalDef) {
@@ -665,13 +667,13 @@ class DiabetesData {
                         }
                         $timeFromReal = max($timeFrom, $profile['appliesFrom']);
                         $timeToReal = min($timeTo, $profile['appliesTo'], microtime(true) * self::__1SECOND);
-                        $actualInsulin = sprintf('%.3f', (($timeToReal - $timeFromReal) / self::__1MINUTE / 60 * $basalDef['value']));
+                        //$actualInsulin = sprintf('%.3f', (($timeToReal - $timeFromReal) / self::__1MINUTE / 60 * $basalDef['value']));
                         /*var_dump($profile['appliesFromR'], $profile['appliesToR'], readableDate($timeFromReal), readableDate($timeToReal), $profile['basal']);
                         echo "<hr/>";*/
-                        $profile['actualInsulin'][$timeFromReal] = ['from' => $timeFromReal,
+                        /*$profile['actualInsulin'][$timeFromReal] = ['from' => $timeFromReal,
                             'to' => $timeToReal,
                             'valuePerHour' => $basalDef['value'],
-                            'actualValue' => $actualInsulin];
+                            'actualValue' => $actualInsulin];*/
                         $lastTimeToReal = $timeToReal;
                         $lastValuePerHour = $basalDef['value'];
                         $this->m_treatmentsData['insulin']['basal'][$timeFromReal] = $basalDef['value'];

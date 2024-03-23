@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Models\DiabetesData;
+
 class StatisticsComputer {
 
     public function computeAverage($_data, $_spanInSeconds, $_startPoint = null) {
@@ -13,7 +15,21 @@ class StatisticsComputer {
         return $result;
     }
 
-    public function computeSum($_data, $_spanInSeconds, $_startPoint = null) {
+	public function computeBasalSum($_data, $_spanInSeconds, $_startPoint = null) {
+        $times = array_keys($_data);
+        foreach($times as $key => $time) {
+            if(array_key_exists($key+1, $times)) {
+                $duration = ($times[$key + 1] - $time) / DiabetesData::__1MINUTE / 60;
+                $_data[$times[$key]] = $_data[$times[$key]] * $duration;
+            } else {
+                unset($_data[$times[$key]]);
+            }
+        }
+        return self::computeSum($_data, $_spanInSeconds, $_startPoint);
+	}
+
+
+	public function computeSum($_data, $_spanInSeconds, $_startPoint = null) {
         $arrayValues = $this->gatherDataByTimespan($_spanInSeconds, $_data, $_startPoint);
         $result = [];
         foreach($arrayValues as $key => $values) {

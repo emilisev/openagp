@@ -36,7 +36,11 @@ class Treatment extends HighChartsComponent {
 
         $insulinData = $this->m_data->getTreatmentsData()['insulin'];
         foreach ($insulinData as $type => $datum) {
-            $datum = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
+            if($type == 'basal') {
+                $datum = $statComputer->computeBasalSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
+            } else {
+                $datum = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
+            }
             $this->m_insulinData[array_sum($datum)][$type] = $datum;
         }
 
@@ -184,13 +188,13 @@ class Treatment extends HighChartsComponent {
                 avg /= counter;
 
                 return this.name + '<br>' +
-                '<span>Min: ' + min + '</span><br/>' +
-                '<span>Max: ' + max + '</span><br/>' +
+                '<span>Min: ' + min.toFixed(2) + '</span><br/>' +
+                '<span>Max: ' + max.toFixed(2) + '</span><br/>' +
                 '<span>Moy: ' + avg.toFixed(2) + '</span><br/>'
               }"
             )
         ];
-
+        $chart->tooltip = ['valueDecimals' => 2, 'shared' => true];
         $targets = $this->m_data->getTargets();
         $bloodGlucoseYAxis = ['plotLines' => [],
                 'tickPositions' => [0, $targets['low'], $targets['high'], 350],

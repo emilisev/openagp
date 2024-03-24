@@ -1,15 +1,7 @@
 @extends('layouts.mainlayout')
 @php
 /** @var $data \App\Models\DiabetesData */
-if(is_array($data) && count($data) == 1) {
-    $data = $data[0];
-}
 if($data instanceof \App\Models\DiabetesData) {
-    $previousDay = $data->getBegin() - 60*60*24;
-    $nextDay = $data->getBegin() + 60*60*24;
-    if($nextDay > time()) {
-        unset($nextDay);
-    }
     $data = [$data];
 }
 $graphHeight = count($data) > 1?130:null;
@@ -18,15 +10,7 @@ $graphHeight = count($data) > 1?130:null;
 @foreach ($data as $dailyData)
 <div id="daily" class="card big-title">
     <header class="card-title">
-        @if(isset($previousDay))
-        <a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
-        @endif
-        @if(count($data) > 1) <a href="/daily?day={{ date('d/m/Y', $dailyData->getBegin())}}"> @endif
-        {{ $dateFormatter->format($dailyData->getBegin()) }}
-        @if(count($data) > 1) </a> @endif
-        @if(isset($nextDay))
-            <a href="?day={{ date('d/m/Y',  $nextDay) }}"><i class="bi bi-caret-right-fill"></i></a>
-        @endif
+        @include('layouts.sub.reportDateSingle', ['data' => $dailyData, 'allowChange' => count($data) == 1])
     </header>
     <content class="card-body container">
         <div class="row justify-content-center mb-2">

@@ -2,7 +2,7 @@
 @php /** @var App\Models\DiabetesData $data */ @endphp
 @section('content')
 <h1>{{ __("Temps dans la cible") }}</h1>
-@include('layouts.sub.reportDate')
+@include('layouts.sub.reportDateRange')
 <div id="weekly" class="card">
     <header class="card-title">{{ __("Objectif") }}</header>
     <content class="card-body">

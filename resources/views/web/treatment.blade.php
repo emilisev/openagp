@@ -2,7 +2,7 @@
 @php /** @var App\Models\DiabetesData $data */ @endphp
 @section('content')
     <h1>{{ __("Traitements") }}</h1>
-    @include('layouts.sub.reportDate')
+    @include('layouts.sub.reportDateRange')
 
     <content id="treatment" class="card">
         <header class="card-title">{{ __("Glycémie et traitements") }}</header>

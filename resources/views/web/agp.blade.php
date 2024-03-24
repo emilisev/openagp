@@ -1,7 +1,7 @@
 @extends('layouts.mainlayout')
 @section('content')
 <h1>Ambulatory Glucose Profile (AGP)</h1>
-@include('layouts.sub.reportDate')
+@include('layouts.sub.reportDateRange')
 <div id="agp-first-row" class="row align-items-center">
     <div id="time-in-range" class="card col-6">
         <header class="card-title">{{ __("Temps dans la cible") }}</header>

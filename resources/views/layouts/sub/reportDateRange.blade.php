@@ -18,40 +18,6 @@
     }
 
     $('#selectDateIcon').daterangepicker({
-        "locale": {
-            "format": "DD/MM/YYYY",
-            "separator": " - ",
-            "applyLabel": "Appliquer",
-            "cancelLabel": "Annuler",
-            "fromLabel": "Du",
-            "toLabel": "Au",
-            "customRangeLabel": "Personnaliser",
-            "weekLabel": "W",
-            "daysOfWeek": [
-                "D",
-                "L",
-                "M",
-                "M",
-                "J",
-                "V",
-                "S"
-            ],
-            "monthNames": [
-                "Janvier",
-                "Février",
-                "Mars",
-                "Avril",
-                "Mai",
-                "Juin",
-                "Juillet",
-                "Août",
-                "Septembre",
-                "Octobre",
-                "Novembre",
-                "Décembre"
-            ],
-            "firstDay": 1
-        },
         "maxSpan": {
             "days": 90
         },

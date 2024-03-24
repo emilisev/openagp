@@ -629,8 +629,13 @@ class DiabetesData {
 
     private function computeBasalFromProfile($_basalRates, $_tempBasalRates) {
         ksort($_basalRates);
+        //echo "<pre>";
+        //var_dump($_basalRates);
         $times = array_keys($_basalRates);
+        /*echo "<pre>";
+        var_dump(readableDateArray(array_flip($times)));*/
         foreach($times as $index => $time) {
+            //echo "<hr/>***************<hr/>";
             $profile = &$_basalRates[$time];
             $profile['appliesFrom'] = $time;
             if(array_key_exists($index +1, $times)) {
@@ -650,6 +655,7 @@ class DiabetesData {
             $currentTime = $profile['appliesFrom'];
             while($currentTime < $profile['appliesTo']) {
                     foreach($profile['basal'] as $key => $basalDef) {
+                        //var_dump("***", $basalDef);
                         $timeFrom = strtotime($basalDef['time'], $currentTime / self::__1SECOND) * self::__1SECOND;
                         //var_dump($basalDef['time'], readableDate($timeFrom), readableDate($time));
                         $timeTo = strtotime($profile['basal'][$key + 1]['time'] ?? '23:59', $currentTime / self::__1SECOND) * self::__1SECOND;
@@ -668,7 +674,9 @@ class DiabetesData {
                         $timeFromReal = max($timeFrom, $profile['appliesFrom']);
                         $timeToReal = min($timeTo, $profile['appliesTo'], microtime(true) * self::__1SECOND);
                         //$actualInsulin = sprintf('%.3f', (($timeToReal - $timeFromReal) / self::__1MINUTE / 60 * $basalDef['value']));
-                        /*var_dump($profile['appliesFromR'], $profile['appliesToR'], readableDate($timeFromReal), readableDate($timeToReal), $profile['basal']);
+                        /*var_dump($profile['appliesFromR'], $profile['appliesToR'], readableDate($timeTo),
+                                 'timeFromReal', readableDate($timeFromReal),
+                                 'timeToReal', readableDate($timeToReal));
                         echo "<hr/>";*/
                         /*$profile['actualInsulin'][$timeFromReal] = ['from' => $timeFromReal,
                             'to' => $timeToReal,
@@ -686,11 +694,12 @@ class DiabetesData {
         unset($profile);
         $basalTimes = array_keys($this->m_treatmentsData['insulin']['basal']);
         foreach($_tempBasalRates as $tempBasalTime => $tempBasalRate) {
+            //var_dump($tempBasalRate);
             foreach($basalTimes as $key => $basalTime) {
                 if($tempBasalTime >= $basalTime) {
                     if($tempBasalTime <= $basalTimes[$key+1]) {
                         $this->m_treatmentsData['insulin']['basal'][$tempBasalTime] =
-                            $tempBasalRate['rate'] * $this->m_treatmentsData['insulin']['basal'][$basalTime];
+                            $tempBasalRate['rate'];
                         $this->m_treatmentsData['insulin']['basal'][$tempBasalTime + $tempBasalRate['durationInMilliseconds']] =
                             $this->m_treatmentsData['insulin']['basal'][$basalTime];
                     } else {

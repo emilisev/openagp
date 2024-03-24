@@ -162,9 +162,7 @@ class Treatment extends HighChartsComponent {
 
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
-        $chart->chart->marginBottom = 100;
-        $chart->chart->marginRight = 50;
-        $chart->legend = ['enabled' => true,
+        $chart->legend = [
             'labelFormatter' => new HighchartJsExpr("function() {
                 var lastVal = this.yData[this.yData.length - 1],
                 chart = this.chart,

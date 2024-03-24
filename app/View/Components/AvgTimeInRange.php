@@ -53,7 +53,10 @@ class AvgTimeInRange extends HighChartsComponent {
         $chart->chart->showAxes = false;
         $chart->chart->marginLeft = 0;
         $chart->chart->marginBottom = 0;
-        $chart->chart->width = 40;
+        $chart->chart->marginTop = 0;
+        $chart->chart->marginRight = 0;
+        $chart->chart->height = 100;
+        //$chart->chart->width = 40;
         $chart->yAxis->max = 100;
         $chart->yAxis->visible = false;
         $chart->xAxis->visible = false;

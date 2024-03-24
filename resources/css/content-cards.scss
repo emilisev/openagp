@@ -64,9 +64,9 @@
     white-space: nowrap;
 }
 
-#agp-first-row #time-in-range-chart {
+/*#agp-first-row #time-in-range-chart {
     height: 250px;
-}
+}*/
 @include media-breakpoint-down(md) {
      #agp-first-row #time-in-range-chart {
          height:100px;

@@ -134,8 +134,6 @@ class Ratios extends HighChartsComponent {
               }"
             )
       ];
-        $chart->chart->marginLeft = 50;
-        $chart->chart->marginBottom = 100;
         $xAxis = ['tickInterval' => 24 * 60 * 60 * 1000, 'labels' => ['format' => '{value:%d/%m}']]+$this->getBottomLabelledXAxis();
         $chart->xAxis = [$xAxis];
         return $chart;

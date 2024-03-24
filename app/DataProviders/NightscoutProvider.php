@@ -157,8 +157,8 @@ class NightscoutProvider {
         $url = $this->m_url.'api/v3/treatments';
         $params = [
             'query' => [
-                'date$lte' => $this->m_actualStartDate->format('U'),
-                'sort$desc' => 'date',
+                'created_at$lte' => $this->m_actualStartDate->format('U'),
+                'sort$desc' => 'created_at',
                 'limit' => 1,
                 'eventType' => 'Profile Switch',
             ],

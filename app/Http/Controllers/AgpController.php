@@ -134,11 +134,12 @@ class AgpController extends BaseController {
         $data = new DiabetesData($rawData, $utcOffset);
         $data->setTargets(config('diabetes.bloodGlucose.targets'));
         $data->setAgpStep(30);
-        $data->parse();
 
-        //prepare dates for filtering response
         $startDateSeconds = $startDateObject->format('U');
         $endDateSeconds = $endDateObject->format('U');
+        $data->parse($endDateSeconds);
+
+        //prepare dates for filtering response
         $data->filter($startDateSeconds, $endDateSeconds);
         if(count($data->getBloodGlucoseData()) == 0) {
             throw new \Exception(__("Aucune donnée pour les dates sélectionnées"));

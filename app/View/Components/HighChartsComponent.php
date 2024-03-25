@@ -12,11 +12,13 @@ abstract class HighChartsComponent extends Component {
 
     protected ?string $m_renderTo;
     protected ?int $m_height;
+    private ?int $m_width;
 
-    public function __construct(DiabetesData $data, string $renderTo = null, int $height = null) {
+    public function __construct(DiabetesData $data, string $renderTo = null, int $height = null, int $width = null) {
         $this->m_data = $data;
         $this->m_renderTo = $renderTo;
         $this->m_height = $height;
+        $this->m_width = $width;
     }
 
     protected function createDefaultChart(): Highchart {
@@ -26,6 +28,9 @@ abstract class HighChartsComponent extends Component {
         ];
         if(is_int($this->m_height)) {
             $chart->chart->height = $this->m_height;
+        }
+        if(is_int($this->m_width)) {
+            $chart->chart->width = $this->m_width;
         }
         $chart->plotOptions->series = ['marker' => ['enabled' => false]];
         //$chart->tooltip->enabled = false;

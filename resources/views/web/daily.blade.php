@@ -17,7 +17,7 @@ $graphHeight = count($data) > 1?130:null;
             @include('cards.average.square', ['data' => $dailyData])
             @include('cards.variation.square', ['data' => $dailyData])
             <div id="time-in-range-chart{{$loop->index}}" class="col-auto pe-0"></div>
-            <x-avgTimeInRange renderTo="time-in-range-chart{{$loop->index}}" :data="$dailyData"/>
+            <x-avgTimeInRange renderTo="time-in-range-chart{{$loop->index}}" :data="$dailyData" width="40"/>
             {{--<div id="time-in-range">@include('cards.timeInRange.text')</div>--}}
             @include('cards.timeInRange.text', ['data' => $dailyData])
 

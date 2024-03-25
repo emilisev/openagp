@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <div>
+    <div class="row">
         <div class="block-label target" style="color:{{config('colors.timeInRange.target')}}">
             {{ round($timeInRangeData['target']) }}&nbsp;% {{ __("Dans la plage") }}
         </div>

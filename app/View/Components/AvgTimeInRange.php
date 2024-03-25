@@ -3,6 +3,7 @@
 namespace App\View\Components;
 
 use Ghunti\HighchartsPHP\Highchart;
+use Illuminate\Support\Facades\Request;
 
 class AvgTimeInRange extends HighChartsComponent {
     protected int $m_minValTimeInRangeChart = 2;
@@ -55,8 +56,9 @@ class AvgTimeInRange extends HighChartsComponent {
         $chart->chart->marginBottom = 0;
         $chart->chart->marginTop = 0;
         $chart->chart->marginRight = 0;
-        $chart->chart->height = 100;
-        //$chart->chart->width = 40;
+        if(Request::route()->getName() == 'daily') {
+            $chart->chart->height = 100;
+        }
         $chart->yAxis->max = 100;
         $chart->yAxis->visible = false;
         $chart->xAxis->visible = false;

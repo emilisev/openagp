@@ -697,19 +697,30 @@ class DiabetesData {
         }
         unset($profile);
         $basalTimes = array_keys($this->m_treatmentsData['insulin']['basal']);
+        //echo "<pre>";
         foreach($_tempBasalRates as $tempBasalTime => $tempBasalRate) {
-            //var_dump($tempBasalRate);
+            /*echo "<hr/>";
+            var_dump($tempBasalRate);*/
             foreach($basalTimes as $key => $basalTime) {
-                if($tempBasalTime >= $basalTime && array_key_exists($key+1, $basalTimes)) {
-                    if($tempBasalTime <= $basalTimes[$key+1]) {
-                        $this->m_treatmentsData['insulin']['basal'][$tempBasalTime] =
-                            $tempBasalRate['rate'];
-                        $this->m_treatmentsData['insulin']['basal'][$tempBasalTime + $tempBasalRate['durationInMilliseconds']] =
-                            $this->m_treatmentsData['insulin']['basal'][$basalTime];
-                    } else {
-                        //todo : profile switch during temp basal, what happens ?
+                if(array_key_exists($key+1, $basalTimes)) {
+                    if($basalTimes[$key + 1] < $tempBasalTime) { //basalTimes in the past regarding temp basal, discard
+                        ;
+                    } elseif($tempBasalTime >= $basalTime) {
+                        if($tempBasalTime <= $basalTimes[$key + 1]) {
+                            $this->m_treatmentsData['insulin']['basal'][$tempBasalTime] =
+                                $tempBasalRate['rate'];
+                            $this->m_treatmentsData['insulin']['basal'][$tempBasalTime + $tempBasalRate['durationInMilliseconds']] =
+                                $this->m_treatmentsData['insulin']['basal'][$basalTime];
+                        } else {
+                            /*var_dump(
+                                'basalTime', readableTime($basalTime),
+                                'tempBasalTime', readableTime($tempBasalTime),
+                                'next basalTime', readableTime($basalTimes[$key + 1]),
+                                '******');*/
+                            //todo : profile switch during temp basal, what happens ?
+                        }
+                        continue;
                     }
-                    continue;
                 }
             }
         }

@@ -430,7 +430,7 @@ class DiabetesData {
                 || strpos(@$item["enteredBy"], 'medtronic') === 0) { //pumps
                 $type = $item["eventType"];
                 if(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
-                    $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
+                    $this->m_treatmentsData['insulin'][$type][$timestamp] = round($item["insulin"]*100)/100;
                 }/* else {
                     var_dump($item);
                 }*/
@@ -451,7 +451,7 @@ class DiabetesData {
                 }elseif(!empty($item["eventType"])) { //manually entered in xdrip
                     $type = $item["eventType"];
                 }
-                $this->m_treatmentsData['insulin'][$type][$timestamp] = $item["insulin"];
+                $this->m_treatmentsData['insulin'][$type][$timestamp] = round($item["insulin"]*100)/100;
                 $this->m_treatmentsData['insulinId'][$type][$timestamp] = $item["identifier"];
             }
             if(array_key_exists("carbs", $item) && is_numeric($item["carbs"])) {

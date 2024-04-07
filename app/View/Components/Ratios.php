@@ -40,6 +40,9 @@ class Ratios extends HighChartsComponent {
 
 
     private function addCarbsSeries(Highchart $_chart) {
+        if(empty($this->m_validTimesInDay)) {
+            return;
+        }
         $percentInc = 100 / count($this->m_validTimesInDay);
         $dataStartPoint = $this->m_data->getBegin()*DiabetesData::__1SECOND;
         $statComputer = new StatisticsComputer();

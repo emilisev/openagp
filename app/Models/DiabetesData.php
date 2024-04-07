@@ -66,9 +66,9 @@ class DiabetesData {
 
     private float $m_variation;
 
-    const __1MINUTE = 60 * 1000;
-
+    const __1MINUTE = 60 * self::__1SECOND;
     const __1SECOND = 1000;
+    const __1DAY    = self::__1MINUTE * 60 * 24;
 
     public function __construct($_rawData, $_utcOffset = 0) {
         $this->m_rawData = $_rawData;

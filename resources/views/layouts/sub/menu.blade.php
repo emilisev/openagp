@@ -20,6 +20,7 @@
         ->addMenuLink(Link::toUrl('/weekly', __('Hebdo')))
         ->addMenuLink(Link::toUrl('/monthly', __('Mensuel')))
         ->addMenuLink(Link::toUrl('/ratio', __('Ratios')))
+        ->addMenuLink(Link::toUrl('/overlay', __('Superposition')))
     );
 
     /*$menu->url('/login', "Se connecter");

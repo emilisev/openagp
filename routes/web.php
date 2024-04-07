@@ -28,6 +28,7 @@ Route::post('daily', [AgpController::class, 'postToGet'])->name('daily');
 Route::any('/weekly', [AgpController::class, 'view'])->name('weekly');
 Route::any('/monthly', [AgpController::class, 'view'])->name('monthly');
 Route::any('/ratio', [AgpController::class, 'view'])->name('ratio');
+Route::any('/overlay', [AgpController::class, 'view'])->name('overlay');
 
 
 Route::any('/user', [UserController::class, 'view'])->name('user');

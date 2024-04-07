@@ -8,7 +8,7 @@ class DiabetesData {
 
     private int $m_agpStepInMinutes;
 
-    private $m_analyzedCarbs;
+    private array $m_analyzedCarbs;
 
     private int $m_average;
 
@@ -18,13 +18,11 @@ class DiabetesData {
 
     private array $m_bloodGlucoseDataByRoundedTime;
 
-    private array $m_bolusType = ['Novorapid', 'Meal Bolus'];
-
     private float $m_cgmActivePercent;
 
-    private $m_dailyTimeInRange;
+    private array $m_dailyTimeInRange;
 
-    private $m_dailyTimeInRangePercent;
+    private array $m_dailyTimeInRangePercent;
 
     private array $m_diabetesAgpData;
 
@@ -39,9 +37,7 @@ class DiabetesData {
 
     private array $m_insulinAgpData = [];
 
-    private array $m_ratios = [];
-
-    private $m_ratiosByLunchType = [];
+    private array $m_ratiosByLunchType = [];
 
     private array $m_rawData;
 
@@ -69,6 +65,7 @@ class DiabetesData {
     const __1MINUTE = 60 * self::__1SECOND;
     const __1SECOND = 1000;
     const __1DAY    = self::__1MINUTE * 60 * 24;
+    const __BOLUS_INSULIN = ['Novorapid', 'Meal Bolus'];
 
     public function __construct($_rawData, $_utcOffset = 0) {
         $this->m_rawData = $_rawData;
@@ -317,16 +314,14 @@ class DiabetesData {
 
     public function getDailyTreatmentsByMonth(int $_monthBackCount) {
         list($minDate, $middleDate) = $this->computeDatesForMonth($_monthBackCount);
-        $result = $this->filterTreatementsData($minDate, $middleDate);
-        return $result;
+        return $this->filterTreatementsData($minDate, $middleDate);
     }
 
     public function getDailyTreatmentsByWeek(int $_weekBackCount) {
         list($minDate, $middleDate) = $this->computeDatesForWeek($_weekBackCount);
-        $result = $this->filterTreatementsData($minDate, $middleDate);
         /*echo "<hr/>";
         var_dump($result, $minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
-        return $result;
+        return $this->filterTreatementsData($minDate, $middleDate);
     }
 
     public function getEnd(): int {
@@ -344,16 +339,9 @@ class DiabetesData {
         return $this->m_insulinAgpData;
     }
 
-    public function getRatios() {
-        if(is_null($this->m_analyzedCarbs)) {
-            $this->computeAnalyzedCarbs();
-        }
-        return $this->m_ratios;
-    }
-
     public function getRatiosByLunchType() {
-        if(is_null($this->m_analyzedCarbs)) {
-            $this->computeAnalyzedCarbs();
+        if(empty($this->m_ratiosByLunchType)) {
+            $this->computeRatios();
         }
         return $this->m_ratiosByLunchType;
     }
@@ -557,7 +545,6 @@ class DiabetesData {
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private function computeAnalyzedCarbs() {
         $carbs = ['meal' => [], 'hypo' => [], 'unknown' => []];
-        $ratios = $ratiosByLunchType = [];
         foreach($this->getTreatmentsData()['carbs'] as $time => $value) {
             $carbDate = new DateTime();
             $carbDate->setTimestamp($time / self::__1SECOND);
@@ -566,7 +553,7 @@ class DiabetesData {
             $minDate->modify("-60 minutes");
 
             $maxDate = clone $carbDate;
-            $maxDate->modify("+15 minutes");
+            $maxDate->modify("+2 hours");
 
             $relatedInsulin = @$this->filterTreatementsData($minDate, $maxDate)['insulin'];
             $hasRelatedInsulin = !empty($relatedInsulin) && count(array_filter($relatedInsulin));
@@ -588,33 +575,6 @@ class DiabetesData {
             }
             if($isMeal) {
                 $carbs['meal'][$time] = $value;
-                //ratio part
-                if($lastBg > config('diabetes.bloodGlucose.targets.low')
-                    && $lastBg < config('diabetes.bloodGlucose.targets.high')
-                    && !empty($relatedInsulin)) {
-                    $minDate->modify("+02 hours 15 minutes");
-                    $bgPlus2Hrs = last(self::filterData($this->m_bloodGlucoseData, $carbDate->format('U'), $minDate->format('U')));
-                    if($bgPlus2Hrs > config('diabetes.bloodGlucose.targets.low')
-                        && $bgPlus2Hrs < config('diabetes.bloodGlucose.targets.high')) {
-                        $insulinDoses = array_intersect_key($relatedInsulin, array_flip($this->m_bolusType));
-                        $insulinDose = 0;
-                        foreach($insulinDoses as $doses) {
-                            $insulinDose += array_sum($doses);
-                        }
-                        if($insulinDose > 0) {
-                            $ratios[$time] = round($value / $insulinDose);
-                            $timeInDay = $carbDate->format('Hi');
-                            $lunchType = null;
-                            foreach(array_reverse(config('diabetes.lunchTypes'), true) as $maxTime => $type) {
-                                if($timeInDay <= $maxTime) {
-                                    $lunchType = $type;
-                                    continue;
-                                }
-                            }
-                            $ratiosByLunchType[$lunchType][$time] = round($value / $insulinDose);
-                        }
-                    }
-                }
             } elseif($isHypo) {
                 $carbs['hypo'][$time] = $value;
             } else {
@@ -622,8 +582,6 @@ class DiabetesData {
             }
         }
         $this->m_analyzedCarbs = $carbs;
-        $this->m_ratios = $ratios;
-        $this->m_ratiosByLunchType = $ratiosByLunchType;
 
     }
 
@@ -790,6 +748,80 @@ class DiabetesData {
         return array($minDate, $middleDate);
     }
 
+    private function computeRatios() {
+        $dataByLunchType = $ratiosByLunchType = [];
+        $rawData = [
+            'carbs' => $this->getTreatmentsData()['carbs'],
+            'insulin' => $this->getBolusInsulin()
+        ];
+        //build rawData
+        foreach($rawData as $dataType => $data) {
+            foreach($data as $time => $value) {
+                $eventDate = new DateTime();
+                $eventDate->setTimestamp($time / self::__1SECOND);
+                $timeInDay = $eventDate->format('Hi');
+                $lunchType = null;
+                foreach(array_reverse(config('diabetes.lunchTypes'), true) as $maxTime => $type) {
+                    if($timeInDay <= $maxTime) {
+                        $lunchType = $type;
+                        continue;
+                    }
+                }
+                $eventDate->modify('midnight');
+                $dataByLunchType[$lunchType][$dataType][$eventDate->format('U') * self::__1SECOND][$time] = $value;
+                /*if(count($dataByLunchType[$lunchType][$dataType][$eventDate->format('Ymd')]) > 1) {
+                    var_dump($lunchType, $dataType, readableDateArray($dataByLunchType[$lunchType][$dataType][$eventDate->format('Ymd')]));
+                }*/
+            }
+        }
+        //sum data
+        foreach($dataByLunchType as $lunchType => $dataTypes) {
+            foreach($dataTypes as $dataType => $days) {
+                foreach($days as $day => $data) {
+                    if($dataType == 'carbs') {
+                        $mainMealTime = array_search(max($data), $data);
+                        $lastBg = last(self::filterData($this->m_bloodGlucoseData, ($mainMealTime - (self::__1MINUTE * 15)) / self::__1SECOND, $mainMealTime / self::__1SECOND));
+                        $postPrandialBG = last(self::filterData($this->m_bloodGlucoseData,
+                            ($mainMealTime + (self::__1MINUTE * 100)) / self::__1SECOND,
+                            ($mainMealTime + (self::__1MINUTE * 120)) / self::__1SECOND));
+                        $target = 'unknown';
+                        if(is_numeric($lastBg) && is_numeric($postPrandialBG)
+                        && $lastBg > config('diabetes.bloodGlucose.targets.low')
+                            && $lastBg < config('diabetes.bloodGlucose.targets.high')) {
+                            if($postPrandialBG < config('diabetes.bloodGlucose.targets.low')) {
+                                $target = 'low';
+                            } elseif($postPrandialBG > config('diabetes.bloodGlucose.targets.high')) {
+                                $target = 'high';
+                            } elseif($postPrandialBG - $lastBg > 50) {
+                                $target = 'lightHigh';
+                            } else {
+                                $target = 'inRange';
+                            }
+                        }
+                        $dataByLunchType[$lunchType]['target'][$day] = $target;
+
+                    }
+                    $dataByLunchType[$lunchType][$dataType][$day] = array_sum($data);
+                }
+            }
+        }
+        /*echo '<pre>';
+        var_dump(readableDateArray($dataByLunchType['lunch']['insulin']));*/
+        //compute ratio
+        $maxRatio = 0;
+        foreach($dataByLunchType as $lunchType => $datumByLunchType) {
+            foreach($datumByLunchType['insulin'] as $day => $insulinValue) {
+                if(array_key_exists('carbs', $datumByLunchType) && array_key_exists($day, $datumByLunchType['carbs'])) {
+                    $ratio = round($datumByLunchType['carbs'][$day] / $insulinValue * 10) / 10;
+
+                    $maxRatio = max($maxRatio, $ratio);
+                    $this->m_ratiosByLunchType[$lunchType][] = ['x' => $day, 'y' => $ratio, 'target' => $dataByLunchType[$lunchType]['target'][$day]];
+                }
+            }
+        }
+        $this->m_ratiosByLunchType['maxRatio'] = $maxRatio;
+    }
+
     private function computeStandardDeviation($_array): float {
         $count = count($_array);
         $variance = 0.0;
@@ -819,6 +851,21 @@ class DiabetesData {
         return $result;
         /*echo "<hr/>";
         var_dump($result, $minDate->format('Y-m-d H:i:s'), $middleDate->format('Y-m-d H:i:s'));*/
+    }
+
+    private function getBolusInsulin() {
+        $result = array_filter($this->getTreatmentsData()['insulin'],
+            function ($key) {
+                return in_array($key, self::__BOLUS_INSULIN);
+            }, ARRAY_FILTER_USE_KEY);
+        if(empty($result)) {
+            return [];
+        }
+        $finalResult = [];
+        foreach($result as $data) {
+            $finalResult += $data;
+        }
+        return $finalResult;
     }
 
     private function getInjectionsCountByTimespan(int $_secondsBetweenInjections, array $_treatments): array {

@@ -25,12 +25,12 @@ class Ratios extends HighChartsComponent {
     public function render() {
         $this->m_ratiosByLunchType = $this->m_data->getRatiosByLunchType();
         $this->m_validTimesInDay = array_intersect(config('diabetes.lunchTypes'), array_keys($this->m_ratiosByLunchType));
-        $max = 0;
-        foreach($this->m_validTimesInDay as $timeInDay) {
-            $max = max($max, max(@$this->m_ratiosByLunchType[$timeInDay]));
+        foreach($this->m_validTimesInDay as $time => $type) {
+            if($type == 'night') {
+                unset($this->m_validTimesInDay[$time]);
+            }
         }
-        $this->m_maxRatio = ceil($max * 1.1);
-
+        $this->m_maxRatio = ceil($this->m_ratiosByLunchType['maxRatio'] * 1.1);
         $chart = $this->createChart();
         $this->addCarbsSeries($chart);
         echo '<script type="module">'.$chart->render().'</script>';
@@ -44,30 +44,57 @@ class Ratios extends HighChartsComponent {
             return;
         }
         $percentInc = 100 / count($this->m_validTimesInDay);
-        $dataStartPoint = $this->m_data->getBegin()*DiabetesData::__1SECOND;
-        $statComputer = new StatisticsComputer();
         $stringToColor = new StringToColor();
         $yAxisNumber = $xAxisNumber = 0;
         foreach($this->m_validTimesInDay as $timeInDay) {
             $datum = @$this->m_ratiosByLunchType[$timeInDay];
             if(empty($datum)) continue;
-            $datum = $statComputer->computeAverage($datum, 60 * 60 * 24, $dataStartPoint);
             foreach($datum as &$value) {
-                $value = $this->m_maxRatio - $value;
+                $value['y'] = $this->m_maxRatio - $value['y'];
             }
             unset($value);
             $_chart->series[] = [
                 'name' => LabelProviders::get($timeInDay),
                 'color' => $stringToColor->handle($timeInDay),
-                'data' => $this->formatTimeDataForChart($datum),
+                //'borderWidth' => 2,
+                'data' => $datum,
                 'pointWidth' => 15,
                 //'xAxis' => "xAxis$xAxisNumber",
                 'yAxis' => "yAxis$yAxisNumber",
-                'dataLabels' => ['enabled' => true, 'format' => '1U:{subtract '.$this->m_maxRatio.' y}g'],
+                'dataLabels' => ['enabled' => true,
+                    'style' => ['fontSize' => '0.8rem'],
+                    'formatter' => new HighchartJsExpr("function () {
+                        var point = this;
+                        var s = '1U:'+($this->m_maxRatio - point.y).toFixed(0)+'g';
+                        if(point.point.target == 'inRange') {
+                            s += ' ✓';
+                        } else if(point.point.target == 'low') {
+                            s += ' ↓';
+                        } else if(point.point.target == 'lightHigh') {
+                            s += ' ↑';
+                        } else if(point.point.target == 'high') {
+                            s += ' ↑↑';
+                        }
+                        return s;
+                    }")
+
+                ],
                 'tooltip' => [
                     'useHTML' => true,
-                    'pointFormat' => '<span style="color:{point.color}">●</span> '.
-                        '{series.name}: <b>1U:{subtract '.$this->m_maxRatio.' point.y}g</b><br/>',
+                    'pointFormatter' => new HighchartJsExpr("function () {
+                        var point = this;
+                        var s = '<span style=\"color:'+point.color+'\">●</span> '+
+                        point.series.name+': <b>1U:'+($this->m_maxRatio - point.y).toFixed(0)+'g</b>';
+                        if(point.target == 'low') {
+                            s += ' Trop fort (augmenter le ratio)';
+                        } else if(point.target == 'lightHigh') {
+                            s += ' Légèrement trop faible (baisser le ratio)';
+                        } else if(point.target == 'high') {
+                            s += ' Trop faible (baisser le ratio)';
+                        }
+                        s +='<br/>';
+                        return s;
+                    }"),
                 ]
             ];
             //barres
@@ -78,24 +105,6 @@ class Ratios extends HighChartsComponent {
                 'tickPositions' => [0, $this->m_maxRatio],
                 'visible' => false,
             ];
-            //grille
-            /*$_chart->xAxis[] = [
-                'id' => "xAxis$xAxisNumber",
-                'left' => (($xAxisNumber * ($percentInc+4))).'%',
-                'width' => ($percentInc-5).'%',
-            ] + $xAxis;*/
-            //barres
-            /*$_chart->yAxis[] = [
-                'id' => "yAxis$yAxisNumber",
-                'left' => 50+($yAxisNumber * 200),
-                'width' => 100,
-            ];*/
-            //grille
-            /*$_chart->xAxis[] = [
-                    'id' => "xAxis$xAxisNumber",
-                    'left' => 50+($xAxisNumber * 200),
-                    'width' => 100,
-                ] + $xAxis;*/
             $yAxisNumber++;
             $xAxisNumber++;
         }
@@ -131,7 +140,7 @@ class Ratios extends HighChartsComponent {
                 avg /= counter;
 
                 return this.name + '<br>' +
-                '<span>Min: 1U:' + min + 'g</span><br/>' +
+                '<span>Min: 1U:' + min.toFixed(2) + 'g</span><br/>' +
                 '<span>Max: 1U:' + max + 'g</span><br/>' +
                 '<span>Moy: 1U:' + avg.toFixed(2) + 'g</span><br/>'
               }"

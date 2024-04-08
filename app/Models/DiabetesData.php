@@ -262,7 +262,7 @@ class DiabetesData {
     }
 
     public function getAnalyzedCarbs() {
-        if(is_null($this->m_analyzedCarbs)) {
+        if(empty($this->m_analyzedCarbs)) {
             $this->computeAnalyzedCarbs();
         }
         return $this->m_analyzedCarbs;

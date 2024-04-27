@@ -126,8 +126,15 @@ class AgpController extends BaseController {
             $this->setNullTreatment($nightscoutProvider, Request::get('setNullTreatment'));
             $forceTreatmentRefresh = true;
         }
-        $rawData = ['bloodGlucose' => $nightscoutProvider->fetchEntries()];
-        $rawData['treatments'] = $nightscoutProvider->fetchTreatments($forceTreatmentRefresh);
+        try {
+            $rawData = ['bloodGlucose' => $nightscoutProvider->fetchEntries()];
+            $rawData['treatments'] = $nightscoutProvider->fetchTreatments($forceTreatmentRefresh);
+        } catch (\Exception $exception) {
+            if($exception->getCode() == 401) {
+                throw new \Exception(__("Token invalide, impossible de se connecter."));
+            }
+            throw $exception;
+        }
 
         //$data = Storage::disk('local')->get('response.json');
         $utcOffset = $endDateObject->getOffset();

@@ -20,11 +20,14 @@ class NightscoutProvider {
     private $m_actualStartDate;
 
     private $m_apiSecret;
+    private $m_apiVersion = 3;
     private $m_endDate;
     private $m_startDate;
 
     private string $m_url;
     private $m_urlV1;
+
+    const APIV_1 = "APIV1";
 
     public function __construct($_url, $_apiSecret, ?DateTime $_startDate, ?DateTime $_endDate) {
 
@@ -35,6 +38,7 @@ class NightscoutProvider {
         //api v1
         if(!empty($_apiSecret)) {
             $this->m_urlV1 = str_replace('//', '//'.$_apiSecret.'@', $this->m_url);
+            $this->m_apiSecretV1 = sha1($_apiSecret);
         }
         $this->m_apiSecret = $_apiSecret;
         if(!empty($_startDate) && !empty($_endDate)) {
@@ -51,19 +55,40 @@ class NightscoutProvider {
 
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     public function fetchEntries() {
-        return $this->fetchEntriesV3();
+        try {
+            return $this->fetchEntriesV3();
+        } catch (\Exception $exception) {
+            if($exception->getMessage() == self::APIV_1) {
+                return $this->fetchEntriesV1();
+            }
+            throw $exception;
+        }
     }
 
     public function fetchTreatments($_forceRefresh = false) {
-        return $this->fetchTreatmentsV3($_forceRefresh);
+        try {
+            return $this->fetchTreatmentsV3($_forceRefresh);
+        } catch (\Exception $exception) {
+            if($exception->getMessage() == self::APIV_1) {
+                return $this->fetchTreatmentsV1();
+            }
+            throw $exception;
+        }
     }
 
     public function searchNotes($_notes) {
-        $this->openSession();
+        $searchString = '('.strtolower($_notes[0]).'|'.strtoupper($_notes[0]).')'.substr($_notes, 1);
+        try {
+            $this->openSession();
+        } catch (\Exception $exception) {
+            if($exception->getMessage() == self::APIV_1) {
+                throw new \Exception(__("Recherche dans les notes impossible avec cette version de Nightscout"));
+            }
+        }
         $url = $this->m_url.'api/v3/treatments';
         $params = [
             'query' => [
-                'notes$re' => $_notes,
+                'notes$re' => $searchString,
                 'sort$desc' => 'srvCreated',
                 'fields' => 'timestamp,srvCreated',
                 'limit' => 10,
@@ -112,9 +137,9 @@ class NightscoutProvider {
                 'count' => 25000,
             ],
         ];
-        if(!empty($this->m_apiSecret)) {
+        if(!empty($this->m_apiSecretV1)) {
             $params['headers'] = [
-                'API-SECRET' => $this->m_apiSecret,
+                'API-SECRET' => $this->m_apiSecretV1,
             ];
         }
         $result = $this->getCacheOrLive($url, $params);
@@ -139,9 +164,9 @@ class NightscoutProvider {
                 'count' => 25000,
             ],
         ];
-        if(!empty($this->m_apiSecret)) {
+        if(!empty($this->m_apiSecretV1)) {
             $params['headers'] = [
-                'API-SECRET' => $this->m_apiSecret,
+                'API-SECRET' => $this->m_apiSecretV1,
             ];
         }
         return $this->getCacheOrLive($url, $params);
@@ -278,8 +303,17 @@ class NightscoutProvider {
         //api v3 - get token
         $client = new Client();
         ServerTiming::start('Nightscout');
-        $response = $client->request('GET', $this->m_url.'api/v2/authorization/request/'.$this->m_apiSecret);
-        $data = json_decode($response->getBody()->getContents(), true);
+        try {
+            $response = $client->request('GET', $this->m_url.'api/v2/authorization/request/'.$this->m_apiSecret);
+            $data = json_decode($response->getBody()->getContents(), true);
+        } catch (\Exception $exception) {
+            if(in_array($exception->getCode(), [404, 401])) {
+                $this->m_apiVersion = 1;
+                throw new \Exception(self::APIV_1, 1);
+            } else {
+                throw $exception;
+            }
+        }
         ServerTiming::stop('Nightscout');
         $this->m_token = $data['token'];
     }

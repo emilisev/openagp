@@ -293,6 +293,11 @@ class NightscoutProvider {
         if(array_key_exists('result', $result)) {
             $result = $result['result'];
         }
+        array_walk($result, function(&$_item) {
+            if(array_key_exists('_id', $_item) && !array_key_exists('identifier', $_item)) {
+                $_item['identifier'] = $_item['_id'];
+            }
+        });
         return $result;
     }
 

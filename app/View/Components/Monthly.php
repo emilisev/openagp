@@ -70,7 +70,10 @@ class Monthly extends SeveralTimelinesCharts {
         //add 1 serie per week
         $yAxisNumber = $xAxisNumber = $currentHeight = 0;
         for ($weekNum = $_weeks; $weekNum >= 1; $weekNum--) {
-            $data = $this->m_data->getDailyTreatmentsByMonth($weekNum)['insulin'];
+            $data = @$this->m_data->getDailyTreatmentsByMonth($weekNum)['insulin'];
+            if(empty($data)) {
+                continue;
+            }
             $this->addTreatmentsSerie($_chart, $data, $_weeklyGraphHeight, $currentHeight, $yAxisNumber, $xAxisNumber);
             $currentHeight += $_weeklyGraphHeight;
             $yAxisNumber++;

@@ -299,14 +299,14 @@ class DiabetesData {
     }
 
     public function getDailyTimeInRange() {
-        if(is_null($this->m_dailyTimeInRange)) {
+        if(empty($this->m_dailyTimeInRange)) {
             $this->computeDailyTimeInRange();
         }
         return $this->m_dailyTimeInRange;
     }
 
     public function getDailyTimeInRangePercent() {
-        if(is_null($this->m_dailyTimeInRangePercent)) {
+        if(empty($this->m_dailyTimeInRangePercent)) {
             $this->computeDailyTimeInRangePercent();
         }
         return $this->m_dailyTimeInRangePercent;

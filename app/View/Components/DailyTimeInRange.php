@@ -25,7 +25,25 @@ class DailyTimeInRange extends HighChartsComponent {
 
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private function addBloodGlucoseSeries(Highchart $_chart) {
-        $data = $this->m_data->getDailyTimeInRangePercent();
+        if($this->m_data->getDurationInDays() > 60) {
+            $data = $this->m_data->getWeeklyTimeInRangePercent();
+            $_chart->chart->height = (count($data['target']) * 20)+100;
+            $timeLabelsFormat = '\s\e\m \d\u d M';
+        } else {
+            $data = $this->m_data->getDailyTimeInRangePercent();
+            $timeLabelsFormat = 'D d M';
+        }
+
+        $categories = [];
+        $mergedData = array_replace($data['target'], $data['other']);
+        foreach(array_keys($mergedData) as $time) {
+            $categories[] = date($timeLabelsFormat, $time / DiabetesData::__1SECOND);
+        }
+        $_chart->xAxis = [
+            'categories' => $categories,
+        ];
+
+
         $series = [];
         foreach(array_reverse($data) as $label => $values) {
             $zones = [];
@@ -67,15 +85,6 @@ class DailyTimeInRange extends HighChartsComponent {
         $chart->chart->marginLeft = 90;
         $chart->chart->marginBottom = 40;
 
-        $categories = [];
-        $data = $this->m_data->getDailyTimeInRange();
-        $mergedData = array_replace($data['target'], $data['other']);
-        foreach(array_keys($mergedData) as $time) {
-            $categories[] = date('D d M', $time / DiabetesData::__1SECOND);
-        }
-        $chart->xAxis = [
-            'categories' => $categories,
-        ];
         $chart->yAxis = [
             'title' => ['enabled' => false],
             'plotLines' => [

@@ -157,7 +157,7 @@ abstract class HighChartsComponent extends Component {
     }
 
     protected function setChartHeightBasedOnDuration($_chart) {
-        $_chart->chart->height = (round(($this->m_data->getEnd() - $this->m_data->getBegin())/(60*60*24)) * 20)+100;
+        $_chart->chart->height = ($this->m_data->getDurationInDays() * 20)+100;
         $_chart->chart->type = "bar";
     }
 }

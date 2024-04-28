@@ -62,6 +62,11 @@ class DiabetesData {
 
     private float $m_variation;
 
+    /**
+     * @var array[]
+     */
+    private array $m_weeklyTimeInRangePercent;
+
     const __1MINUTE = 60 * self::__1SECOND;
     const __1SECOND = 1000;
     const __1DAY    = self::__1MINUTE * 60 * 24;
@@ -324,6 +329,10 @@ class DiabetesData {
         return $this->filterTreatementsData($minDate, $middleDate);
     }
 
+    public function getDurationInDays() {
+        return round(($this->getEnd() - $this->getBegin())/(60*60*24));
+    }
+
     public function getEnd(): int {
         return $this->m_end;
     }
@@ -361,6 +370,14 @@ class DiabetesData {
 
     public function getVariation(): float {
         return $this->m_variation;
+    }
+
+    public function getWeeklyTimeInRangePercent() {
+        if(empty($this->m_weeklyTimeInRangePercent)) {
+            $this->computeWeeklyTimeInRangePercent();
+        }
+        return $this->m_weeklyTimeInRangePercent;
+
     }
 
     /**
@@ -714,7 +731,6 @@ class DiabetesData {
             $timeInRangePercent['other'][$time] = $this->getDailyTimeInRange()['other'][$time] / $sum * 100;
         }
         $this->m_dailyTimeInRangePercent = $timeInRangePercent;
-
     }
 
     /**
@@ -834,6 +850,33 @@ class DiabetesData {
         }
 
         return sqrt($variance / $count);
+    }
+
+    private function computeWeeklyTimeInRangePercent() {
+        $timeInRangeByWeek = ['target' => [], 'other' => []];
+        $dayPos = 1;
+        $targetSum = 0;
+        $otherSum = 0;
+        $startOfWeekTime = null;
+        foreach($this->getDailyTimeInRangePercent()['target'] as $time => $targetValue) {
+            $targetSum += $targetValue;
+            $otherSum += $this->getDailyTimeInRangePercent()['other'][$time];
+            if($dayPos == 1) {
+                $startOfWeekTime = $time;
+            }
+            if($dayPos == 7) {
+                $timeInRangeByWeek['target'][$startOfWeekTime] = $targetSum / $dayPos;
+                $timeInRangeByWeek['other'][$startOfWeekTime] = $otherSum / $dayPos;
+                $dayPos = 1;
+                $targetSum = 0;
+                $otherSum = 0;
+            } else {
+                $dayPos++;
+            }
+        }
+        $this->m_weeklyTimeInRangePercent = $timeInRangeByWeek;
+
+
     }
 
     /**

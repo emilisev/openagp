@@ -32,7 +32,7 @@ abstract class HighChartsComponent extends Component {
         if(is_int($this->m_width)) {
             $chart->chart->width = $this->m_width;
         }
-        $chart->plotOptions->series = ['marker' => ['enabled' => false]];
+        $chart->plotOptions->series = ['marker' => ['enabled' => false], 'states' => ['inactive' => ['opacity' => 1]]];
         //$chart->tooltip->enabled = false;
         $chart->tooltip = ['shared' => true];
         $chart->title->text = null;

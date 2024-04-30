@@ -94,16 +94,7 @@ class NightscoutProvider {
                 'limit' => 10,
             ],
         ];
-        if(!empty($this->m_token)) {
-            $params['headers'] = [
-                'Authorization' => "Bearer $this->m_token",
-            ];
-        }
-        $client = new Client();
-        $response = $client->request('GET', $url, $params);
-
-        $data = $response->getBody()->getContents();
-        $rawResult = json_decode($data, true);
+        $rawResult = $this->getDataFromUrl($url, $params);
         /*echo "<pre>";
         var_dump($params, $rawResult);*/
         return $rawResult['result'];
@@ -297,6 +288,26 @@ class NightscoutProvider {
             }
         });
         return $result;
+    }
+
+    /**
+     * @param string $_url
+     * @param array $_params
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function getDataFromUrl(string $_url, array $_params): mixed {
+        if(!empty($this->m_token)) {
+            $_params['headers'] = [
+                'Authorization' => "Bearer $this->m_token",
+            ];
+        }
+        $client = new Client();
+        $response = $client->request('GET', $_url, $_params);
+
+        $data = $response->getBody()->getContents();
+        $rawResult = json_decode($data, true);
+        return $rawResult;
     }
 
     private function openSession(): void {

@@ -42,6 +42,7 @@ class AgpController extends BaseController {
 
     public function view(Request $_request, string $_notes = null) {
         ServerTiming::start('AgpController');
+
         try {
             if(Request::route()->getName() == 'daily' && !empty($_notes)) {
                 $matchingDates = $this->getMatchingDatesForNotes($_notes);
@@ -160,10 +161,6 @@ class AgpController extends BaseController {
             Request::session()->get('url'), Request::session()->get('apiSecret'),
             $_startDateObject, $_endDateObject);
         return $this->m_nightscoutProviders[$key];
-    }
-
-    private function getProfilePrefs() {
-
     }
 
     private function setNullTreatment(NightscoutProvider $_nightscoutProvider, $_identifier) {

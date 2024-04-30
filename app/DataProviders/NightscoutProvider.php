@@ -172,7 +172,6 @@ class NightscoutProvider {
         return $this->getCacheOrLive($url, $params);
     }
 
-
     private function fetchTreatmentsV3($_forceRefresh = false) {
         $result = $this->fetchCollectionV3('treatments', $_forceRefresh);
         if(empty($result)) {
@@ -268,7 +267,6 @@ class NightscoutProvider {
         return($result);
 
     }
-
 
     private function getCacheOrLive($_url, $_params) {
         $cacheKey = sha1($_url.json_encode($_params['query']));

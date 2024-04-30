@@ -19,6 +19,8 @@ use IntlDateFormatter;
 class AgpController extends BaseController {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    protected array $m_nightscoutProviders = [];
+
     /********************** PUBLIC METHODS *********************/
     public function postToGet(Request $_request) {
         $notes = Request::get('notes');
@@ -28,37 +30,21 @@ class AgpController extends BaseController {
         return $this->view($_request);
     }
 
-    public function searchNotes(Request $_request, string $_notes = null) {
-        $nightscoutProvider = new NightscoutProvider(
-            Request::session()->get('url'), Request::session()->get('apiSecret'),
-            null, null);
+    public function getMatchingDatesForNotes(string $_notes = null) {
+        $nightscoutProvider = $this->getNightscoutProvider(null, null);
         $matchingDates = $nightscoutProvider->searchNotes($_notes);
         if(empty($matchingDates)) {
-            return view(
-                'web.welcome', ['error' => __("Aucune donnée contenant les notes :notes", ['notes' => $_notes])],
-            );
+            throw new \Exception( __("Aucune donnée contenant les notes :notes", ['notes' => $_notes]));
         }
-        foreach($matchingDates as $timestamp) {
-            $date = new DateTime();
-            $date->setTimestamp($timestamp['timestamp']/DiabetesData::__1SECOND);
-            Request::session()->set('startDate', $date->format('d/m/Y'));
-            Request::session()->set('endDate', $date->format('d/m/Y'));
-        }
+        return $matchingDates;
 
     }
-
 
     public function view(Request $_request, string $_notes = null) {
         ServerTiming::start('AgpController');
         try {
             if(Request::route()->getName() == 'daily' && !empty($_notes)) {
-                $nightscoutProvider = new NightscoutProvider(
-                    Request::session()->get('url'), Request::session()->get('apiSecret'),
-                    null, null);
-                $matchingDates = $nightscoutProvider->searchNotes($_notes);
-                if(empty($matchingDates)) {
-                    throw new \Exception(__("Aucune donnée contenant les notes \":notes\"", ['notes' => $_notes]));
-                }
+                $matchingDates = $this->getMatchingDatesForNotes($_notes);
                 $data = [];
                 $matchingStringDates = [];
                 foreach($matchingDates as $timestamp) {
@@ -118,9 +104,7 @@ class AgpController extends BaseController {
         /*$startDate = DateTime::createFromFormat('d/m/Y H:i:s', '04/11/2023 12:00:00');
         $endDate = DateTime::createFromFormat('d/m/Y H:i:s', '04/11/2023 23:59:00');*/
 
-        $nightscoutProvider = new NightscoutProvider(
-            Request::session()->get('url'), Request::session()->get('apiSecret'),
-            $startDateObject, $endDateObject);
+        $nightscoutProvider = $this->getNightscoutProvider($startDateObject, $endDateObject);
         $forceTreatmentRefresh = false;
         if(Request::route()->getName() == 'daily' && !empty(Request::get('setNullTreatment'))) {
             $this->setNullTreatment($nightscoutProvider, Request::get('setNullTreatment'));
@@ -158,6 +142,28 @@ class AgpController extends BaseController {
         //$data->smoothAgp([5 => 2, 25=> 3, 50 => 4, 75 => 3, 95 => 2]);
         $data->smoothAgp([5 => 1, 25 => 1, 50 => 1, 75 => 1, 95 => 1]);
         return $data;
+    }
+
+    /**
+     * @param DateTime $_startDateObject
+     * @param DateTime $_endDateObject
+     * @return NightscoutProvider
+     */
+    private function getNightscoutProvider(?DateTime $_startDateObject, ?DateTime $_endDateObject): NightscoutProvider {
+        $key = ($_startDateObject instanceof DateTime?$_startDateObject->format('U'):'')
+            .'-'.
+            ($_endDateObject instanceof DateTime?$_endDateObject->format('U'):'');
+        if(array_key_exists($key, $this->m_nightscoutProviders) && $this->m_nightscoutProviders[$key] instanceof NightscoutProvider) {
+            return $this->m_nightscoutProviders[$key];
+        }
+        $this->m_nightscoutProviders[$key] = new NightscoutProvider(
+            Request::session()->get('url'), Request::session()->get('apiSecret'),
+            $_startDateObject, $_endDateObject);
+        return $this->m_nightscoutProviders[$key];
+    }
+
+    private function getProfilePrefs() {
+
     }
 
     private function setNullTreatment(NightscoutProvider $_nightscoutProvider, $_identifier) {

@@ -37,6 +37,8 @@ class DiabetesData {
 
     private array $m_insulinAgpData = [];
 
+    private array $m_profiles;
+
     private array $m_ratiosByLunchType = [];
 
     private array $m_rawData;
@@ -71,6 +73,8 @@ class DiabetesData {
     const __1SECOND = 1000;
     const __1DAY    = self::__1MINUTE * 60 * 24;
     const __BOLUS_INSULIN = ['Novorapid', 'Meal Bolus'];
+    const __PROFILE_PERCENT_UP = ['basal'];
+    const __PROFILE_PERCENT_DOWN = ['sens', 'carbratio'];
 
     public function __construct($_rawData, $_utcOffset = 0) {
         $this->m_rawData = $_rawData;
@@ -246,7 +250,12 @@ class DiabetesData {
         }
 
         $this->m_treatmentsData['carbs'] = self::filterData($this->m_treatmentsData['carbs'], $_begin, $_end);
-
+        $profilesInTimeFrame = self::filterData($this->m_profiles, $_begin, $_end);
+        if(empty($profilesInTimeFrame)) {
+            $this->m_profiles = array_slice($this->m_profiles, 0, 1, true);
+        } else {
+            $this->m_profiles = $profilesInTimeFrame;
+        }
         /*echo "<pre>";
         var_dump(readableDateArray($this->m_treatmentsData['insulin']["Novorapid"]));*/
         /*var_dump($this->m_treatmentsData);
@@ -348,6 +357,13 @@ class DiabetesData {
         return $this->m_insulinAgpData;
     }
 
+    /**
+     * @return array
+     */
+    public function getProfiles(): array {
+        return $this->m_profiles;
+    }
+
     public function getRatiosByLunchType() {
         if(empty($this->m_ratiosByLunchType)) {
             $this->computeRatios();
@@ -389,7 +405,7 @@ class DiabetesData {
 
     public function parse($_endDateSeconds): void {
         //echo "<pre>";
-        $basalRates = $tempBasalRates = [];
+        $simpleProfiles = $completeProfiles = $tempBasalRates = [];
         foreach($this->m_rawData['bloodGlucose'] as $item) {
             //erase duplicates by rounding to minute + transform timestamp to microTimestamp
             $microTimestamp = floor(($item["date"] + $this->m_utcOffset) / (5 * self::__1MINUTE)) * (5 * self::__1MINUTE);
@@ -413,19 +429,20 @@ class DiabetesData {
         foreach($this->m_rawData['treatments'] as $item) {
             //compute timestamp from various possibilities
             $timestamp = null;
-            if(array_key_exists("timestamp", $item)) {
+            if(array_key_exists("created_at", $item)) {
+                $date = DateTime::createFromFormat('Y-m-d\TH:i:s.v\Z', $item["created_at"]);
+                $timestamp = $date->format('Uv');
+            } elseif(array_key_exists("timestamp", $item)) {
                 $timestamp = $item["timestamp"];
             } elseif(array_key_exists("date", $item)) {
                 $timestamp = $item["date"];
             } elseif(array_key_exists("srvCreated", $item)) {
                 $timestamp = $item["srvCreated"];
-            } elseif(array_key_exists("created_at", $item)) {
-                $date = DateTime::createFromFormat('Y-m-d\TH:i:s.v\Z', $item["created_at"]);
-                $timestamp = $date->format('Uv');
             }
             if(is_null($timestamp)) {
                 continue;
             }
+            $timestamp += $this->m_utcOffset * self::__1SECOND;
 
             if(array_key_exists("rate", $item) && is_numeric($item["rate"])) {
                 $this->m_hasBasalTreatment = true;
@@ -487,12 +504,16 @@ class DiabetesData {
             if(array_key_exists("eventType", $item) && $item["eventType"] == "Profile Switch"
                 && array_key_exists("profileJson", $item) && !empty($item["profileJson"])
             ) {
-                $profile = json_decode($item["profileJson"], true);
-                $basalRates[$timestamp] = $profile;
+                $item["profileJson"] = $this->decodeProfile($item);
+                $simpleProfiles[$timestamp] = $item["profileJson"];
+                $completeProfiles[$timestamp] = $item;
             }
         }
-        if(!empty($basalRates) || !empty($tempBasalRates)) {
-            $this->computeBasalFromProfile($basalRates, $tempBasalRates, $_endDateSeconds);
+        if(!empty($profiles) || !empty($tempBasalRates)) {
+            ksort($completeProfiles);
+            ksort($simpleProfiles);
+            $this->m_profiles = $completeProfiles;
+            $this->computeBasalFromProfile($simpleProfiles, $tempBasalRates, $_endDateSeconds);
         }
         /*echo "<pre>";
         var_dump($this->m_rawData['bloodGlucose'], $this->m_bloodGlucoseData, $this->m_treatmentsData['carbs']);*/
@@ -877,6 +898,24 @@ class DiabetesData {
         $this->m_weeklyTimeInRangePercent = $timeInRangeByWeek;
 
 
+    }
+
+    private function decodeProfile($_item) {
+        $result = json_decode($_item["profileJson"], true);
+        if($_item['percentage'] == 100) {
+            return $result;
+        }
+        foreach(self::__PROFILE_PERCENT_UP as $itemToUp) {
+            foreach($result[$itemToUp] as &$data) {
+                $data['value'] = round($data['value'] * $_item['percentage']) /100;
+            }
+        }
+        foreach(self::__PROFILE_PERCENT_DOWN as $itemToUp) {
+            foreach($result[$itemToUp] as &$data) {
+                $data['value'] = round(($data['value'] / $_item['percentage'] * 1000))/10;
+            }
+        }
+        return $result;
     }
 
     /**

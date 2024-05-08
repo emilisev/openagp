@@ -18,9 +18,11 @@
         ->addMenuLink(Link::toUrl('/daily', __('Quotidien')))
         ->add(\Spatie\Menu\Html::raw($searchForm))
         ->addMenuLink(Link::toUrl('/weekly', __('Hebdo')))
-        ->addMenuLink(Link::toUrl('/monthly', __('Mensuel')))
+        ->addMenuLink(Link::toUrl('/monthly', __('Mensuel'))))
+    ->submenu(__('Analyse'), CustomMenu::new()->addClass('nav')->addClass('flex-column')
         ->addMenuLink(Link::toUrl('/ratio', __('Ratios')))
         ->addMenuLink(Link::toUrl('/overlay', __('Superposition')))
+        ->addMenuLink(Link::toUrl('/insulin-profile', __('Profil')))
     );
 
     /*$menu->url('/login', "Se connecter");

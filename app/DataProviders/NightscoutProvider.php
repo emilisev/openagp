@@ -198,7 +198,7 @@ class NightscoutProvider {
             $dateField = ($_collection == 'entries'?'date': 'created_at');
             $fields = ($_collection == 'entries' ? 'date,sgv,mbg' : 'timestamp,srvCreated,'.
             'created_at,pumpType,enteredBy,insulin,rate,durationInMilliseconds,duration,insulinInjections,'.
-            'notes,carbs,identifier,date,eventType,profileJson');
+            'notes,carbs,identifier,date,eventType,profileJson,profile,percentage');
             $params = [
                 'query' => [
                     $dateField.'$gte' => $currentDate->format('U'),

@@ -37,7 +37,7 @@ abstract class HighChartsComponent extends Component {
         $chart->tooltip = ['shared' => true];
         $chart->title->text = null;
         $chart->legend = ['enabled' => false];
-        $chart->time->timezoneOffset = -60;
+        $chart->time->timezoneOffset = -120;
         return $chart;
     }
 

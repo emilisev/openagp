@@ -902,7 +902,7 @@ class DiabetesData {
 
     private function decodeProfile($_item) {
         $result = json_decode($_item["profileJson"], true);
-        if($_item['percentage'] == 100) {
+        if(!array_key_exists('percentage', $_item) || $_item['percentage'] == 100) {
             return $result;
         }
         foreach(self::__PROFILE_PERCENT_UP as $itemToUp) {

@@ -195,11 +195,11 @@ class DiabetesData {
             if($value === null) {
                 continue;
             }
-            if($value > $this->m_targets['low'] && $value < $this->m_targets['high']) {
+            if($value >= $this->m_targets['low'] && $value <= $this->m_targets['high']) {
                 $timeInRangeCount['target']++;
-            } elseif($value <= $this->m_targets['veryLow']) {
+            } elseif($value < $this->m_targets['veryLow']) {
                 $timeInRangeCount['veryLow']++;
-            } elseif($value >= $this->m_targets['veryHigh']) {
+            } elseif($value > $this->m_targets['veryHigh']) {
                 $timeInRangeCount['veryHigh']++;
             } elseif($value <= $this->m_targets['low']) {
                 $timeInRangeCount['low']++;

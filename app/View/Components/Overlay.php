@@ -74,7 +74,7 @@ class Overlay extends SeveralTimelinesCharts {
                 'yAxis' => 'gloodGlucose-yAxis'.$yAxisNumber,
             ];
 
-            if($weekDay ++ >= 7) {
+            if($weekDay ++ >= 6) {
                 $weekDay = 0;
                 $yAxisNumber++;
                 $xAxisNumber++;

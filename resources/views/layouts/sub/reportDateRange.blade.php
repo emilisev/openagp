@@ -32,7 +32,7 @@
             '{{ __('30 derniers jours') }}': [moment().subtract(30, 'days'), moment().subtract(1, 'days')],
             '{{ __('90 derniers jours') }}': [moment().subtract(90, 'days'), moment().subtract(1, 'days')],
         },
-        maxDate : moment().subtract(1, 'days'),
+        maxDate : moment(),
         startDate: "{{ $formDefault['startDate'] }}",
         endDate: "{{ $formDefault['endDate'] }}"
     }, dateRangePickerSubmit);

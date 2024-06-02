@@ -770,12 +770,16 @@ class DiabetesData {
         //compute ratio
         $maxRatio = 0;
         foreach($dataByLunchType as $lunchType => $datumByLunchType) {
-            foreach($datumByLunchType['insulin'] as $day => $insulinValue) {
-                if(array_key_exists('carbs', $datumByLunchType) && array_key_exists($day, $datumByLunchType['carbs'])) {
-                    $ratio = round($datumByLunchType['carbs'][$day] / $insulinValue * 10) / 10;
+            if(array_key_exists('insulin', $datumByLunchType)) {
+                foreach($datumByLunchType['insulin'] as $day => $insulinValue) {
+                    if(array_key_exists('carbs', $datumByLunchType) && array_key_exists($day, $datumByLunchType['carbs'])) {
+                        $ratio = round($datumByLunchType['carbs'][$day] / $insulinValue * 10) / 10;
 
-                    $maxRatio = max($maxRatio, $ratio);
-                    $this->m_ratiosByLunchType[$lunchType][] = ['x' => $day, 'y' => $ratio, 'target' => $dataByLunchType[$lunchType]['target'][$day]];
+                        $maxRatio = max($maxRatio, $ratio);
+                        $this->m_ratiosByLunchType[$lunchType][] = ['x' => $day,
+                            'y' => $ratio,
+                            'target' => $dataByLunchType[$lunchType]['target'][$day]];
+                    }
                 }
             }
         }

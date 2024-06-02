@@ -5,7 +5,7 @@
 }
 
 @media print {
-    #form, body>header, footer, #selectDateIcon { display:none;}
+    #form, body>header, nav, footer, #selectDateIcon { display:none;}
 
 }
 

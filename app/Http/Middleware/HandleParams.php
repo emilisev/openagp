@@ -51,6 +51,10 @@ class HandleParams {
         } else {
             list($startDate, $endDate) = explode(" - ", $dates);
         }
+        if(strlen($request->get('focusOnNight'))) {
+            $request->session()->put('focusOnNight', $request->get('focusOnNight'));
+        }
+
 
         $request->session()->put('startDate', $startDate);
         $request->session()->put('endDate', $endDate);

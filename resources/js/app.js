@@ -81,6 +81,11 @@ $(document).ready(function() {
         console.log(current, currentY, 'translate(0'+currentY+')');
         $(this).attr("transform", 'translate(0'+currentY+')');
     });
+    $('#focusOnNightSwitch').on('change', function (event, state) {
+        $('#focusOnNight').val(this.checked?1:0);
+        $('#focusOnNight')[0].form.submit();
+    })
+
 });
 
 Highcharts.setNullTreatment = function(identifier) {

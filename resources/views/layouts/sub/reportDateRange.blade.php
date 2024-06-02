@@ -6,10 +6,14 @@
     <b>{{round(($data->getEnd() - $data->getBegin())/(60*60*24))}} {{ __("jours") }}</b>
     | {{$dateFormatter->format($data->getBegin())}} - {{$dateFormatter->format($data->getEnd())}}
     <i id="selectDateIcon" class="bi bi-calendar3 text-primary" aria-hidden="true"></i>
+    @include('layouts.sub.focusOnNight')
 </h4>
 <form method="POST" style="display: none" action="{{ Request::route()->getName()?? ($agent->isMobile()?'/daily':'/agp') }}">
     @csrf
     <input id="dates" name="dates" type="text" class="form-control" value="{{ @$formDefault['dates'] }}"/>
+    @if($formDefault['isFocusOnNightAllowed'])
+        <input id="focusOnNight" name="focusOnNight" type="text" class="form-control"/>
+    @endif
 </form>
 <script type="module">
     function dateRangePickerSubmit(start, end) {

@@ -88,7 +88,10 @@ class AgpController extends BaseController {
             [
                 'data' => $data,
                 'chart' => $chart,
-                'formDefault' => ['startDate' => $startDate, 'endDate' => $endDate],
+                'formDefault' => ['startDate' => $startDate, 'endDate' => $endDate,
+                    'isFocusOnNightAllowed' => $this->isFocusOnNightAllowed(),
+                    'focusOnNight' => Request::session()->get('focusOnNight')
+                ],
                 //'times' => $times,
                 'dateFormatter' => $dateFormatter
             ]);
@@ -101,6 +104,10 @@ class AgpController extends BaseController {
         $endDateObject = DateTime::createFromFormat('d/m/Y H:i:s', $_endDate.' 23:59:59');
         if(!$startDateObject || !$endDateObject) {
             throw new \Exception(__("Vérifiez les dates sélectionnées"));
+        }
+        if($this->getFocusOnNight()) {
+            $startDateObject->modify('-12hours');
+            $endDateObject->modify('-12hours');
         }
         /*$startDate = DateTime::createFromFormat('d/m/Y H:i:s', '04/11/2023 12:00:00');
         $endDate = DateTime::createFromFormat('d/m/Y H:i:s', '04/11/2023 23:59:00');*/
@@ -145,6 +152,13 @@ class AgpController extends BaseController {
         return $data;
     }
 
+    private function getFocusOnNight() {
+        if($this->isFocusOnNightAllowed() && Request::session()->get('focusOnNight') == true) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * @param DateTime $_startDateObject
      * @param DateTime $_endDateObject
@@ -161,6 +175,16 @@ class AgpController extends BaseController {
             Request::session()->get('url'), Request::session()->get('apiSecret'),
             $_startDateObject, $_endDateObject);
         return $this->m_nightscoutProviders[$key];
+    }
+
+    /**
+     * @return bool
+     */
+    private function isFocusOnNightAllowed(): bool {
+        if(!in_array(Request::route()->getName(), ['daily', 'overlay'])) {
+            return false;
+        }
+        return true;
     }
 
     private function setNullTreatment(NightscoutProvider $_nightscoutProvider, $_identifier) {

@@ -63,6 +63,15 @@ class AgpController extends BaseController {
             } else {
                 $startDate = Request::session()->get('startDate');
                 $endDate = Request::session()->get('endDate');
+                if(Request::route()->getName() == 'daytoday') {
+                    $startDateObject = DateTime::createFromFormat('d/m/Y', $startDate);
+                    $endDateObject = DateTime::createFromFormat('d/m/Y', $endDate);
+                    $dailyData = [];
+                    for($date = $endDateObject->format('U'); $date >= $startDateObject->format('U'); $date -= 60 *60 * 24) {
+                        //var_dump(date('Y-m-d H:i:s', $date));
+                        $dailyData[] = $this->fetchAndPrepareData(date('d/m/Y', $date), date('d/m/Y', $date));
+                    }
+                }
                 $data = $this->fetchAndPrepareData($startDate, $endDate);
             }
         } catch(\Exception $e) {
@@ -87,12 +96,12 @@ class AgpController extends BaseController {
             'web.'.Request::route()->getName(),
             [
                 'data' => $data,
+                'dailyData' => @$dailyData,
                 'chart' => $chart,
                 'formDefault' => ['startDate' => $startDate, 'endDate' => $endDate,
                     'isFocusOnNightAllowed' => $this->isFocusOnNightAllowed(),
                     'focusOnNight' => Request::session()->get('focusOnNight')
                 ],
-                //'times' => $times,
                 'dateFormatter' => $dateFormatter
             ]);
         ServerTiming::stop('AgpController');
@@ -181,7 +190,7 @@ class AgpController extends BaseController {
      * @return bool
      */
     private function isFocusOnNightAllowed(): bool {
-        if(!in_array(Request::route()->getName(), ['daily', 'overlay'])) {
+        if(!in_array(Request::route()->getName(), ['daily', 'overlay', 'daytoday'])) {
             return false;
         }
         return true;

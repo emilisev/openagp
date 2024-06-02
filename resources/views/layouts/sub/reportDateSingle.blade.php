@@ -1,6 +1,6 @@
 @php
     $begin = $dailyData->getBegin();
-    if($formDefault['isFocusOnNightAllowed'] && $formDefault['focusOnNight'] == true) {
+    if($formDefault['focusOnNight'] == true) {
         $begin += 60 * 60 *12;
     }
     /** @var App\Models\DiabetesData $data
@@ -20,7 +20,7 @@
 @endif
 
 @if(!$allowChange)<a href="/daily?day={{ date('d/m/Y',  $begin) }}">@endif
-@if($formDefault['isFocusOnNightAllowed'] && $formDefault['focusOnNight'] == true)
+@if($formDefault['focusOnNight'] == true)
     {{ $dateFormatter->format($begin - 60 * 60 *12) }} -
 @endif
 {{ $dateFormatter->format($begin) }}

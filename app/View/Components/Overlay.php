@@ -4,10 +4,6 @@ namespace App\View\Components;
 
 use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
-use Ghunti\HighchartsPHP\HighchartJsExpr;
-use Illuminate\Support\Facades\Request;
-use App\Helpers\StringToColor;
-use function App\Models\readableDate;
 
 class Overlay extends SeveralTimelinesCharts {
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -19,38 +15,7 @@ class Overlay extends SeveralTimelinesCharts {
         //prepare chart
         $chart = $this->createChart($weeks);
         $chart->chart->height = ($weeks * 300) + 50;
-        $chart->legend = ['enabled' => true,
-            /*'labelFormatter' => new HighchartJsExpr("function() {
-                var maxRatio = $this->m_maxRatio;
-                var lastVal = this.yData[this.yData.length - 1],
-                chart = this.chart,
-                xAxis = this.xAxis,
-                points = this.points,
-                avg = 0,
-                counter = 0,
-                min, max;
-                this.yData.forEach(function(point, inx) {
-                    var actualValue = maxRatio - point;
-                    if (!min || min > actualValue) {
-                        min = actualValue;
-                    }
-
-                    if (!max || max < actualValue) {
-                        max = actualValue;
-                    }
-
-                    counter++;
-                    avg += actualValue;
-                });
-                avg /= counter;
-
-                return this.name + '<br>' +
-                '<span>Min: 1U:' + min + 'g</span><br/>' +
-                '<span>Max: 1U:' + max + 'g</span><br/>' +
-                '<span>Moy: 1U:' + avg.toFixed(2) + 'g</span><br/>'
-              }"
-            )*/
-        ];
+        $chart->legend = ['enabled' => true,];
 
         $weeklyGraphHeight = (round(100 / $weeks * 10)) / 10;
         $yAxisBase = $this->getBloodGlucoseYAxis($_greenLineWidth = 1);
@@ -85,10 +50,6 @@ class Overlay extends SeveralTimelinesCharts {
                 'opposite' => true,
                 'lineWidth' => 0,
                 //'tickWidth' => 0,
-                'startOnTick' => true,
-                'endOnTick' => true,
-                'showFirstLabel' => false,
-                'showLastLabel' => false,
             ]
         ];
         for($currentDate = $this->m_data->getBegin(); $currentDate <= $this->m_data->getEnd(); $currentDate += 60 * 60 * 24) {

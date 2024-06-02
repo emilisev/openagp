@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use DateTime;
+use App\Helpers\ParserHelper;
 
 class DiabetesData {
 
@@ -43,6 +44,8 @@ class DiabetesData {
 
     private array $m_rawData;
 
+    private array $m_simpleProfiles = [];
+
     /**
      * @var array{
      *     veryHigh: int,
@@ -53,9 +56,11 @@ class DiabetesData {
      */
     private array $m_targets;
 
+    private $m_tempBasalRates = [];
+
     private array $m_timeInRangePercent = [];
 
-    private array $m_treatmentsData = ['insulin' => [], 'carbs' => [], 'notes' => []];
+    private array $m_treatmentsData = ['insulin' => [], 'carbs' => [], 'notes' => [], 'profileTemp' => []];
 
     /**
      * @var int
@@ -371,6 +376,12 @@ class DiabetesData {
         return $this->m_ratiosByLunchType;
     }
 
+    /**
+     * @return array
+     */
+    public function getSimpleProfiles(): array {
+        return $this->m_simpleProfiles;
+    }
 
     public function getTargets(): array {
         return $this->m_targets;
@@ -405,7 +416,7 @@ class DiabetesData {
 
     public function parse($_endDateSeconds): void {
         //echo "<pre>";
-        $simpleProfiles = $completeProfiles = $tempBasalRates = [];
+
         foreach($this->m_rawData['bloodGlucose'] as $item) {
             //erase duplicates by rounding to minute + transform timestamp to microTimestamp
             $microTimestamp = floor(($item["date"] + $this->m_utcOffset) / (5 * self::__1MINUTE)) * (5 * self::__1MINUTE);
@@ -426,95 +437,7 @@ class DiabetesData {
                 var_dump($item);
             }*/
         }
-        foreach($this->m_rawData['treatments'] as $item) {
-            //compute timestamp from various possibilities
-            $timestamp = null;
-            if(array_key_exists("created_at", $item)) {
-                $date = DateTime::createFromFormat('Y-m-d\TH:i:s.v\Z', $item["created_at"]);
-                $timestamp = $date->format('Uv');
-            } elseif(array_key_exists("timestamp", $item)) {
-                $timestamp = $item["timestamp"];
-            } elseif(array_key_exists("date", $item)) {
-                $timestamp = $item["date"];
-            } elseif(array_key_exists("srvCreated", $item)) {
-                $timestamp = $item["srvCreated"];
-            }
-            if(is_null($timestamp)) {
-                continue;
-            }
-            $timestamp += $this->m_utcOffset * self::__1SECOND;
-
-            if(array_key_exists("rate", $item) && is_numeric($item["rate"])) {
-                $this->m_hasBasalTreatment = true;
-                $tempBasalRates[$timestamp] = $item;
-            } elseif(@$item["pumpType"] == "OMNIPOD_DASH" //fetch possible data : insulin, carbs, notes
-                || @$item["enteredBy"] == "freeaps-x"
-                || strpos(@$item["enteredBy"], 'medtronic') === 0) { //pumps
-                $type = $item["eventType"];
-                if(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
-                    $this->m_treatmentsData['insulin'][$type][$timestamp] = round($item["insulin"] * 100) / 100;
-                }/* else {
-                    var_dump($item);
-                }*/
-                if(array_key_exists("durationInMilliseconds", $item)) { //omnipod
-                    $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["durationInMilliseconds"];
-                } elseif(array_key_exists("duration", $item)) {
-                    $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["duration"] * self::__1MINUTE;
-                }
-            } elseif(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
-                $type = 'unknown';
-                if(!empty($item["insulinInjections"])
-                    && ($details = json_decode($item["insulinInjections"], true))
-                    && !(empty($details))) { //sync pen in xdrip
-                    $type = @$details[0]['insulin'];
-                } elseif(!empty($item["notes"])) { //manually entered in xdrip
-                    $type = $item["notes"];
-                    unset($item["notes"]);
-                } elseif(!empty($item["eventType"])) { //manually entered in xdrip
-                    $type = $item["eventType"];
-                }
-                $this->m_treatmentsData['insulin'][$type][$timestamp] = round($item["insulin"] * 100) / 100;
-                $this->m_treatmentsData['insulinId'][$type][$timestamp] = $item["identifier"];
-            }
-            if(array_key_exists("carbs", $item) && is_numeric($item["carbs"])) {
-                $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];
-            }
-            if(array_key_exists("notes", $item) && !empty($item["notes"])) {
-                if(preg_match('/^carb ([0-9]+)g/', $item['notes'], $carbs)) {
-                    if(is_numeric($carbs[1])) {
-                        $this->m_treatmentsData['carbs'][$timestamp] = (int)$carbs[1];
-                        continue;
-                    }
-                }
-
-                $strings = explode(" → ", $item['notes']);
-                foreach($strings as $string) {
-                    $filter = false;
-                    foreach(config('diabetes.notes.filter') as $filterString) {
-                        if(strpos($string, $filterString) !== false) {
-                            $filter = true;
-                            break;
-                        }
-                    }
-                    if(!$filter) {
-                        $this->m_treatmentsData['notes'][$timestamp] = $string;
-                    }
-                }
-            }
-            if(array_key_exists("eventType", $item) && $item["eventType"] == "Profile Switch"
-                && array_key_exists("profileJson", $item) && !empty($item["profileJson"])
-            ) {
-                $item["profileJson"] = $this->decodeProfile($item);
-                $simpleProfiles[$timestamp] = $item["profileJson"];
-                $completeProfiles[$timestamp] = $item;
-            }
-        }
-        if(!empty($profiles) || !empty($tempBasalRates)) {
-            ksort($completeProfiles);
-            ksort($simpleProfiles);
-            $this->m_profiles = $completeProfiles;
-            $this->computeBasalFromProfile($simpleProfiles, $tempBasalRates, $_endDateSeconds);
-        }
+        $this->parseTreatements($_endDateSeconds);
         /*echo "<pre>";
         var_dump($this->m_rawData['bloodGlucose'], $this->m_bloodGlucoseData, $this->m_treatmentsData['carbs']);*/
 
@@ -1005,6 +928,103 @@ class DiabetesData {
         var_dump(readableTimeArray($treatmentsCountBetweenTimeFrame), readableTimeArray($treatmentsCountBetweenTimeFrame2));
         die();*/
         return $treatmentsCountBetweenTimeFrame2;
+    }
+
+    /**
+     * @param $item
+     * @param $timestamp
+     */
+    private function parseInsulinData($item, $timestamp) {
+        if(array_key_exists("rate", $item) && is_numeric($item["rate"])) {
+            $this->m_hasBasalTreatment = true;
+            $this->m_tempBasalRates[$timestamp] = $item;
+        } elseif(@$item["pumpType"] == "OMNIPOD_DASH" //fetch possible data : insulin, carbs, notes
+            || @$item["enteredBy"] == "freeaps-x"
+            || strpos(@$item["enteredBy"], 'medtronic') === 0) { //pumps
+            $type = $item["eventType"];
+            if(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
+                $this->m_treatmentsData['insulin'][$type][$timestamp] = round($item["insulin"] * 100) / 100;
+            }/* else {
+                    var_dump($item);
+                }*/
+            if(array_key_exists("durationInMilliseconds", $item)) { //omnipod
+                $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["durationInMilliseconds"];
+            } elseif(array_key_exists("duration", $item)) {
+                $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["duration"] * self::__1MINUTE;
+            }
+        } elseif(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
+            $type = 'unknown';
+            if(!empty($item["insulinInjections"])
+                && ($details = json_decode($item["insulinInjections"], true))
+                && !(empty($details))) { //sync pen in xdrip
+                $type = @$details[0]['insulin'];
+            } elseif(!empty($item["notes"])) { //manually entered in xdrip
+                $type = $item["notes"];
+                unset($item["notes"]);
+            } elseif(!empty($item["eventType"])) { //manually entered in xdrip
+                $type = $item["eventType"];
+            }
+            $this->m_treatmentsData['insulin'][$type][$timestamp] = round($item["insulin"] * 100) / 100;
+            $this->m_treatmentsData['insulinId'][$type][$timestamp] = $item["identifier"];
+        }
+    }
+
+    /**
+     * @param $_endDateSeconds
+     */
+    private function parseTreatements($_endDateSeconds) {
+        $simpleProfiles = $completeProfiles = [];
+        $treatments = ParserHelper::removeDuplicates($this->m_rawData['treatments']);
+        foreach($treatments as $item) {
+            //compute timestamp from various possibilities
+            $timestamp = ParserHelper::extractTimestamp($item, $this->m_utcOffset);
+            if(is_null($timestamp)) {
+                continue;
+            }
+
+            $this->parseInsulinData($item, $timestamp);
+
+            if(array_key_exists("carbs", $item) && is_numeric($item["carbs"])) {
+                $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];
+            }
+
+            if(array_key_exists("profileJson", $item) && !empty($item["profileJson"])
+            ) {
+                $item["profileJson"] = $this->decodeProfile($item);
+                $simpleProfiles[$timestamp] = $item["profileJson"];
+                $completeProfiles[$timestamp] = $item;
+            } elseif(array_key_exists("notes", $item) && !empty($item["notes"])) {
+                if(preg_match('/^carb ([0-9]+)g/', $item['notes'], $carbs)) {
+                    if(is_numeric($carbs[1])) {
+                        $this->m_treatmentsData['carbs'][$timestamp] = (int)$carbs[1];
+                        continue;
+                    }
+                }
+
+                $strings = explode(" → ", $item['notes']);
+                foreach($strings as $string) {
+                    $filter = false;
+                    foreach(config('diabetes.notes.filter') as $filterString) {
+                        if(strpos($string, $filterString) !== false) {
+                            $filter = true;
+                            break;
+                        }
+                    }
+                    if(!$filter) {
+                        $this->m_treatmentsData['notes'][$timestamp] = $string;
+                    }
+                }
+            }
+
+        }
+        //var_dump('completeProfiles', $completeProfiles);
+        if(!empty($completeProfiles) || !empty($tempBasalRates)) {
+            ksort($completeProfiles);
+            ksort($simpleProfiles);
+            $this->m_profiles = $completeProfiles;
+            $this->m_simpleProfiles = $completeProfiles;
+            $this->computeBasalFromProfile($simpleProfiles, $this->m_tempBasalRates, $_endDateSeconds);
+        }
     }
 
     private function smoothData($_data, int $_smoothSpan): array {

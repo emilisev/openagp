@@ -175,7 +175,7 @@ class NightscoutProvider {
                 'created_at$lte' => $this->m_actualStartDate->format('U'),
                 'sort$desc' => 'created_at',
                 'limit' => 1,
-                'eventType' => 'Profile Switch',
+                'profileJson$re' => 'units',
             ],
         ];
         $params['headers'] = [
@@ -196,9 +196,9 @@ class NightscoutProvider {
         $cacheKeys = [];
         while($currentDate < $this->m_actualEndDate) {
             $dateField = ($_collection == 'entries'?'date': 'created_at');
-            $fields = ($_collection == 'entries' ? 'date,sgv,mbg' : 'timestamp,srvCreated,'.
+            $fields = ($_collection == 'entries' ? 'date,sgv,mbg' : /*'timestamp,srvCreated,'.
             'created_at,pumpType,enteredBy,insulin,rate,durationInMilliseconds,duration,insulinInjections,'.
-            'notes,carbs,identifier,date,eventType,profileJson,profile,percentage');
+            'notes,carbs,identifier,date,eventType,profileJson,profile,percentage'*/'_all');
             $params = [
                 'query' => [
                     $dateField.'$gte' => $currentDate->format('U'),

@@ -12,6 +12,8 @@ highchartsheatmap(highcharts);
 highchartsvariwide(highcharts);
 import highchartsacessibility from 'highcharts/modules/accessibility';
 highchartsacessibility(highcharts);
+import highchartsannotations from 'highcharts/modules/annotations';
+highchartsannotations(highcharts);
 window.Highcharts = highcharts;
 
 import moment from 'moment';

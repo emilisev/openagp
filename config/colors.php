@@ -14,4 +14,8 @@ return [
         'other' => '#e9eee3',
         'belowTarget' => '#afe086',
     ],
+    'profile' => [
+        'weak' => '#eeffe0',
+        'strong' => '#fff0ea',
+    ]
 ];

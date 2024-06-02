@@ -27,6 +27,7 @@ class Daily extends HighChartsComponent {
         $this->addBloodGlucoseSeries($chart);
         $this->addTreatmentsSeries($chart);
         $this->addCarbsSeries($chart);
+        $this->addNotes($chart);
         echo '<script type="module">Highcharts.AST.allowedAttributes.push(\'onclick\');'.$chart->render().'</script>';
     }
 
@@ -87,6 +88,26 @@ class Daily extends HighChartsComponent {
                 ]
             ];
         }
+    }
+
+    private function addNotes(Highchart $_chart) {
+        $notes = $this->m_data->getTreatmentsData()['notes'];
+        $bg = $this->m_data->getBloodGlucoseData();
+        $annotations = [];
+        foreach($notes as $key => $value) {
+            $bgAtKey = 150;
+            foreach($bg as $bgKey => $currentBg) {
+                if(isset($previousKey) && $key > $previousKey && $key < $bgKey) {
+                    $bgAtKey = $currentBg;
+                    break;
+                }
+                $previousKey = $bgKey;
+            }
+            $annotations[] = ['point'=>['x' => $key, 'y' => $bgAtKey+20, 'xAxis' => 0, 'yAxis' => 0], 'text' => $value];
+        }
+        $_chart->annotations = [['labels' => $annotations,
+            'labelOptions' => ['backgroundColor' => '#e4e4e4', 'borderColor' => '#a2a2a2']]
+        ];
     }
 
     private function addTreatmentsSeries(Highchart $_chart) {
@@ -157,12 +178,33 @@ class Daily extends HighChartsComponent {
         $xMax = $xMin + 60 * 60 * 24;
         $xAxis['min'] = $xMin * 1000;
         $xAxis['max'] = $xMax * 1000;
-
-        $notes = $this->m_data->getTreatmentsData()['notes'];
-        foreach($notes as $key => $value) {
-            $xAxis['plotLines'][] = ['value' => $key, 'label' => ['text' => $value]];
+        $profiles = $this->m_data->getSimpleProfiles();
+        foreach($profiles as $key => $value) {
+            if($key < $this->m_data->getBegin() * DiabetesData::__1SECOND) {
+                $key = $this->m_data->getBegin() * DiabetesData::__1SECOND;
+            }
+            preg_match('/^([^\(]*)(\(([0-9]+)%\))?$/', @$value['profile']??$value['notes'], $matches);
+            $profileName = $matches[1];
+            $profilePercent = @$matches[3]??100;
+            if(!isset($previousProfile) || $previousProfile != $profileName) {
+                $xAxis['plotLines'][] = ['value' => $key,
+                    'label' => ['text' => @$value['profile'] ?? $value['notes']],
+                    'zIndex' => -1];
+            } elseif($previousPercent != 100) {
+                if($previousPercent < 100) {
+                    $color = config('colors.profile.weak');
+                } elseif($previousPercent > 100) {
+                    $color = config('colors.profile.strong');
+                }
+                $xAxis['plotBands'][] = ['from' => $previousKey, 'to' => $key,
+                    'label' => ['text' => ($previousPercent!= 100?$previousPercent.'%':null)],
+                    'color' => $color,
+                    'zIndex' => -5];
+            }
+            $previousProfile = $profileName;
+            $previousPercent = $profilePercent;
+            $previousKey = $key;
         }
-
         $chart->xAxis = $xAxis;
         return $chart;
     }

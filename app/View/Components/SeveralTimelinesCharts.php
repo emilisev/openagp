@@ -2,6 +2,7 @@
 
 namespace App\View\Components;
 
+use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use Ghunti\HighchartsPHP\HighchartJsExpr;
 use App\Helpers\StringToColor;
@@ -53,7 +54,7 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
             'type' => 'line',
             'name' => 'Glycémie',
             'data' => $dataForChart,
-            'dataLabels' => [
+            /*'dataLabels' => [
                 'enabled' => true,
                 'verticalAlign' => 'bottom',
                 'formatter' => new HighchartJsExpr(
@@ -69,7 +70,7 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
                         return result;
                     }"),
                 'className' => 'upper-labels'
-            ],
+            ],*/
             'xAxis' => $_xAxisNumber,
             'yAxis' => 'gloodGlucose-yAxis'.$_yAxisNumber,
             'zones' => $this->getDefaultZones()
@@ -110,6 +111,27 @@ abstract class SeveralTimelinesCharts extends HighChartsComponent {
             'opacity' => 1,
             'dataLabels' => ['enabled' => true, 'format' => '{point.name}']
         ];
+    }
+
+    protected function addDaysAnnotations(Highchart $_chart, $_weeks) {
+        $yAxisNumber = $xAxisNumber = 0;
+        $currentDate = ($this->m_data->getBegin() + (60 * 60 * 12)) *DiabetesData::__1SECOND;
+        for ($weekNum = $_weeks; $weekNum >= 1; $weekNum--) {
+            $data = $this->m_data->getDailyDataByWeek($weekNum);
+            $maxDateForAxis = max(array_keys($data));
+            for($currentDate;
+                $currentDate < $this->m_data->getEnd() * DiabetesData::__1SECOND && $currentDate < $maxDateForAxis;
+                $currentDate += DiabetesData::__1DAY) {
+                $annotations[] = ['point'=>['x' => $currentDate, 'y' => 190, 'xAxis' => $xAxisNumber, 'yAxis' => 'gloodGlucose-yAxis'.$yAxisNumber],
+                    'text' => date('d', $currentDate / DiabetesData::__1SECOND)];
+            }
+            $yAxisNumber++;
+            $xAxisNumber++;
+        }
+        $_chart->annotations = [[
+            'labels' => $annotations,
+            'labelOptions' => ['backgroundColor' => '#e4e4e4', 'borderColor' => '#a2a2a2'],
+        ]];
     }
 
     /**

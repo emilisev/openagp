@@ -37,6 +37,7 @@ class Weekly extends SeveralTimelinesCharts {
         if(Request::route()->getName() != 'agp') {
             $this->addTreatmentsSeries($chart, $weeks, $weeklyGraphHeight);
             $this->addCarbsSeries($chart, $weeks, $weeklyGraphHeight);
+            $this->addDaysAnnotations($chart, $weeks);
         }
 
         //echo "<pre>".$chart->render()."</pre>";

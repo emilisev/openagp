@@ -2,8 +2,10 @@
 
 namespace App\View\Components;
 
+use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use Illuminate\Support\Facades\Request;
+use function App\Models\readableDate;
 
 class Monthly extends SeveralTimelinesCharts {
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -27,6 +29,7 @@ class Monthly extends SeveralTimelinesCharts {
         $this->addBloodGlucoseSeries($chart, $yAxisBase, $plotLines, $ticks, $months, $monthlyGraphHeight);
         $this->addTreatmentsSeries($chart, $months, $monthlyGraphHeight);
         $this->addCarbsSeries($chart, $months, $monthlyGraphHeight);
+        $this->addDaysAnnotations($chart, $months);
 
         //echo "<pre>".$chart->render()."</pre>";
         echo '<script type="module">'.$chart->render().'</script>';
@@ -43,7 +46,7 @@ class Monthly extends SeveralTimelinesCharts {
      * @param float $_weeklyGraphHeight
      */
     private function addBloodGlucoseSeries(Highchart $_chart, array $y_AxisBase, mixed $_plotLines, mixed $_ticks, int $_months, float $_weeklyGraphHeight): void {
-        //add 1 serie per week
+        //add 1 serie per month
         $yAxisNumber = $xAxisNumber = $currentHeight = 0;
         for ($monthNum = $_months; $monthNum >= 1; $monthNum--) {
             $data = $this->m_data->getDailyDataByMonth($monthNum);

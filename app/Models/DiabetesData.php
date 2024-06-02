@@ -37,7 +37,7 @@ class DiabetesData {
 
     private array $m_insulinAgpData = [];
 
-    private array $m_profiles;
+    private array $m_profiles = [];
 
     private array $m_ratiosByLunchType = [];
 
@@ -894,6 +894,10 @@ class DiabetesData {
             } else {
                 $dayPos++;
             }
+        }
+        if($dayPos > 1) {
+            $timeInRangeByWeek['target'][$startOfWeekTime] = $targetSum / ($dayPos -1);
+            $timeInRangeByWeek['other'][$startOfWeekTime] = $otherSum / ($dayPos -1);
         }
         $this->m_weeklyTimeInRangePercent = $timeInRangeByWeek;
 

@@ -28,7 +28,7 @@ class DailyTimeInRange extends HighChartsComponent {
         if($this->m_data->getDurationInDays() > 60) {
             $data = $this->m_data->getWeeklyTimeInRangePercent();
             $_chart->chart->height = (count($data['target']) * 20)+100;
-            $timeLabelsFormat = '\s\e\m \d\u d M';
+            $timeLabelsFormat = '\s\e\m. d M';
         } else {
             $data = $this->m_data->getDailyTimeInRangePercent();
             $timeLabelsFormat = 'D d M';

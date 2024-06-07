@@ -31,7 +31,7 @@ class NightscoutProvider {
 
     public function __construct($_url, $_apiSecret, ?DateTime $_startDate, ?DateTime $_endDate) {
 
-        $this->m_url = $_url;
+        $this->m_url = $this->m_urlV1 = $_url;
         if(!str_ends_with($this->m_url, '/')) {
             $this->m_url .= '/';
         }
@@ -160,7 +160,16 @@ class NightscoutProvider {
                 'API-SECRET' => $this->m_apiSecretV1,
             ];
         }
-        return $this->getCacheOrLive($url, $params);
+        $result = $this->getCacheOrLive($url, $params);
+        $params['query'] = [
+            'find[created_at][$lte]' => $this->m_startDate->format('Y-m-d'),
+            'sort$desc' => 'created_at',
+            'find[profileJson][$gt]' => '0',
+            'count' => 1,
+        ];
+        $lastProfileSwitchBeforeStart = $this->getCacheOrLive($url, $params);
+        $result = array_merge($result, $lastProfileSwitchBeforeStart);
+        return $result;
     }
 
     private function fetchTreatmentsV3($_forceRefresh = false) {

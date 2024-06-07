@@ -564,7 +564,7 @@ class DiabetesData {
             } elseif($_endDateSeconds > time()) {
                 $profile['appliesTo'] = microtime(true) * self::__1SECOND;
             } else {
-                $profile['appliesTo'] = strtotime('23:59:59', $time / self::__1SECOND) * self::__1SECOND;
+                $profile['appliesTo'] = strtotime('23:59:59', $_endDateSeconds) * self::__1SECOND;
             }
             $profile['appliesToR'] = readableDate($profile['appliesTo']);
             $profile['appliesFromR'] = readableDate($profile['appliesFrom']);

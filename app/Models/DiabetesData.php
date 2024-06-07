@@ -937,11 +937,14 @@ class DiabetesData {
     /**
      * @param $item
      * @param $timestamp
+     * @return bool isInsulinData?
      */
-    private function parseInsulinData($item, $timestamp) {
+    private function parseInsulinData($item, $timestamp):bool {
+        $isInsulinData = false;
         if(array_key_exists("rate", $item) && is_numeric($item["rate"])) {
             $this->m_hasBasalTreatment = true;
             $this->m_tempBasalRates[$timestamp] = $item;
+            $isInsulinData =true;
         } elseif(@$item["pumpType"] == "OMNIPOD_DASH" //fetch possible data : insulin, carbs, notes
             || @$item["enteredBy"] == "freeaps-x"
             || strpos(@$item["enteredBy"], 'medtronic') === 0) { //pumps
@@ -953,8 +956,10 @@ class DiabetesData {
                 }*/
             if(array_key_exists("durationInMilliseconds", $item)) { //omnipod
                 $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["durationInMilliseconds"];
+                $isInsulinData =true;
             } elseif(array_key_exists("duration", $item)) {
                 $this->m_treatmentsData['insulinDuration'][$type][$timestamp] = $item["duration"] * self::__1MINUTE;
+                $isInsulinData =true;
             }
         } elseif(array_key_exists("insulin", $item) && is_numeric($item["insulin"])) {
             $type = 'unknown';
@@ -970,13 +975,16 @@ class DiabetesData {
             }
             $this->m_treatmentsData['insulin'][$type][$timestamp] = round($item["insulin"] * 100) / 100;
             $this->m_treatmentsData['insulinId'][$type][$timestamp] = $item["identifier"];
+            $isInsulinData =true;
         }
+        return $isInsulinData;
     }
 
     /**
      * @param $_endDateSeconds
      */
     private function parseTreatements($_endDateSeconds) {
+        //echo '<pre>';
         $simpleProfiles = $completeProfiles = [];
         $treatments = ParserHelper::removeDuplicates($this->m_rawData['treatments']);
         foreach($treatments as $item) {
@@ -986,10 +994,11 @@ class DiabetesData {
                 continue;
             }
 
-            $this->parseInsulinData($item, $timestamp);
+            $isInsulinData = $this->parseInsulinData($item, $timestamp);
 
             if(array_key_exists("carbs", $item) && is_numeric($item["carbs"])) {
                 $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];
+                $isInsulinData = true;
             }
 
             if(array_key_exists("profileJson", $item) && !empty($item["profileJson"])
@@ -1018,6 +1027,9 @@ class DiabetesData {
                         $this->m_treatmentsData['notes'][$timestamp] = $string;
                     }
                 }
+            } elseif(!$isInsulinData && !in_array($item["eventType"], ['Temporary Target', 'Bolus Wizard', 'BG Check'])) {
+                $this->m_treatmentsData['notes'][$timestamp] = $item["eventType"];
+                //var_dump($item);
             }
 
         }

@@ -29,37 +29,51 @@ class ParserHelper {
     public static function removeDuplicates($_array) {
         $result = [];
         $dupKeys = [];
+        //echo '<pre>';
         //var_dump($_array);
         foreach($_array as $key => $item) {
-            if(!isset($previousItem)) {
+            $secondTimestamp = self::extractTimestamp($item);
+            if($key == 0) {
                 ;
             } else {
+                $previousKey = $key - 1;
+                $previousItem = $_array[$key -1];
                 $firstTimestamp = self::extractTimestamp($previousItem);
-                $secondTimestamp = self::extractTimestamp($item);
-                //more than 3 minutes, keep both
-                if(($secondTimestamp - $firstTimestamp) >= DiabetesData::__1MINUTE*3) {
-                    ;
-                } else { //less than 3 mn apart
+                //for all item less than 3 minutes apart
+                while($previousKey >=0
+                    && ($secondTimestamp - $firstTimestamp) < DiabetesData::__1MINUTE*3
+                    && ($secondTimestamp - $firstTimestamp) > 0) {
+                    /*var_dump("comparing $key (".date('Y-m-d H:i:s', $secondTimestamp/1000).
+                             ") to $previousKey (".date('Y-m-d H:i:s', $firstTimestamp/1000).")");*/
                     $filteredItem = self::removeTimeFields($item);
                     $filteredPreviousItem = self::removeTimeFields($previousItem);
+                    /*if($key == 18 && $previousKey == 15) {
+                        var_dump($filteredItem, $filteredPreviousItem, $filteredItem == $filteredPreviousItem);
+                    }*/
                     //identical, remove duplicate
                     if($filteredItem == $filteredPreviousItem) {
-                        $dupKeys[] = $key;
+                        $dupKeys[$key] = $key;
                     } elseif($item['eventType'] == 'Profile Switch' && $previousItem['eventType'] == 'Note') {
                         if(self::isProfileSwitchIdenticalToNote($item, $previousItem)) {
-                            $dupKeys[] = $key;
+                            $dupKeys[$key] = $key;
                         }
                     } elseif($previousItem['eventType'] == 'Profile Switch' && $item['eventType'] == 'Note') {
                         if(self::isProfileSwitchIdenticalToNote($previousItem, $item)) {
-                            $dupKeys[] = $key - 1;
+                            $dupKeys[$key - 1] = $key - 1;
                         }
                     } /*elseif($item['eventType'] == 'Note' && $previousItem['eventType'] == 'Note') {
                         var_dump(__LINE__, $item, $previousItem);
                         die();
                     }*/
+                    $previousKey --;
+                    if($previousKey >=0) {
+                        $previousItem = $_array[$previousKey];
+                        $firstTimestamp = self::extractTimestamp($previousItem);
+                    }
+
+                    //$previousKey = -1;
                 }
             }
-            $previousItem = $item;
         }
         //var_dump($dupKeys);
         $result = array_filter(
@@ -69,6 +83,7 @@ class ParserHelper {
             },
             ARRAY_FILTER_USE_KEY);
         //var_dump('removeDuplicates', count($_array), count($result), array_keys($result));
+        //die();
         return $result;
     }
 

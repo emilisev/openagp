@@ -438,6 +438,7 @@ class DiabetesData {
             }*/
         }
         $this->parseTreatements($_endDateSeconds);
+        $this->parseDeviceStatus($_endDateSeconds);
         /*echo "<pre>";
         var_dump($this->m_rawData['bloodGlucose'], $this->m_bloodGlucoseData, $this->m_treatmentsData['carbs']);*/
 
@@ -932,6 +933,19 @@ class DiabetesData {
         var_dump(readableTimeArray($treatmentsCountBetweenTimeFrame), readableTimeArray($treatmentsCountBetweenTimeFrame2));
         die();*/
         return $treatmentsCountBetweenTimeFrame2;
+    }
+
+    private function parseDeviceStatus($_endDateSeconds) {
+        foreach($this->m_rawData['deviceStatus'] as $item) {
+            //compute timestamp from various possibilities
+            $timestamp = ParserHelper::extractTimestamp($item, $this->m_utcOffset);
+            if(is_null($timestamp)) {
+                continue;
+            }
+            if(is_float(@$item['openaps']['iob']['activity'])) {
+                $this->m_treatmentsData['iob'][$timestamp] = $item['openaps']['iob']['activity'];
+            };
+        }
     }
 
     /**

@@ -28,6 +28,7 @@ class Daily extends HighChartsComponent {
         $this->addTreatmentsSeries($chart);
         $this->addCarbsSeries($chart);
         $this->addNotes($chart);
+        $this->addIOBSerie($chart);
         echo '<script type="module">Highcharts.AST.allowedAttributes.push(\'onclick\');'.$chart->render().'</script>';
     }
 
@@ -42,6 +43,7 @@ class Daily extends HighChartsComponent {
             'data' => $this->formatTimeDataForChart($data),
             'zones' => $this->getDefaultZones(),
             'lineWidth' => 2,
+            'zIndex' => 8
             //'marker' => ['enabled' => true, 'radius' => 1,]
         ];
     }
@@ -80,6 +82,7 @@ class Daily extends HighChartsComponent {
                 'yAxis' => 'carbs-yAxis',
                 'pointRange' => 60 * 60 * 1000, //largeur
                 'opacity' => 1,
+                'zIndex' => 12,
                 'dataLabels' => ['enabled' => true, 'format' => '{point.label}'],
                 'tooltip' => [
                     'useHTML' => true,
@@ -88,6 +91,27 @@ class Daily extends HighChartsComponent {
                 ]
             ];
         }
+    }
+
+    private function addIOBSerie(Highchart $_chart) {
+        $data = $this->m_data->getTreatmentsData();
+        if(!array_key_exists('iob', $data)|| empty($data['iob'])) {
+            return;
+        }
+        ksort($data['iob']);
+        //prepare data
+        $_chart->series[] = [
+            'type' => 'line',
+            'data' => $this->formatTimeDataForChart($data['iob']),
+            'yAxis' => 'iob-yAxis',
+            'lineWidth' => 1,
+            'color' => config('colors.iob'),
+            'zIndex' => 7,
+            'enableMouseTracking'=> false
+        ];
+        $_chart->yAxis[] = [
+            'id' => 'iob-yAxis', 'visible' => false
+        ];
     }
 
     private function addNotes(Highchart $_chart) {
@@ -156,10 +180,11 @@ class Daily extends HighChartsComponent {
                 'borderRadius' => $basal?0:3,
                 'pointRange' => 60 * 60 * 1000, //largeur
                 'dataLabels' => ['enabled' => !$basal, 'format' => '{y}UI'],
-                'zIndex' => $basal?1:2,
+                'zIndex' => $basal?1:9,
                 'tooltip' => $tooltip,
                 'step' => $step
             ];
+
         }
     }
 

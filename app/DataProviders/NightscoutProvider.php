@@ -65,6 +65,13 @@ class NightscoutProvider {
         }
     }
 
+    public function fetchDeviceStatus($_forceRefresh = false) {
+        if($this->m_apiVersion != 3) {
+            return [];
+        }
+        return $this->fetchDeviceStatusV3($_forceRefresh);
+    }
+
     public function fetchTreatments($_forceRefresh = false) {
         try {
             return $this->fetchTreatmentsV3($_forceRefresh);
@@ -117,6 +124,10 @@ class NightscoutProvider {
 
         $data = $response->getBody()->getContents();
 
+    }
+
+    private function fetchDeviceStatusV3(bool $_forceRefresh) {
+        return $this->fetchCollectionV3('devicestatus');
     }
 
     private function fetchEntriesV1() {

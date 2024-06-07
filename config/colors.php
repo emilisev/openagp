@@ -17,5 +17,6 @@ return [
     'profile' => [
         'weak' => '#eeffe0',
         'strong' => '#fff0ea',
-    ]
+    ],
+    'iob' => '#c9c710'
 ];

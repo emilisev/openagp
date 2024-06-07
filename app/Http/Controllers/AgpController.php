@@ -128,9 +128,11 @@ class AgpController extends BaseController {
             $forceTreatmentRefresh = true;
         }
         try {
-            $rawData = ['bloodGlucose' => $nightscoutProvider->fetchEntries()];
+            $rawData = ['deviceStatus' => [], 'bloodGlucose' => $nightscoutProvider->fetchEntries()];
             $rawData['treatments'] = $nightscoutProvider->fetchTreatments($forceTreatmentRefresh);
-            $rawData['deviceStatus'] = $nightscoutProvider->fetchDeviceStatus($forceTreatmentRefresh);
+            if(Request::route()->getName() == 'daily') {
+                $rawData['deviceStatus'] = $nightscoutProvider->fetchDeviceStatus($forceTreatmentRefresh);
+            }
         } catch (\Exception $exception) {
             if($exception->getCode() == 401) {
                 throw new \Exception(__("Token invalide, impossible de se connecter."));

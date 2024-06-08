@@ -77,7 +77,7 @@ class DiabetesData {
     const __1MINUTE = 60 * self::__1SECOND;
     const __1SECOND = 1000;
     const __1DAY    = self::__1MINUTE * 60 * 24;
-    const __BOLUS_INSULIN = ['Novorapid', 'Meal Bolus'];
+    const __BOLUS_INSULIN = ['Novorapid', 'Meal Bolus', 'Manual Bolus'];
     const __PROFILE_PERCENT_UP = ['basal'];
     const __PROFILE_PERCENT_DOWN = ['sens', 'carbratio'];
 
@@ -1047,6 +1047,14 @@ class DiabetesData {
             }
 
         }
+
+        //rename Meal Bolus to Manual Bolus if no carbs
+        if(empty($this->m_treatmentsData['carbs'])
+        && array_key_exists('Meal Bolus', $this->m_treatmentsData['insulin'])) {
+            $this->m_treatmentsData['insulin']['Manual Bolus'] = $this->m_treatmentsData['insulin']['Meal Bolus'];
+            unset($this->m_treatmentsData['insulin']['Meal Bolus']);
+        }
+
         //var_dump('completeProfiles', $completeProfiles);
         if(!empty($completeProfiles) || !empty($tempBasalRates)) {
             ksort($completeProfiles);

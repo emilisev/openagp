@@ -131,7 +131,7 @@ class Treatment extends HighChartsComponent {
             return;
         }
         $stringToColor = new StringToColor();
-
+        $tdd = [];
         //place insulin type with less quantity at bottom
         krsort($this->m_insulinData);
         foreach ($this->m_insulinData as $insulinDatum) {
@@ -147,6 +147,13 @@ class Treatment extends HighChartsComponent {
                     'zIndex' => 200,
                     'lineWidth' => 2,
                 ];
+                foreach($datum as $key => $value) {
+                    if(!isset($tdd[$key])) {
+                        $tdd[$key] = $value;
+                    } else {
+                        $tdd[$key] += $value;
+                    }
+                }
             }
         }
         $_chart->yAxis[] = ['id' => 'insulin-yAxis',
@@ -158,6 +165,16 @@ class Treatment extends HighChartsComponent {
                 'y' => 25, 'style' => ['fontSize' => '0.8rem', 'color' => $stringToColor->handle($type)]],
             'labels' => ['style' => ['color' => $stringToColor->handle($type)]]
         ];
+
+        $type = __('Dose totale quotidienne');
+        $_chart->series[] = [
+            'name' => $type,
+            'color' => 'transparent',
+            'data' => $this->formatTimeDataForChart($tdd),
+            'yAxis' => 'insulin-yAxis2',
+            'zIndex' => -10,
+        ];
+        $_chart->yAxis[] = ['id' => 'insulin-yAxis2','visible' => false];
     }
 
     private function createChart(): Highchart {
@@ -184,7 +201,6 @@ class Treatment extends HighChartsComponent {
                     avg += actualValue;
                 });
                 avg /= counter;
-
                 return this.name + '<br>' +
                 '<span>Min: ' + min.toFixed(2) + '</span><br/>' +
                 '<span>Max: ' + max.toFixed(2) + '</span><br/>' +
@@ -192,7 +208,30 @@ class Treatment extends HighChartsComponent {
               }"
             )
         ];
-        $chart->tooltip = ['valueDecimals' => 2, 'shared' => true];
+        $chart->tooltip = ['valueDecimals' => 2, 'shared' => true,
+                'useHTML' => true,
+                /*'formatter' => new HighchartJsExpr("function() {
+                    var text = Highcharts.dateFormat(Highcharts.defaultOptions.tooltip.dateTimeLabelFormats.day, this.x) + '<br/>'
+                    var insulinTotal = 0;
+                    $.each(this.points, function(i, point) {
+                        var point = this;
+                        if(point.series.stackKey) {
+                            insulinTotal += point.y;
+                        }
+
+                        text += '<span style=\"color:'+ point.series.color +'\">●</span> '+
+                            point.series.name +': '+
+                            point.y.toFixed(2);
+                        if(point.series.stackKey) {
+                            text += 'UI';
+                        }
+                        text +='<br/>';
+                    });
+
+                    text += '<br/>Dose quotidienne: ' + insulinTotal.toFixed(2)+'UI';
+                    return text;
+                }")*/
+            ];
         $targets = $this->m_data->getTargets();
         $bloodGlucoseYAxis = ['plotLines' => [],
                 'tickPositions' => [0, $targets['low'], $targets['high'], 350],

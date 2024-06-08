@@ -419,7 +419,7 @@ class DiabetesData {
 
         foreach($this->m_rawData['bloodGlucose'] as $item) {
             //erase duplicates by rounding to minute + transform timestamp to microTimestamp
-            $microTimestamp = floor(($item["date"] + $this->m_utcOffset) / (5 * self::__1MINUTE)) * (5 * self::__1MINUTE);
+            $microTimestamp = $this->roundToFiveMinutes($item["date"]);
             /*if(array_key_exists($microTimestamp, $this->m_bloodGlucoseData)) {
                 var_dump(
                     "override value", readableTime($microTimestamp),
@@ -488,6 +488,15 @@ class DiabetesData {
 
         $this->m_bloodGlucoseDataByRoundedTime = $dataByRoundedTime;
 
+    }
+
+    /**
+     * @param $item
+     * @return float|int
+     */
+    public function roundToFiveMinutes($item) {
+        $microTimestamp = floor(($item + $this->m_utcOffset) / (5 * self::__1MINUTE)) * (5 * self::__1MINUTE);
+        return $microTimestamp;
     }
 
     public function setAgpStep(int $_agpStepInMinutes) {
@@ -608,10 +617,10 @@ class DiabetesData {
                         'actualValue' => $actualInsulin];*/
                     $lastTimeToReal = $timeToReal;
                     $lastValuePerHour = $basalDef['value'];
-                    $this->m_treatmentsData['insulin']['basal'][$timeFromReal] = round($basalDef['value'] * 100) / 100;
+                    $this->m_treatmentsData['insulin']['basal'][$this->roundToFiveMinutes($timeFromReal)] = round($basalDef['value'] * 100) / 100;
                     $this->m_hasBasalTreatment = true;
                 }
-                $this->m_treatmentsData['insulin']['basal'][$lastTimeToReal] = $lastValuePerHour;
+                $this->m_treatmentsData['insulin']['basal'][$this->roundToFiveMinutes($lastTimeToReal)] = $lastValuePerHour;
                 $currentTime = strtotime('midnight next day', $currentTime / self::__1SECOND) * self::__1SECOND;
             }
         }
@@ -627,9 +636,9 @@ class DiabetesData {
                         ;
                     } elseif($tempBasalTime >= $basalTime) {
                         if($tempBasalTime <= $basalTimes[$key + 1]) {
-                            $this->m_treatmentsData['insulin']['basal'][$tempBasalTime] =
+                            $this->m_treatmentsData['insulin']['basal'][$this->roundToFiveMinutes($tempBasalTime)] =
                                 round($tempBasalRate['rate'] * 100) / 100;
-                            $this->m_treatmentsData['insulin']['basal'][$tempBasalTime + $tempBasalRate['durationInMilliseconds']] =
+                            $this->m_treatmentsData['insulin']['basal'][$this->roundToFiveMinutes($tempBasalTime + $tempBasalRate['durationInMilliseconds'])] =
                                 $this->m_treatmentsData['insulin']['basal'][$basalTime];
                         } else {
                             /*var_dump(
@@ -1007,6 +1016,7 @@ class DiabetesData {
             if(is_null($timestamp)) {
                 continue;
             }
+            $timestamp = $this->roundToFiveMinutes($timestamp);
 
             $isInsulinData = $this->parseInsulinData($item, $timestamp);
 

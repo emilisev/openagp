@@ -84,11 +84,11 @@ class Daily extends HighChartsComponent {
                 'opacity' => 1,
                 'zIndex' => 12,
                 'dataLabels' => ['enabled' => true, 'format' => '{point.label}'],
-                'tooltip' => [
+                /*'tooltip' => [
                     'useHTML' => true,
                     'pointFormat' => '<span style="color:{color}">●</span> '.
                         '{series.name}: <b>{point.label}</b><br/>',
-                ]
+                ]*/
             ];
         }
     }
@@ -181,8 +181,8 @@ class Daily extends HighChartsComponent {
                 'pointRange' => 60 * 60 * 1000, //largeur
                 'dataLabels' => ['enabled' => !$basal, 'format' => '{y}UI'],
                 'zIndex' => $basal?1:9,
-                'tooltip' => $tooltip,
-                'step' => $step
+                //'tooltip' => $tooltip,
+                'step' => $step,
             ];
 
         }
@@ -191,8 +191,7 @@ class Daily extends HighChartsComponent {
     private function createChart(): Highchart {
         $chart = $this->createDefaultChart();
         $chart->chart->zoomType = 'x';
-        $chart->tooltip = [
-            'stickOnContact' => true
+        $chart->tooltip = ['shared' => true
         ];
 
         $chart->yAxis = [

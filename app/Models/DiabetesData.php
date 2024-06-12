@@ -44,8 +44,6 @@ class DiabetesData {
 
     private array $m_rawData;
 
-    private array $m_simpleProfiles = [];
-
     /**
      * @var array{
      *     veryHigh: int,
@@ -56,7 +54,7 @@ class DiabetesData {
      */
     private array $m_targets;
 
-    private $m_tempBasalRates = [];
+    private array $m_tempBasalRates = [];
 
     private array $m_timeInRangePercent = [];
 
@@ -376,13 +374,6 @@ class DiabetesData {
         return $this->m_ratiosByLunchType;
     }
 
-    /**
-     * @return array
-     */
-    public function getSimpleProfiles(): array {
-        return $this->m_simpleProfiles;
-    }
-
     public function getTargets(): array {
         return $this->m_targets;
     }
@@ -437,8 +428,8 @@ class DiabetesData {
                 var_dump($item);
             }*/
         }
-        $this->parseTreatements($_endDateSeconds);
-        $this->parseDeviceStatus($_endDateSeconds);
+        $this->parseTreatments($_endDateSeconds);
+        $this->parseDeviceStatus();
         /*echo "<pre>";
         var_dump($this->m_rawData['bloodGlucose'], $this->m_bloodGlucoseData, $this->m_treatmentsData['carbs']);*/
 
@@ -495,8 +486,7 @@ class DiabetesData {
      * @return float|int
      */
     public function roundToFiveMinutes($item) {
-        $microTimestamp = floor(($item + $this->m_utcOffset) / (5 * self::__1MINUTE)) * (5 * self::__1MINUTE);
-        return $microTimestamp;
+        return floor(($item + $this->m_utcOffset) / (5 * self::__1MINUTE)) * (5 * self::__1MINUTE);
     }
 
     public function setAgpStep(int $_agpStepInMinutes) {
@@ -584,6 +574,7 @@ class DiabetesData {
             unset($profile['target_high']);
             $profile['actualInsulin'] = [];*/
             $currentTime = $profile['appliesFrom'];
+            $lastTimeToReal = $lastValuePerHour = null;
             while($currentTime < $profile['appliesTo']) {
                 foreach($profile['basal'] as $key => $basalDef) {
                     //var_dump("***", $basalDef);
@@ -640,14 +631,15 @@ class DiabetesData {
                                 round($tempBasalRate['rate'] * 100) / 100;
                             $this->m_treatmentsData['insulin']['basal'][$this->roundToFiveMinutes($tempBasalTime + $tempBasalRate['durationInMilliseconds'])] =
                                 $this->m_treatmentsData['insulin']['basal'][$basalTime];
-                        } else {
-                            /*var_dump(
+                        }
+                        //profile switch during temp basal, what happens ?
+                        /*else {
+                            var_dump(
                                 'basalTime', readableTime($basalTime),
                                 'tempBasalTime', readableTime($tempBasalTime),
                                 'next basalTime', readableTime($basalTimes[$key + 1]),
-                                '******');*/
-                            //todo : profile switch during temp basal, what happens ?
-                        }
+                                '******');
+                        }*/
                         continue;
                     }
                 }
@@ -910,41 +902,30 @@ class DiabetesData {
         }
         //construit un tableau indexé toutes les 30mn,
         //contenant le nb d'injection réalisés dans la plage $_minutesBetweenInjections autour de l'index
-        $treatmentsCountBetweenTimeFrame = $treatmentsCountBetweenTimeFrame2 = [];
+        $treatmentsCountBetweenTimeFrame = [];
         for($i = 0; $i < 60 * 60 * 24; $i += 60 * $this->m_agpStepInMinutes) {
             $start = $i - ($_secondsBetweenInjections / 2);
             $end = $i + ($_secondsBetweenInjections / 2);
-            /*$entriesInTimeFrame = array_filter($treatmentsByTimeInDay,
-                function ($_time) use ($start, $end) {
-                    return ($_time >= $start && $_time <= $end);
-                },
-                ARRAY_FILTER_USE_KEY
-            );
-            //var_dump("$start / $end ", count($entriesInTimeFrame));
-            if(!empty($entriesInTimeFrame)) {
-                $countAtI = array_sum($entriesInTimeFrame);
-                $treatmentsCountBetweenTimeFrame[$i] = $countAtI;
-            }*/
             for($j = $start; $j <= $end; $j++) {
                 if(array_key_exists($j, $treatmentsByTimeInDay)) {
                     $proximity = ($_secondsBetweenInjections / 2) - abs($i - $j);
                     $countAtJ = $proximity * $treatmentsByTimeInDay[$j];
                     $key = $i * self::__1SECOND;
-                    if(array_key_exists($key, $treatmentsCountBetweenTimeFrame2)) {
-                        $treatmentsCountBetweenTimeFrame2[$key] += $countAtJ;
+                    if(array_key_exists($key, $treatmentsCountBetweenTimeFrame)) {
+                        $treatmentsCountBetweenTimeFrame[$key] += $countAtJ;
                     } else {
-                        $treatmentsCountBetweenTimeFrame2[$key] = $countAtJ;
+                        $treatmentsCountBetweenTimeFrame[$key] = $countAtJ;
                     }
                 }
             }
         }
         /*echo "<pre>";
-        var_dump(readableTimeArray($treatmentsCountBetweenTimeFrame), readableTimeArray($treatmentsCountBetweenTimeFrame2));
+        var_dump(readableTimeArray($treatmentsCountBetweenTimeFrame), readableTimeArray($treatmentsCountBetweenTimeFrame));
         die();*/
-        return $treatmentsCountBetweenTimeFrame2;
+        return $treatmentsCountBetweenTimeFrame;
     }
 
-    private function parseDeviceStatus($_endDateSeconds) {
+    private function parseDeviceStatus() {
         foreach($this->m_rawData['deviceStatus'] as $item) {
             //compute timestamp from various possibilities
             $timestamp = ParserHelper::extractTimestamp($item, $this->m_utcOffset);
@@ -953,7 +934,7 @@ class DiabetesData {
             }
             if(is_float(@$item['openaps']['iob']['activity'])) {
                 $this->m_treatmentsData['iob'][$timestamp] = $item['openaps']['iob']['activity'];
-            };
+            }
         }
     }
 
@@ -1006,7 +987,7 @@ class DiabetesData {
     /**
      * @param $_endDateSeconds
      */
-    private function parseTreatements($_endDateSeconds) {
+    private function parseTreatments($_endDateSeconds) {
         //echo '<pre>';
         $simpleProfiles = $completeProfiles = [];
         $treatments = ParserHelper::removeDuplicates($this->m_rawData['treatments']);
@@ -1070,7 +1051,6 @@ class DiabetesData {
             ksort($completeProfiles);
             ksort($simpleProfiles);
             $this->m_profiles = $completeProfiles;
-            $this->m_simpleProfiles = $completeProfiles;
             $this->computeBasalFromProfile($simpleProfiles, $this->m_tempBasalRates, $_endDateSeconds);
         }
     }

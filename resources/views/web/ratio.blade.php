@@ -1,9 +1,9 @@
 @extends('layouts.mainlayout')
 @php /** @var App\Models\DiabetesData $data */ @endphp
 @section('content')
-    <h1>Ratios</h1>
+    <h1>{{ __("Ratios") }}</h1>
     @include('layouts.sub.reportDateRange')
-    <div id="monthly" class="card">
+    <div class="card">
         <header class="card-title">{{ __("Ratios par repas") }}</header>
         <content class="card-body">
             <div id="ratio-chart" class="highcharts-light"></div>

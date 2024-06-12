@@ -7,7 +7,7 @@ use App\Models\DiabetesData;
 class ParserHelper {
 
 /********************** PUBLIC METHODS *********************/
-    static function extractTimestamp($_entry, $_utcOffset = 0) {
+    public static function extractTimestamp($_entry, $_utcOffset = 0) {
         //compute timestamp from various possibilities
         $timestamp = null;
         if(array_key_exists("created_at", $_entry)) {
@@ -25,6 +25,11 @@ class ParserHelper {
         }
         return $timestamp;
     }
+
+    public static function getTodayTimestampFromTimeInMicroSeconds($_time) {
+        return strtotime("midnight +".($_time/1000)." seconds") * 1000;
+    }
+
 
     public static function removeDuplicates($_array) {
         $result = [];

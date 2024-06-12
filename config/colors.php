@@ -18,5 +18,5 @@ return [
         'weak' => '#eeffe0',
         'strong' => '#fff0ea',
     ],
-    'iob' => '#c9c710'
+    'iob' => ['iob' => '#c9c710', 'innerSerie' => '#dedd68', 'outerSerie' => '#edec93']
 ];

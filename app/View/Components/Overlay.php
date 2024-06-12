@@ -14,6 +14,7 @@ class Overlay extends SeveralTimelinesCharts {
         $weeks = ceil(($this->m_data->getEnd() - $this->m_data->getBegin()) / (60 * 60 * 24 * 7));
         //prepare chart
         $chart = $this->createChart($weeks);
+        $chart->chart->zoomType = 'x';
         $chart->chart->height = ($weeks * 300) + 50;
         $chart->legend = ['enabled' => true,];
 

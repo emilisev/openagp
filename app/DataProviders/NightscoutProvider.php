@@ -65,11 +65,12 @@ class NightscoutProvider {
         }
     }
 
-    public function fetchDeviceStatus($_forceRefresh = false) {
+    public function fetchDeviceStatus() {
         if($this->m_apiVersion != 3) {
             return [];
         }
-        return $this->fetchDeviceStatusV3($_forceRefresh);
+        //never use cache - too much data to store in session
+        return $this->fetchDeviceStatusV3(true);
     }
 
     public function fetchTreatments($_forceRefresh = false) {
@@ -127,7 +128,7 @@ class NightscoutProvider {
     }
 
     private function fetchDeviceStatusV3(bool $_forceRefresh) {
-        return $this->fetchCollectionV3('devicestatus');
+        return $this->fetchCollectionV3('devicestatus', $_forceRefresh);
     }
 
     private function fetchEntriesV1() {
@@ -271,6 +272,12 @@ class NightscoutProvider {
             $rawResult = json_decode($rawResult, true);
             if(array_key_exists('result', $rawResult)) {
                 $rawResult = $rawResult['result'];
+            }
+            if($_collection == 'devicestatus') {
+                foreach($rawResult as &$entry) {
+                    unset($entry['openaps']['suggested']);
+                }
+                unset($entry);
             }
             $result = array_merge($result, $rawResult);
         }

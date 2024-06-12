@@ -30,7 +30,7 @@ class Daily extends HighChartsComponent {
         $this->addTreatmentsSeries($chart);
         $this->addCarbsSeries($chart);
         $this->addNotes($chart);
-        $this->addIOBSerie($chart);
+        $this->addInsulinActivitySerie($chart);
         echo '<script type="module">Highcharts.AST.allowedAttributes.push(\'onclick\');'.$chart->render().'</script>';
     }
 
@@ -95,19 +95,19 @@ class Daily extends HighChartsComponent {
         }
     }
 
-    private function addIOBSerie(Highchart $_chart) {
+    private function addInsulinActivitySerie(Highchart $_chart) {
         $data = $this->m_data->getTreatmentsData();
-        if(!array_key_exists('iob', $data)|| empty($data['iob'])) {
+        if(!array_key_exists('insulinActivity', $data)|| empty($data['insulinActivity'])) {
             return;
         }
-        ksort($data['iob']);
+        ksort($data['insulinActivity']);
         //prepare data
         $_chart->series[] = [
             'type' => 'line',
-            'data' => $this->formatTimeDataForChart($data['iob']),
+            'data' => $this->formatTimeDataForChart($data['insulinActivity']),
             'yAxis' => 'iob-yAxis',
             'lineWidth' => 1,
-            'color' => config('colors.iob'),
+            'color' => config('colors.iob.iob'),
             'zIndex' => 7,
             'enableMouseTracking'=> false
         ];

@@ -25,7 +25,7 @@ class DiabetesData {
 
     private array $m_dailyTimeInRangePercent;
 
-    private array $m_diabetesAgpData;
+    private array $m_diabetesAgpData = [];
 
     private int $m_end;
 
@@ -37,6 +37,8 @@ class DiabetesData {
     private bool $m_hasBasalTreatment = false;
 
     private array $m_insulinAgpData = [];
+
+    private array $m_iobCentileData = [];
 
     private array $m_profiles = [];
 
@@ -97,37 +99,6 @@ class DiabetesData {
         /*echo "<pre>";
         var_dump(readableTimeArray($this->m_bloodGlucoseData), $potentialDataCount);*/
         $this->m_cgmActivePercent = count($this->m_bloodGlucoseData) * 100 / $potentialDataCount;
-    }
-
-    public function computeBloodGlucoseAgp(): void {
-        $incrementInSeconds = $this->m_agpStepInMinutes * 60;
-        $dataByIncrement = [];
-        $dataByCentile = [];
-        $step = 0;
-        foreach($this->m_bloodGlucoseData as $microDate => $value) {
-            $date = $microDate / self::__1SECOND;
-            $timeInDay = (date('H', $date) * 60 * 60) + (date('i', $date) * 60) + date('s', $date);
-            $step = floor($timeInDay / $incrementInSeconds) * $incrementInSeconds;
-            /*if(!array_key_exists($step, $dataByIncrement)) {
-                var_dump(date('Y-m-d H:i:s', $date), $timeInDay, $step);
-                echo '<br/>';
-            }*/
-            $dataByIncrement[$step * self::__1SECOND][] = $value;
-        }
-        ksort($dataByIncrement);
-        foreach($dataByIncrement as $step => $values) {
-            sort($values);
-            $dataByCentile[5][$step] = $values[max(0, floor(count($values) * 0.05) - 1)];
-            $dataByCentile[25][$step] = $values[max(0, floor(count($values) * 0.25) - 1)];
-            $dataByCentile[50][$step] = $values[max(0, floor(count($values) * 0.50) - 1)];
-            $dataByCentile[75][$step] = $values[max(0, floor(count($values) * 0.75) - 1)];
-            $dataByCentile[95][$step] = $values[max(0, floor(count($values) * 0.95) - 1)];
-        }
-        $step += $incrementInSeconds * self::__1SECOND;
-        foreach($dataByCentile as $centile => $data) {
-            $dataByCentile[$centile][$step] = @$data[0];
-        }
-        $this->m_diabetesAgpData = $dataByCentile;
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -287,6 +258,9 @@ class DiabetesData {
     }
 
     public function getAgpData(): array {
+        if(empty($this->m_diabetesAgpData)) {
+            $this->m_diabetesAgpData = $this->computeDataByCentile($this->m_bloodGlucoseData, $this->m_agpStepInMinutes);
+        }
         return $this->m_diabetesAgpData;
     }
 
@@ -370,6 +344,14 @@ class DiabetesData {
             $this->computeInsulinAgp(config('diabetes.agp.insulin.minutesBetweenInjections'));
         }
         return $this->m_insulinAgpData;
+    }
+
+    public function getIobData() {
+        if(empty($this->m_iobCentileData) && array_key_exists('iob', $this->m_treatmentsData)) {
+            $this->m_iobCentileData = $this->computeDataByCentile($this->m_treatmentsData['iob'], 15);
+        }
+        return $this->m_iobCentileData;
+
     }
 
     /**
@@ -628,6 +610,9 @@ class DiabetesData {
             }
         }
         unset($profile);
+        if(!array_key_exists('basal', $this->m_treatmentsData['insulin'])) {
+            return;
+        }
         $basalTimes = array_keys($this->m_treatmentsData['insulin']['basal']);
         //echo "<pre>";
         foreach($_tempBasalRates as $tempBasalTime => $tempBasalRate) {
@@ -689,6 +674,40 @@ class DiabetesData {
             $timeInRangePercent['other'][$time] = $this->getDailyTimeInRange()['other'][$time] / $sum * 100;
         }
         $this->m_dailyTimeInRangePercent = $timeInRangePercent;
+    }
+
+    /**
+     * @return array
+     */
+    private function computeDataByCentile($_data, $_incrementInminutes): array {
+        $incrementInSeconds = $_incrementInminutes * 60;
+        $dataByIncrement = [];
+        $dataByCentile = [];
+        $step = 0;
+        foreach($_data as $microDate => $value) {
+            $date = $microDate / self::__1SECOND;
+            $timeInDay = (date('H', $date) * 60 * 60) + (date('i', $date) * 60) + date('s', $date);
+            $step = floor($timeInDay / $incrementInSeconds) * $incrementInSeconds;
+            /*if(!array_key_exists($step, $dataByIncrement)) {
+                var_dump(date('Y-m-d H:i:s', $date), $timeInDay, $step);
+                echo '<br/>';
+            }*/
+            $dataByIncrement[$step * self::__1SECOND][] = $value;
+        }
+        ksort($dataByIncrement);
+        foreach($dataByIncrement as $step => $values) {
+            sort($values);
+            $dataByCentile[5][$step] = $values[max(0, floor(count($values) * 0.05) - 1)];
+            $dataByCentile[25][$step] = $values[max(0, floor(count($values) * 0.25) - 1)];
+            $dataByCentile[50][$step] = $values[max(0, floor(count($values) * 0.50) - 1)];
+            $dataByCentile[75][$step] = $values[max(0, floor(count($values) * 0.75) - 1)];
+            $dataByCentile[95][$step] = $values[max(0, floor(count($values) * 0.95) - 1)];
+        }
+        $step += $incrementInSeconds * self::__1SECOND;
+        foreach($dataByCentile as $centile => $data) {
+            $dataByCentile[$centile][$step] = @$data[0];
+        }
+        return $dataByCentile;
     }
 
     /**
@@ -945,7 +964,8 @@ class DiabetesData {
                 continue;
             }
             if(is_float(@$item['openaps']['iob']['activity'])) {
-                $this->m_treatmentsData['iob'][$timestamp] = $item['openaps']['iob']['activity'];
+                $this->m_treatmentsData['insulinActivity'][$timestamp] = $item['openaps']['iob']['activity'];
+                $this->m_treatmentsData['iob'][$timestamp] = $item['openaps']['iob']['iob'];
             }
         }
     }

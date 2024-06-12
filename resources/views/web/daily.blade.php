@@ -23,6 +23,7 @@ $graphHeight = count($data) > 1?130:null;
 
         @if(count($data) == 1)
             </div>
+        {{__('Cliquez et tracez une zone pour zoomer')}}
         @endif
         <div id="daily-chart{{$loop->index}}" class="highcharts-light @if(count($data) > 1) col-auto @endif"></div>
         <x-daily renderTo="daily-chart{{$loop->index}}" :data="$dailyData" :height="$graphHeight"/>

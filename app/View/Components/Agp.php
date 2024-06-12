@@ -2,6 +2,7 @@
 
 namespace App\View\Components;
 
+use App\Helpers\ParserHelper;
 use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use function App\Models\readableTime;
@@ -53,7 +54,7 @@ class Agp extends HighChartsComponent {
                     $v25 = $min;
                     $v75 = $max;
                 }*/
-                $serie[] = [getTodayTimestampFromTimeInMicroSeconds($time),
+                $serie[] = [ParserHelper::getTodayTimestampFromTimeInMicroSeconds($time),
                     $min,
                     $v25,
                     $v50,
@@ -94,7 +95,7 @@ class Agp extends HighChartsComponent {
 
             foreach ($insulinDatum as $time => $values) {
                 $opacity = ((count($values['treatments']) / $maxCount)*2/3)+1/3;
-                $microTime = getTodayTimestampFromTimeInMicroSeconds($time);
+                $microTime = ParserHelper::getTodayTimestampFromTimeInMicroSeconds($time);
                 sort($values['treatments']);
                 $min = min($values['treatments']);
                 $v25 = $values['treatments'][max(0, floor(count($values['treatments']) * 0.25) - 1)];
@@ -167,7 +168,7 @@ class Agp extends HighChartsComponent {
 
             foreach ($insulinDatum as $time => $values) {
                 $opacity = ((count($values['treatments']) / $maxCount)*2/3)+1/3;
-                $microTime = getTodayTimestampFromTimeInMicroSeconds($time);
+                $microTime = ParserHelper::getTodayTimestampFromTimeInMicroSeconds($time);
                 sort($values['treatments']);
                 $min = min($values['treatments']);
                 $v25 = $values['treatments'][max(0, floor(count($values['treatments']) * 0.25) - 1)] - $min;
@@ -235,7 +236,7 @@ class Agp extends HighChartsComponent {
         $data = $this->m_data->getAgpData();
         $outerSerie = $innerSerie = $middleSerie = [];
         foreach (array_keys($data[50]) as $index) {
-            $microTime = getTodayTimestampFromTimeInMicroSeconds($index);
+            $microTime = ParserHelper::getTodayTimestampFromTimeInMicroSeconds($index);
             $outerSerie[] = [$microTime, $data[5][$index], $data[95][$index]];
             //$innerSerie[] = [$microTime, $data[25][$index], max($data[75][$index], min($data[95][$index], $targets['high']))];
             $innerSerie[] = [$microTime, $data[25][$index], $data[75][$index]];
@@ -319,8 +320,4 @@ class Agp extends HighChartsComponent {
             ]
         ];
     }
-}
-
-function getTodayTimestampFromTimeInMicroSeconds($_time) {
-    return strtotime("midnight +".($_time/1000)." seconds") * 1000;
 }

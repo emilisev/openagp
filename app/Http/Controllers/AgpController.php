@@ -130,8 +130,8 @@ class AgpController extends BaseController {
         try {
             $rawData = ['deviceStatus' => [], 'bloodGlucose' => $nightscoutProvider->fetchEntries()];
             $rawData['treatments'] = $nightscoutProvider->fetchTreatments($forceTreatmentRefresh);
-            if(Request::route()->getName() == 'daily') {
-                $rawData['deviceStatus'] = $nightscoutProvider->fetchDeviceStatus($forceTreatmentRefresh);
+            if(in_array(Request::route()->getName(), ['daily', 'iob'])) {
+                $rawData['deviceStatus'] = $nightscoutProvider->fetchDeviceStatus();
             }
         } catch (\Exception $exception) {
             if($exception->getCode() == 401) {
@@ -157,7 +157,6 @@ class AgpController extends BaseController {
         }
         $data->computeTimeInRange();
         $data->computeAverage();
-        $data->computeBloodGlucoseAgp();
         $data->prepareDailyData(30);
         //$data->smoothAgp([5 => 2, 25=> 3, 50 => 4, 75 => 3, 95 => 2]);
         $data->smoothAgp([5 => 1, 25 => 1, 50 => 1, 75 => 1, 95 => 1]);

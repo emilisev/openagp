@@ -257,6 +257,18 @@ class DiabetesData {
         if(empty($profilesInTimeFrame)) {
             $this->m_profiles = array_slice($this->m_profiles, 0, 1, true);
         } else {
+            $firstEntry = array_key_first($profilesInTimeFrame);
+            $allTimestamps = array_keys($this->m_profiles);
+            $previousEntry = null;
+            rsort($allTimestamps);
+            foreach($allTimestamps as $timestamp) {
+                if($timestamp < $firstEntry) {
+                    $previousEntry = $timestamp;
+                    break;
+                }
+            }
+            $profilesInTimeFrame[$previousEntry] = $this->m_profiles[$previousEntry];
+            ksort($profilesInTimeFrame);
             $this->m_profiles = $profilesInTimeFrame;
         }
         /*echo "<pre>";

@@ -6,6 +6,8 @@ use App\Helpers\LabelProviders;
 use App\Models\DiabetesData;
 use Ghunti\HighchartsPHP\Highchart;
 use App\Helpers\StringToColor;
+use function App\Models\readableDate;
+use function App\Models\readableDateArray;
 
 class Daily extends HighChartsComponent {
 
@@ -189,7 +191,6 @@ class Daily extends HighChartsComponent {
     }
 
     private function createChart(): Highchart {
-        echo '<pre>';
         $chart = $this->createDefaultChart();
         $chart->chart->zoomType = 'x';
         $chart->tooltip = ['shared' => true
@@ -203,10 +204,58 @@ class Daily extends HighChartsComponent {
         $xMax = $xMin + 60 * 60 * 24;
         $xAxis['min'] = $xMin * 1000;
         $xAxis['max'] = $xMax * 1000;
-        $profiles = $this->m_data->getProfiles();
+        $profiles = $this->getProfilesForDailyView();
+        $lastKey = array_key_last($profiles);
+        foreach($profiles as $key => $profile) {
+            //complete profile change
+            if(!isset($previousProfileName) || $previousProfileName != $profile['name']) {
+                $xAxis['plotLines'][] = ['value' => $key,
+                    'label' => ['text' => $profile['fullText']],
+                    'zIndex' => -1];
+            } elseif(isset($previousPercent) && isset($previousKey) && $previousPercent != 100) {
+                //percentChange
+                $xAxis['plotBands'][] = $this->getProfilePercentBackground($previousKey, $key, $previousPercent);
+            } elseif($key == $lastKey && $profile['percent'] != 100) {
+                $xAxis['plotBands'][] = $this->getProfilePercentBackground($key,
+                   min(microtime(true), $this->m_data->getEnd()) * DiabetesData::__1SECOND,
+                    $profile['percent']);
+            }
+            $previousProfileName = $profile['name'];
+            $previousPercent = $profile['percent'];
+            $previousKey = $key;
+        }
+        $chart->xAxis = $xAxis;
+        return $chart;
+    }
 
+    /**
+     * @param $_from
+     * @param $_to
+     * @param $_percent
+     * @return array
+     */
+    private function getProfilePercentBackground($_from, $_to, $_percent): array {
+        if($_percent < 100) {
+            $color = config('colors.profile.weak');
+        } elseif($_percent > 100) {
+            $color = config('colors.profile.strong');
+        } else {
+            return [];
+        }
+
+        return ['from' => $_from,
+            'to' => $_to,
+            'label' => ['text' => ($_percent != 100 ? $_percent.'%' : null)],
+            'color' => $color,
+            'zIndex' => -5];
+    }
+
+    private function getProfilesForDailyView() {
+        $profiles = $this->m_data->getProfiles();
+        $keysToRemove = [];
+        $simpleProfiles = [];
         echo '<pre>';
-        var_dump($profiles);
+        //var_dump(readableDateArray($profiles));
         foreach($profiles as $key => $value) {
             if($key < $this->m_data->getBegin() * DiabetesData::__1SECOND) {
                 $key = $this->m_data->getBegin() * DiabetesData::__1SECOND;
@@ -220,26 +269,21 @@ class Daily extends HighChartsComponent {
                 $profileName = $profileString;
                 $profilePercent = 100;
             }
-            if(!isset($previousProfile) || $previousProfile != $profileName) {
-                $xAxis['plotLines'][] = ['value' => $key,
-                    'label' => ['text' => $profileString],
-                    'zIndex' => -1];
-            } elseif($previousPercent != 100) {
-                if($previousPercent < 100) {
-                    $color = config('colors.profile.weak');
-                } elseif($previousPercent > 100) {
-                    $color = config('colors.profile.strong');
-                }
-                $xAxis['plotBands'][] = ['from' => $previousKey, 'to' => $key,
-                    'label' => ['text' => ($previousPercent!= 100?$previousPercent.'%':null)],
-                    'color' => $color,
-                    'zIndex' => -5];
+            $simpleProfiles[$key] = ['fullText' => $profileString, 'name' => $profileName, 'percent' => $profilePercent];
+        }
+        //var_dump(readableDateArray($simpleProfiles));
+        foreach($simpleProfiles as $key => $value) {
+            if(isset($previousKey) && $simpleProfiles[$previousKey] == $value) {
+                $keysToRemove[] = $key;
             }
-            $previousProfile = $profileName;
-            $previousPercent = $profilePercent;
             $previousKey = $key;
         }
-        $chart->xAxis = $xAxis;
-        return $chart;
+        $result = array_filter(
+            $simpleProfiles,
+            function($_key) use($keysToRemove) {
+                return !in_array($_key, $keysToRemove);
+            },
+            ARRAY_FILTER_USE_KEY);
+        return $result;
     }
 }

@@ -58,7 +58,8 @@ class ParserHelper {
                             $dupKeys[$key] = $key;
                         }
                     } elseif($previousItem['eventType'] == 'Profile Switch' && $item['eventType'] == 'Note') {
-                        if(self::isProfileSwitchIdenticalToNote($previousItem, $item)) {
+                        if(self::isProfileSwitchIdenticalToNote($previousItem, $item)
+                            && !array_key_exists($key, $dupKeys)) {
                             $dupKeys[$key - 1] = $key - 1;
                         }
                     } /*elseif($item['eventType'] == 'Note' && $previousItem['eventType'] == 'Note') {

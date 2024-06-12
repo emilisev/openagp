@@ -212,7 +212,8 @@ class Daily extends HighChartsComponent {
                 $xAxis['plotLines'][] = ['value' => $key,
                     'label' => ['text' => $profile['fullText']],
                     'zIndex' => -1];
-            } elseif(isset($previousPercent) && isset($previousKey) && $previousPercent != 100) {
+            }
+            if(isset($previousPercent) && isset($previousKey) && $previousPercent != 100) {
                 //percentChange
                 $xAxis['plotBands'][] = $this->getProfilePercentBackground($previousKey, $key, $previousPercent);
             } elseif($key == $lastKey && $profile['percent'] != 100) {
@@ -254,8 +255,6 @@ class Daily extends HighChartsComponent {
         $profiles = $this->m_data->getProfiles();
         $keysToRemove = [];
         $simpleProfiles = [];
-        echo '<pre>';
-        //var_dump(readableDateArray($profiles));
         foreach($profiles as $key => $value) {
             if($key < $this->m_data->getBegin() * DiabetesData::__1SECOND) {
                 $key = $this->m_data->getBegin() * DiabetesData::__1SECOND;
@@ -271,7 +270,6 @@ class Daily extends HighChartsComponent {
             }
             $simpleProfiles[$key] = ['fullText' => $profileString, 'name' => $profileName, 'percent' => $profilePercent];
         }
-        //var_dump(readableDateArray($simpleProfiles));
         foreach($simpleProfiles as $key => $value) {
             if(isset($previousKey) && $simpleProfiles[$previousKey] == $value) {
                 $keysToRemove[] = $key;

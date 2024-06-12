@@ -189,6 +189,7 @@ class Daily extends HighChartsComponent {
     }
 
     private function createChart(): Highchart {
+        echo '<pre>';
         $chart = $this->createDefaultChart();
         $chart->chart->zoomType = 'x';
         $chart->tooltip = ['shared' => true
@@ -202,17 +203,26 @@ class Daily extends HighChartsComponent {
         $xMax = $xMin + 60 * 60 * 24;
         $xAxis['min'] = $xMin * 1000;
         $xAxis['max'] = $xMax * 1000;
-        $profiles = $this->m_data->getSimpleProfiles();
+        $profiles = $this->m_data->getProfiles();
+
+        echo '<pre>';
+        var_dump($profiles);
         foreach($profiles as $key => $value) {
             if($key < $this->m_data->getBegin() * DiabetesData::__1SECOND) {
                 $key = $this->m_data->getBegin() * DiabetesData::__1SECOND;
             }
-            preg_match('/^([^\(]*)(\(([0-9]+)%\))?$/', @$value['profile']??$value['notes'], $matches);
-            $profileName = $matches[1];
-            $profilePercent = @$matches[3]??100;
+            $profileString = @$value['profile'] ?? $value['notes'];
+            preg_match('/[^ ](\(([0-9]+)%\))$/', $profileString, $matches);
+            if(!empty($matches)) {
+                $profileName = str_replace($matches[1], '', $profileString);
+                $profilePercent = $matches[2];
+            } else {
+                $profileName = $profileString;
+                $profilePercent = 100;
+            }
             if(!isset($previousProfile) || $previousProfile != $profileName) {
                 $xAxis['plotLines'][] = ['value' => $key,
-                    'label' => ['text' => @$value['profile'] ?? $value['notes']],
+                    'label' => ['text' => $profileString],
                     'zIndex' => -1];
             } elseif($previousPercent != 100) {
                 if($previousPercent < 100) {

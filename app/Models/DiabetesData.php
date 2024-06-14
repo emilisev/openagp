@@ -238,8 +238,10 @@ class DiabetesData {
                     break;
                 }
             }
-            $profilesInTimeFrame[$previousEntry] = $this->m_profiles[$previousEntry];
-            ksort($profilesInTimeFrame);
+            if(!is_null($previousEntry)) {
+                $profilesInTimeFrame[$previousEntry] = $this->m_profiles[$previousEntry];
+                ksort($profilesInTimeFrame);
+            }
             $this->m_profiles = $profilesInTimeFrame;
         }
         /*echo "<pre>";

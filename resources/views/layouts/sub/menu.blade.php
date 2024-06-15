@@ -24,13 +24,20 @@
         ->addMenuLink(Link::toUrl('/ratio', __('Ratios')))
         ->addMenuLink(Link::toUrl('/iob', __('Insuline active')))
         ->addMenuLink(Link::toUrl('/overlay', __('Superposition')))
-        ->addMenuLink(Link::toUrl('/insulin-profile', __('Profil')))
-    );
+        ->addMenuLink(Link::toUrl('/insulin-profile', __('Profil'))))
+    ->submenu(__('Actions'), CustomMenu::new()->addClass('nav')->addClass('flex-column')
+        ->add(\Spatie\Menu\Html::raw($languageSwitch))
+        ->addMenuLink(Link::toUrl('#', '<i class="bis bi-printer-fill"></i> '.__('Imprimer le rapport'))
+            ->setAttribute('id', 'print-button'))
+        ->addMenuLink(Link::toUrl('/logout', '<i class="bis bi-x-circle-fill"></i> '.__('Se déconnecter')))
+    )
+
+    ;
 
     /*$menu->url('/login', "Se connecter");
     $menu->url('/register', "Créer un compte");*/
-    $menu->add(\Spatie\Menu\Html::raw($languageSwitch));
-    $menu->addMenuLink(Link::toUrl('/logout', __('Se déconnecter')));
+
+
     $menu->setActiveFromRequest();
 @endphp
 <nav id="navbar" class="collapse navbar-collapse border">

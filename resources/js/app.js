@@ -60,6 +60,7 @@ $.fn.daterangepicker.defaultOptions = {
 
 
 $(document).ready(function() {
+    var maxPrintWidth = 650;
     $(".show-hide-password a").on('click', function(event) {
         event.preventDefault();
         if($('.show-hide-password input').attr("type") == "text"){
@@ -72,6 +73,24 @@ $(document).ready(function() {
             $('.show-hide-password i').addClass( "bi-eye" );
         }
     });
+    $("#print-button").on('click', function(event) {
+        $('#main').width(maxPrintWidth);
+        setTimeout(function() {window.print();}, 1000); //1000ms = 1s
+    });
+
+    window.onbeforeprint = function(event) {
+        if($('#main').width() > maxPrintWidth) {
+            $('#main').after('<h1 id="usePrintButton">'+usePrintButton+'</h1>');
+            $('#main').hide();
+        }
+    }
+    window.onafterprint = function() {
+        $('#usePrintButton').remove();
+        $('#main').show();
+        $('#main').width('80%');
+    }
+
+
     $('.upper-labels.highcharts-data-label').each(function(item) {
         var current = $(this).attr("transform");
         var currentX = current.match(/[0-9]+,/);
@@ -99,20 +118,4 @@ Highcharts.setNullTreatment = function(identifier) {
         }
         document.location = url;
     }
-}
-var maxPrintWidth = 600;
-window.onbeforeprint = function() {
-    $(Highcharts.charts).each(function(i,chart){
-        chart.oldhasUserSize = chart.hasUserSize;
-        chart.resetParams = [chart.chartWidth, chart.chartHeight, false];
-        var height = chart.renderTo.clientHeight;
-        var width = chart.renderTo.clientWidth;
-        chart.setSize(Math.min(maxPrintWidth, chart.chartWidth), chart.chartHeight);
-    });
-}
-window.onafterprint = function() {
-    $(Highcharts.charts).each(function(i,chart){
-        chart.setSize.apply(chart, chart.resetParams);
-        chart.hasUserSize = chart.oldhasUserSize;
-    });
 }

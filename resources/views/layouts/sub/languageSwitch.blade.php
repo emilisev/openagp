@@ -12,8 +12,7 @@
         );
     }
 @endphp
-
-<div class="dropdown">
+<div class="dropdown">{{ __('Langue') }}
     <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
         <span class="fi fi-{{ App::currentLocale() }}"></span>
     </button>

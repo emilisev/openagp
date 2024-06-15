@@ -60,7 +60,6 @@ $.fn.daterangepicker.defaultOptions = {
 
 
 $(document).ready(function() {
-    var maxPrintWidth = 650;
     $(".show-hide-password a").on('click', function(event) {
         event.preventDefault();
         if($('.show-hide-password input').attr("type") == "text"){
@@ -74,12 +73,12 @@ $(document).ready(function() {
         }
     });
     $("#print-button").on('click', function(event) {
-        $('#main').width(maxPrintWidth);
+        $('#main').addClass('printable');
         setTimeout(function() {window.print();}, 1000); //1000ms = 1s
     });
 
     window.onbeforeprint = function(event) {
-        if($('#main').width() > maxPrintWidth) {
+        if($('#main.printable').length == 0) {
             $('#main').after('<h1 id="usePrintButton">'+usePrintButton+'</h1>');
             $('#main').hide();
         }
@@ -87,7 +86,7 @@ $(document).ready(function() {
     window.onafterprint = function() {
         $('#usePrintButton').remove();
         $('#main').show();
-        $('#main').width('80%');
+        $('#main').removeClass('printable');
     }
 
 

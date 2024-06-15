@@ -27,6 +27,11 @@ header h1 {
     -o-transition: 0.5s;
     transition: 0.5s;
     padding: 40px; }
+#main.printable {
+    padding: 10px;
+    width:750px;
+    float: none;
+}
 @media (prefers-reduced-motion: reduce) {
     #main {
         -webkit-transition: none;

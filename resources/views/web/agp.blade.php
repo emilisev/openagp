@@ -2,7 +2,7 @@
 @section('content')
 <h1>Ambulatory Glucose Profile (AGP)</h1>
 @include('layouts.sub.reportDateRange')
-<div id="agp-first-row" class="row align-items-center">
+<div id="agp-first-row" class="row align-items-center mx-0">
     <div id="time-in-range" class="card col-6">
         <header class="card-title">{{ __("Temps dans la cible") }}</header>
         <content class="card-body">
@@ -14,7 +14,7 @@
             @include('cards.timeInRange.settings')
         </content>
     </div>
-    <div id="average" class="card col">
+    <div id="average" class="card col mx-0">
         <header class="card-title">{{ __("Mesures du glucose") }}</header>
         <content class="card-body">
             @include('cards.average.text')

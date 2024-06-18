@@ -30,7 +30,7 @@ class Daily extends HighChartsComponent {
         $this->addTreatmentsSeries($chart);
         $this->addCarbsSeries($chart);
         $this->addNotes($chart);
-        $this->addInsulinActivitySerie($chart);
+        //$this->addInsulinActivitySerie($chart);
         echo '<script type="module">Highcharts.AST.allowedAttributes.push(\'onclick\');'.$chart->render().'</script>';
     }
 
@@ -123,7 +123,7 @@ class Daily extends HighChartsComponent {
         foreach($notes as $key => $value) {
             $bgAtKey = 150;
             foreach($bg as $bgKey => $currentBg) {
-                if(isset($previousKey) && $key > $previousKey && $key < $bgKey) {
+                if(isset($previousKey) && $key > $previousKey && $key <= $bgKey) {
                     $bgAtKey = $currentBg;
                     break;
                 }

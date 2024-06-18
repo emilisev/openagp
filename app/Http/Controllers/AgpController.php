@@ -50,7 +50,7 @@ class AgpController extends BaseController {
                 $matchingStringDates = [];
                 foreach($matchingDates as $timestamp) {
                     $date = new DateTime();
-                    $date->setTimestamp(($timestamp['timestamp']??$timestamp['srvCreated']) / DiabetesData::__1SECOND);
+                    $date->setTimestamp(($timestamp['date']??$timestamp['timestamp']??$timestamp['srvCreated']) / DiabetesData::__1SECOND);
                     $matchingStringDates[$date->format('Ymd')] = $date->format('d/m/Y');
                 }
                 krsort($matchingStringDates);

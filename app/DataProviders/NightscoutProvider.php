@@ -98,13 +98,17 @@ class NightscoutProvider {
             'query' => [
                 'notes$re' => $searchString,
                 'sort$desc' => 'srvCreated',
-                'fields' => 'timestamp,srvCreated',
+                'fields' => 'date,timestamp,srvCreated',
                 'limit' => 10,
             ],
         ];
         $rawResult = $this->getDataFromUrl($url, $params);
         /*echo "<pre>";
-        var_dump($params, $rawResult);*/
+        var_dump($params, $rawResult);
+        foreach($rawResult['result'] as $res) {
+            var_dump(readableDate($res['timestamp']));
+        }
+        die();*/
         return $rawResult['result'];
     }
 
@@ -358,4 +362,9 @@ class NightscoutProvider {
         ServerTiming::stop('Nightscout');
         $this->m_token = $data['token'];
     }
+}
+
+function readableDate($_time) {
+    //return $_time;
+    return $_time.' ('.date('Y-m-d H:i', $_time / 1000).')';
 }

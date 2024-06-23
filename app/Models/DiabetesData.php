@@ -659,7 +659,7 @@ class DiabetesData {
                 $timeInRangeCount['other'][$day] = 0;
             }
 
-            if($value > $this->m_targets['low'] && $value < $this->m_targets['high']) {
+            if($value >= $this->m_targets['low'] && $value <= $this->m_targets['high']) {
                 $timeInRangeCount['target'][$day]++;
             } else {
                 $timeInRangeCount['other'][$day]++;
@@ -670,6 +670,8 @@ class DiabetesData {
 
     private function computeDailyTimeInRangePercent() {
         $timeInRangePercent = ['target' => [], 'other' => []];
+        /*echo '<pre>';
+        var_dump(readableDateArray($this->getDailyTimeInRange()['target']), readableDateArray($this->getDailyTimeInRange()['other']));*/
         foreach($this->getDailyTimeInRange()['target'] as $time => $timeInRangeCount) {
             $sum = $timeInRangeCount + $this->getDailyTimeInRange()['other'][$time];
             $timeInRangePercent['target'][$time] = $timeInRangeCount / $sum * 100;

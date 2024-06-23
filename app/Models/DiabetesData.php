@@ -1068,7 +1068,7 @@ class DiabetesData {
                 }
             } elseif(!$isInsulinData && $item["eventType"] == 'BG Check' && array_key_exists('glucose', $item)) {
                 $this->m_bloodGlucoseData[$timestamp] = $item["glucose"];
-                $this->m_treatmentsData['notes'][$timestamp] = $item["eventType"];
+                //$this->m_treatmentsData['notes'][$timestamp] = $item["eventType"];
             } elseif(!$isInsulinData && !in_array($item["eventType"], ['Temporary Target', 'Bolus Wizard'])) {
                 $this->m_treatmentsData['notes'][$timestamp] = $item["eventType"];
             }

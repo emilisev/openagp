@@ -30,7 +30,7 @@ class Daily extends HighChartsComponent {
         $this->addTreatmentsSeries($chart);
         $this->addCarbsSeries($chart);
         $this->addNotes($chart);
-        //$this->addInsulinActivitySerie($chart);
+        $this->addInsulinActivitySerie($chart);
         echo '<script type="module">Highcharts.AST.allowedAttributes.push(\'onclick\');'.$chart->render().'</script>';
     }
 
@@ -132,7 +132,8 @@ class Daily extends HighChartsComponent {
             $annotations[] = ['point'=>['x' => $key, 'y' => $bgAtKey+20, 'xAxis' => 0, 'yAxis' => 0], 'text' => $value];
         }
         $_chart->annotations = [['labels' => $annotations,
-            'labelOptions' => ['backgroundColor' => '#e4e4e4', 'borderColor' => '#a2a2a2']]
+            'labelOptions' => ['backgroundColor' => '#e4e4e4', 'borderColor' => '#a2a2a2', 'allowOverlap' => true,
+                'style' => ['width' => '75px']]]
         ];
     }
 

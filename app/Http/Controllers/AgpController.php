@@ -51,6 +51,9 @@ class AgpController extends BaseController {
                 foreach($matchingDates as $timestamp) {
                     $date = new DateTime();
                     $date->setTimestamp(($timestamp['date']??$timestamp['timestamp']??$timestamp['srvCreated']) / DiabetesData::__1SECOND);
+                    if($this->getFocusOnNight() && $date->format('H') >=12) {
+                        $date->modify('+1 day');
+                    }
                     $matchingStringDates[$date->format('Ymd')] = $date->format('d/m/Y');
                 }
                 krsort($matchingStringDates);

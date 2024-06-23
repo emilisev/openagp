@@ -815,7 +815,9 @@ class DiabetesData {
                         $maxRatio = max($maxRatio, $ratio);
                         $this->m_ratiosByLunchType[$lunchType][] = ['x' => $day,
                             'y' => $ratio,
-                            'target' => $dataByLunchType[$lunchType]['target'][$day]];
+                            'target' => $dataByLunchType[$lunchType]['target'][$day],
+                            'carbs' => $datumByLunchType['carbs'][$day],
+                            'insulin' => $insulinValue];
                     }
                 }
             }

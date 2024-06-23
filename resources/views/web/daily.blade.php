@@ -16,6 +16,9 @@ $graphHeight = count($data) > 1?130:null;
         <div class="row justify-content-center mb-2">
             @include('cards.average.square', ['data' => $dailyData])
             @include('cards.variation.square', ['data' => $dailyData])
+
+            @include('cards.ratios.text', ['data' => $dailyData->getRatiosByLunchType()])
+
             <div id="time-in-range-chart{{$loop->index}}" class="col-auto pe-0"></div>
             <x-avgTimeInRange renderTo="time-in-range-chart{{$loop->index}}" :data="$dailyData" width="40"/>
             {{--<div id="time-in-range">@include('cards.timeInRange.text')</div>--}}

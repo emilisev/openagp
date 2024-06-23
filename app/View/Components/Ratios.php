@@ -86,11 +86,11 @@ class Ratios extends HighChartsComponent {
                         var s = '<span style=\"color:'+point.color+'\">●</span> '+
                         point.series.name+': <b>1U:'+($this->m_maxRatio - point.y).toFixed(0)+'g</b>';
                         if(point.target == 'low') {
-                            s += ' Trop fort (augmenter le ratio)';
+                            s += '<br/>Trop d\'insuline';
                         } else if(point.target == 'lightHigh') {
-                            s += ' Légèrement trop faible (baisser le ratio)';
+                            s += '<br/>Légèrement pas assez d\'insuline';
                         } else if(point.target == 'high') {
-                            s += ' Trop faible (baisser le ratio)';
+                            s += '<br/>Pas assez d\'insuline';
                         }
                         s +='<br/>';
                         return s;

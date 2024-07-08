@@ -914,8 +914,14 @@ class DiabetesData {
             return [];
         }
         $finalResult = [];
-        foreach($result as $data) {
-            $finalResult += $data;
+        foreach($result as $insulinData) {
+            foreach($insulinData as $time => $value) {
+                if(array_key_exists($time, $finalResult)) {
+                    $finalResult[$time] += $value;
+                } else {
+                    $finalResult[$time] = $value;
+                }
+            }
         }
         return $finalResult;
     }
@@ -971,7 +977,9 @@ class DiabetesData {
             }
             if(is_float(@$item['openaps']['iob']['activity'])) {
                 $this->m_treatmentsData['insulinActivity'][$timestamp] = $item['openaps']['iob']['activity'];
+                //$this->m_treatmentsData['insulinActivity'][$timestamp] = $item['uploaderBattery'];
                 $this->m_treatmentsData['iob'][$timestamp] = $item['openaps']['iob']['iob'];
+
             }
         }
     }

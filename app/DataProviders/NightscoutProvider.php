@@ -228,6 +228,7 @@ class NightscoutProvider {
                 'query' => [
                     $dateField.'$gte' => $currentDate->format('U'),
                     'fields' => $fields,
+                    'sort' => $dateField,
                     'limit' => 400,
                 ],
             ];

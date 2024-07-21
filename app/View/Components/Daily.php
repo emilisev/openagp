@@ -129,7 +129,7 @@ class Daily extends HighChartsComponent {
                 }
                 $previousKey = $bgKey;
             }
-            $annotations[] = ['point'=>['x' => $key, 'y' => $bgAtKey+20, 'xAxis' => 0, 'yAxis' => 0], 'text' => $value];
+            $annotations[] = ['point'=>['x' => $key, 'y' => min(180, $bgAtKey+20), 'xAxis' => 0, 'yAxis' => 0], 'text' => $value];
         }
         $_chart->annotations = [['labels' => $annotations,
             'labelOptions' => ['backgroundColor' => '#e4e4e4', 'borderColor' => '#a2a2a2', 'allowOverlap' => true,

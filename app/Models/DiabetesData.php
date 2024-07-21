@@ -696,7 +696,9 @@ class DiabetesData {
                 var_dump(date('Y-m-d H:i:s', $date), $timeInDay, $step);
                 echo '<br/>';
             }*/
-            $dataByIncrement[$step * self::__1SECOND][] = $value;
+            if(!is_null($value)) {
+                $dataByIncrement[$step * self::__1SECOND][] = $value;
+            }
         }
         ksort($dataByIncrement);
         foreach($dataByIncrement as $step => $values) {
@@ -1080,7 +1082,7 @@ class DiabetesData {
                 }
             } elseif(!$isInsulinData && $item["eventType"] == 'BG Check' && array_key_exists('glucose', $item)) {
                 $this->m_bloodGlucoseData[$timestamp] = $item["glucose"];
-                //$this->m_treatmentsData['notes'][$timestamp] = $item["eventType"];
+                $this->m_treatmentsData['notes'][$timestamp] = $item["eventType"].' : '.$item["glucose"];
             } elseif(!$isInsulinData && !in_array($item["eventType"], ['Temporary Target', 'Bolus Wizard'])) {
                 $this->m_treatmentsData['notes'][$timestamp] = $item["eventType"];
             }

@@ -296,7 +296,7 @@ class Agp extends HighChartsComponent {
                 ],
                 [
                     'className' => 'inner-veryHigh',
-                    'color' => '#bfe1c6'
+                    'color' => '#ffbc50'
                 ]
             ]
         ];

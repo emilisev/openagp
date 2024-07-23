@@ -16,7 +16,9 @@ return [
     ],
     'profile' => [
         'weak' => '#eeffe0',
+        'weakBorder' => '#d8ffb7',
         'strong' => '#fff0ea',
+        'strongBorder' => '#ffdacb',
     ],
     'iob' => ['iob' => '#c9c710', 'innerSerie' => '#dedd68', 'outerSerie' => '#edec93']
 ];

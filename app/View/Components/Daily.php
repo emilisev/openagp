@@ -217,7 +217,8 @@ class Daily extends HighChartsComponent {
             if(isset($previousPercent) && isset($previousKey) && $previousPercent != 100) {
                 //percentChange
                 $xAxis['plotBands'][] = $this->getProfilePercentBackground($previousKey, $key, $previousPercent);
-            } elseif($key == $lastKey && $profile['percent'] != 100) {
+            }
+            if($key == $lastKey && $profile['percent'] != 100) {
                 $xAxis['plotBands'][] = $this->getProfilePercentBackground($key,
                    min(microtime(true), $this->m_data->getEnd()) * DiabetesData::__1SECOND,
                     $profile['percent']);
@@ -239,8 +240,10 @@ class Daily extends HighChartsComponent {
     private function getProfilePercentBackground($_from, $_to, $_percent): array {
         if($_percent < 100) {
             $color = config('colors.profile.weak');
+            $borderColor = config('colors.profile.weakBorder');
         } elseif($_percent > 100) {
             $color = config('colors.profile.strong');
+            $borderColor = config('colors.profile.strongBorder');
         } else {
             return [];
         }
@@ -249,6 +252,8 @@ class Daily extends HighChartsComponent {
             'to' => $_to,
             'label' => ['text' => ($_percent != 100 ? $_percent.'%' : null)],
             'color' => $color,
+            'borderWidth' => 1,
+            'borderColor' => $borderColor,
             'zIndex' => -5];
     }
 

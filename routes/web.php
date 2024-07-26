@@ -33,6 +33,7 @@ Route::any('/ratio', [AgpController::class, 'view'])->name('ratio');
 Route::any('/iob', [AgpController::class, 'view'])->name('iob');
 Route::any('/overlay', [AgpController::class, 'view'])->name('overlay');
 Route::any('/insulin-profile', [AgpController::class, 'view'])->name('insulin-profile');
+Route::any('/battery', [AgpController::class, 'view'])->name('battery');
 
 
 Route::any('/user', [UserController::class, 'view'])->name('user');

@@ -13,6 +13,8 @@ class DiabetesData {
 
     private int $m_average;
 
+    private array $m_batteryInfo = [];
+
     private int $m_begin;
 
     private array $m_bloodGlucoseData = [];
@@ -275,6 +277,10 @@ class DiabetesData {
 
     public function getAverage(): int {
         return $this->m_average;
+    }
+
+    public function getBatteryInfo(): array {
+        return $this->m_batteryInfo;
     }
 
     public function getBegin(): int {
@@ -979,7 +985,7 @@ class DiabetesData {
             }
             if(is_float(@$item['openaps']['iob']['activity'])) {
                 $this->m_treatmentsData['insulinActivity'][$timestamp] = $item['openaps']['iob']['activity'];
-                //$this->m_treatmentsData['insulinActivity'][$timestamp] = $item['uploaderBattery'];
+                $this->m_batteryInfo[$timestamp] = $item['uploaderBattery'];
                 $this->m_treatmentsData['iob'][$timestamp] = $item['openaps']['iob']['iob'];
 
             }

@@ -42,7 +42,7 @@ class HandleParams {
         if(!empty($request->post()['dates'])) {
             $request->session()->put('dates', $dates);
         }
-        if($request->route()->getName() == 'daily') {
+        if(in_array($request->route()->getName(), ['daily', 'battery'])) {
             if(!empty($request->get('day'))) {
                 $startDate = $endDate = $request->get('day');
             } else {

@@ -133,7 +133,7 @@ class AgpController extends BaseController {
         try {
             $rawData = ['deviceStatus' => [], 'bloodGlucose' => $nightscoutProvider->fetchEntries()];
             $rawData['treatments'] = $nightscoutProvider->fetchTreatments($forceTreatmentRefresh);
-            if(in_array(Request::route()->getName(), ['daily', 'iob'])) {
+            if(in_array(Request::route()->getName(), ['daily', 'iob', 'battery'])) {
                 $rawData['deviceStatus'] = $nightscoutProvider->fetchDeviceStatus();
             }
         } catch (\Exception $exception) {
@@ -195,7 +195,7 @@ class AgpController extends BaseController {
      * @return bool
      */
     private function isFocusOnNightAllowed(): bool {
-        if(!in_array(Request::route()->getName(), ['daily', 'overlay', 'daytoday'])) {
+        if(!in_array(Request::route()->getName(), ['daily', 'overlay', 'daytoday', 'battery'])) {
             return false;
         }
         return true;

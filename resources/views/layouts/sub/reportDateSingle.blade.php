@@ -3,7 +3,6 @@
     if($formDefault['focusOnNight'] == true) {
         $begin += 60 * 60 *12;
     }
-    /** @var App\Models\DiabetesData $data
     /** @var \IntlDateFormatter $dateFormatter */
     if($allowChange) {
         $previousDay = $begin - 60*60*24;
@@ -19,7 +18,7 @@
     <a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
 @endif
 
-@if(!$allowChange)<a href="/daily?day={{ date('d/m/Y',  $begin) }}">@endif
+@if(!$allowChange)<a href="/{{ Request::route()->getName() }}?day={{ date('d/m/Y',  $begin) }}">@endif
 @if($formDefault['focusOnNight'] == true)
     {{ $dateFormatter->format($begin - 60 * 60 *12) }} -
 @endif
@@ -27,7 +26,7 @@
 @if(!$allowChange)</a>@endif
 
 @if($allowChange)
-    <form method="GET" action="/daily" style="display: none">
+    <form method="GET" action="/{{ Request::route()->getName() }}" style="display: none">
         <input id="day" name="day" type="text" class="form-control" value="{{ date('d/m/Y', $begin) }}"/>
         @if($formDefault['isFocusOnNightAllowed'])
             <input id="focusOnNight" name="focusOnNight" type="text" class="form-control"/>

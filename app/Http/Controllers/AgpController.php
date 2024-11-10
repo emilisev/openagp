@@ -92,7 +92,7 @@ class AgpController extends BaseController {
             IntlDateFormatter::NONE,
             null,
             null,
-            'E dd MMM y'
+            'E dd MMM'
         );
 
         $result = view(

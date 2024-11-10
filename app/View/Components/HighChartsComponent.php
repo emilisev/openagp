@@ -25,6 +25,7 @@ abstract class HighChartsComponent extends Component {
         $chart = new Highchart();
         $chart->chart = [
             'renderTo' => $this->m_renderTo,
+            'style' => ["fontSize" => "1rem"]
         ];
         if(is_int($this->m_height)) {
             $chart->chart->height = $this->m_height;

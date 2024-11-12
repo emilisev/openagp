@@ -26,6 +26,7 @@
         ->addMenuLink(Link::toUrl('/iob', __('Insuline active')))
         ->addMenuLink(Link::toUrl('/overlay', __('Superposition')))
         ->addMenuLink(Link::toUrl('/insulin-profile', __('Profil')))
+        ->addMenuLink(Link::toUrl('/profile-percentage', __('Pourcentage du profil')))
         ->addMenuLink(Link::toUrl('/battery', __('Batterie')))
     )->submenu(__('Actions'), CustomMenu::new()->addClass('nav')->addClass('flex-column')
         ->add(\Spatie\Menu\Html::raw($languageSwitch))

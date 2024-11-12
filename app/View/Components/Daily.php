@@ -239,11 +239,11 @@ class Daily extends HighChartsComponent {
      */
     private function getProfilePercentBackground($_from, $_to, $_percent): array {
         if($_percent < 100) {
-            $color = config('colors.profile.weak');
-            $borderColor = config('colors.profile.weakBorder');
+            $color = config('colors.dailyProfile.weak');
+            $borderColor = config('colors.dailyProfile.weakBorder');
         } elseif($_percent > 100) {
-            $color = config('colors.profile.strong');
-            $borderColor = config('colors.profile.strongBorder');
+            $color = config('colors.dailyProfile.strong');
+            $borderColor = config('colors.dailyProfile.strongBorder');
         } else {
             return [];
         }

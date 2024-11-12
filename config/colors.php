@@ -14,11 +14,15 @@ return [
         'other' => '#e9eee3',
         'belowTarget' => '#afe086',
     ],
-    'profile' => [
+    'dailyProfile' => [
         'weak' => '#eeffe0',
         'weakBorder' => '#d8ffb7',
         'strong' => '#fff0ea',
         'strongBorder' => '#ffdacb',
+    ],
+    'profileGraph' => [
+        'weak' => '#93ff3b',
+        'strong' => '#ff6f35',
     ],
     'iob' => ['iob' => '#c9c710', 'innerSerie' => '#dedd68', 'outerSerie' => '#edec93']
 ];

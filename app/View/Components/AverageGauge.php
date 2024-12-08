@@ -62,7 +62,7 @@ class AverageGauge extends HighChartsComponent {
                 ], [
                     'from' => $targets['low'],
                     'to' => $targets['high'],
-                    'color' => config('colors.timeInRange.target'),
+                    'color' => config('colors.timeInRange.tightRange'),
                     'thickness' => $tickness
                 ], [
                     'from' => $targets['high'],

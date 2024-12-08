@@ -27,7 +27,8 @@ class NightscoutProvider {
     private string $m_url;
     private $m_urlV1;
 
-    const APIV_1 = "APIV1";
+    const APIV_1          = "APIV1";
+    const __CLIENT_CONFIG = ['verify' => false];
 
     public function __construct($_url, $_apiSecret, ?DateTime $_startDate, ?DateTime $_endDate) {
 
@@ -114,7 +115,7 @@ class NightscoutProvider {
 
     public function setNullTreatment($_identifier) {
         $this->openSession();
-        $client = new Client();
+        $client = new Client(self::__CLIENT_CONFIG);
         $file = fopen(__DIR__.'/log.txt', 'w');
         $params = [
             'debug' => $file, 'json' => [
@@ -161,7 +162,7 @@ class NightscoutProvider {
     private function fetchTreatmentsV1() {
         $url = $this->m_urlV1.'api/v1/treatments.json';
 
-        $client = new Client();
+        $client = new Client(self::__CLIENT_CONFIG);
         $params = [
             'query' => [
                 'find[created_at][$gte]' => $this->m_startDate->format('Y-m-d'),
@@ -266,7 +267,7 @@ class NightscoutProvider {
         //var_dump("parallel $_collection: ", count($pool));
         if(!empty($pool)) {
             ServerTiming::start('Nightscout');
-            $guzzlePool = new Pool(new Client(), $pool, $options);
+            $guzzlePool = new Pool(new Client(self::__CLIENT_CONFIG), $pool, $options);
             $promise = $guzzlePool->promise();
             $promise->wait();
             ServerTiming::stop('Nightscout');
@@ -301,7 +302,7 @@ class NightscoutProvider {
                 die();
             }*/
         } else {
-            $client = new Client();
+            $client = new Client(self::__CLIENT_CONFIG);
             $response = $client->request('GET', $_url, $_params);
 
             $data = $response->getBody()->getContents();
@@ -334,7 +335,7 @@ class NightscoutProvider {
                 'Authorization' => "Bearer $this->m_token",
             ];
         }
-        $client = new Client();
+        $client = new Client(self::__CLIENT_CONFIG);
         $response = $client->request('GET', $_url, $_params);
 
         $data = $response->getBody()->getContents();
@@ -347,7 +348,7 @@ class NightscoutProvider {
             return;
         }
         //api v3 - get token
-        $client = new Client();
+        $client = new Client(self::__CLIENT_CONFIG);
         ServerTiming::start('Nightscout');
         try {
             $response = $client->request('GET', $this->m_url.'api/v2/authorization/request/'.$this->m_apiSecret);

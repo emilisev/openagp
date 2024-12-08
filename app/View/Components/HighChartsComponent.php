@@ -11,10 +11,19 @@ abstract class HighChartsComponent extends Component {
     protected DiabetesData $m_data;
 
     protected ?string $m_renderTo;
+    protected array $m_timeInRangeLabels = [];
     protected ?int $m_height;
     private ?int $m_width;
 
     public function __construct(DiabetesData $data, string $renderTo = null, int $height = null, int $width = null) {
+        $this->m_timeInRangeLabels = [
+            'tightRange' => __('Cible resserrée'),
+            'range' => __('Cible'),
+            'veryLow' => __('Très basse'),
+            'low' => __('Basse'),
+            'high' => __('Élevée'),
+            'veryHigh' => __('Très élevée')
+        ];
         $this->m_data = $data;
         $this->m_renderTo = $renderTo;
         $this->m_height = $height;
@@ -38,7 +47,7 @@ abstract class HighChartsComponent extends Component {
         $chart->tooltip = ['shared' => true];
         $chart->title->text = null;
         $chart->legend = ['enabled' => false];
-        $chart->time->timezoneOffset = -120;
+        $chart->time->timezoneOffset = 0-$this->m_data->getUtcOffset()/60;
         return $chart;
     }
 
@@ -57,7 +66,7 @@ abstract class HighChartsComponent extends Component {
             ],
             [
                 'className' => 'outer-inrange',
-                'color' => config('colors.timeInRange.target'),
+                'color' => config('colors.timeInRange.tightRange'),
                 'value' => $targets['high']
             ],
             [
@@ -75,7 +84,7 @@ abstract class HighChartsComponent extends Component {
     protected function getBloodGlucoseYAxis($_greenLineWidth = 2) {
         $targets = $this->m_data->getTargets();
         $yMax = max($this->m_data->getBloodGlucoseData());
-        $tickPositions = [0, $targets['veryLow'], $targets['low'], $targets['high'], $targets['veryHigh']];
+        $tickPositions = [0, $targets['low'], $targets['tightRange'], $targets['high'], $targets['veryHigh']];
         if($yMax > $targets['veryHigh'] - 10) {
             $tickPositions[] = 350;
         }
@@ -91,8 +100,8 @@ abstract class HighChartsComponent extends Component {
                 ['value' => 350, 'width' => 1, 'color' => '#777777'],
                 ['value' => $targets['veryHigh'], 'width' => 1, 'color' => '#777777'],
                 ['value' => $targets['veryLow'], 'width' => 1, 'color' => '#777777'],
-                ['value' => $targets['low'], 'width' => $_greenLineWidth, 'color' => config('colors.timeInRange.target'), 'zIndex' => 5],
-                ['value' => $targets['high'], 'width' => $_greenLineWidth, 'color' => config('colors.timeInRange.target'), 'zIndex' => 5],
+                ['value' => $targets['tightRange'], 'width' => $_greenLineWidth, 'color' => config('colors.timeInRange.tightRange'), 'zIndex' => 5],
+                ['value' => $targets['high'], 'width' => $_greenLineWidth, 'color' => config('colors.timeInRange.tightRange'), 'zIndex' => 5],
             ]
         ];
 

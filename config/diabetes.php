@@ -2,11 +2,14 @@
 
 return [
     'bloodGlucose' => [
-            'targets' => [
+        'targets' => [
             'veryHigh' => 250,
-            'veryLow' => 54,
             'high' => 180,
-            'low' => 70],
+            'range' => 140,
+            'tightRange' => 70,
+            'low' => 54,
+            'veryLow' => 0
+        ],
     ],
     'variation' => [
         'targets' => [

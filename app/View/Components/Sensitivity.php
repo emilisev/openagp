@@ -25,18 +25,15 @@ class Sensitivity extends HighChartsComponent {
         $this->m_dataStartPoint = $this->m_data->getBegin()*DiabetesData::__1SECOND;
         $chart = $this->createChart();
         $this->addCarbsSeries($chart);
-        $this->addTreatmentSeries($chart);
+        //$this->addTreatmentSeries($chart);
+        $this->addSensitivitySeries($chart);
         echo '<script type="module">'.$chart->render().'</script>';
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
     private function addCarbsSeries(Highchart $_chart) {
-        $data = $this->m_data->getTreatmentsData()['carbs'];
-        if(empty($data)) return;
-        $statComputer = new StatisticsComputer();
-        $data = $statComputer->computeSum($data, 60 * 60 * 24, $this->m_dataStartPoint);
-
+        $data = $this->getCarbDataByDay();
         $_chart->yAxis[] = [
             'id' => 'carbs-yAxis',
             'min' => 0,
@@ -59,25 +56,40 @@ class Sensitivity extends HighChartsComponent {
         ];
     }
 
-    private function addTreatmentSeries(Highchart $_chart) {
-        $insulinData = $this->m_data->getTreatmentsData()['insulin'];
-        if(empty($insulinData)) return;
-        $dataByDay = [];
-        $statComputer = new StatisticsComputer();
-        foreach ($insulinData as $type => $datum) {
-            if($type == 'basal') {
-                $datum = $statComputer->computeBasalSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
-            } else {
-                $datum = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
-            }
-            foreach($datum as $time => $value) {
-                if(array_key_exists($time, $dataByDay)) {
-                    $dataByDay[$time] += $value;
-                } else {
-                    $dataByDay[$time] = $value;
-                }
+    private function addSensitivitySeries(Highchart $_chart) {
+        $carbs = $this->getCarbDataByDay();
+        $treatments = $this->getTreatmentDataByDay();
+        $data = [];
+        foreach($treatments as $index => $insulinByDay) {
+            if(array_key_exists($index, $carbs)) {
+                $data[$index] = $carbs[$index] / $insulinByDay;
             }
         }
+        $_chart->yAxis[] = [
+            'id' => 'sensitivity-yAxis',
+            'min' => 0,
+            'title' => ['text' => __("Sensibilité"), 'style' => ["fontSize" => "1rem"]],
+        ];
+        $stringToColor = new StringToColor();
+        $dataForChart = [];
+        foreach($data as $key => $value) {
+            $value = (float)sprintf('%01.2f', $value);
+            $item = ['x' => $key, 'y' => $value, 'label' => "1U:{$value}g"];
+            $dataForChart[] = $item;
+        }
+        $_chart->series[] = [
+            'name' => __("Sensibilité"),
+            'color' => $stringToColor->handle("Sensibilité"),
+            'data' => $dataForChart,
+            'yAxis' => 'sensitivity-yAxis',
+            'dataLabels' => ['enabled' => true, 'format' => '{point.label}'],
+            'lineWidth' => 2,
+        ];
+
+    }
+
+    private function addTreatmentSeries(Highchart $_chart) {
+        $dataByDay = $this->getTreatmentDataByDay();
         $_chart->yAxis[] = [
             'id' => 'insulin-yAxis',
             'min' => 0,
@@ -111,5 +123,37 @@ class Sensitivity extends HighChartsComponent {
             ] + $this->getBottomLabelledXAxis();
         $chart->xAxis = $xAxis;
         return $chart;
+    }
+
+    private function getCarbDataByDay() {
+        $data = $this->m_data->getTreatmentsData()['carbs'];
+        if(empty($data)) return;
+        $statComputer = new StatisticsComputer();
+        $data = $statComputer->computeSum($data, 60 * 60 * 24, $this->m_dataStartPoint);
+        ksort($data);
+        return $data;
+    }
+
+    private function getTreatmentDataByDay() {
+        $insulinData = $this->m_data->getTreatmentsData()['insulin'];
+        if(empty($insulinData)) return;
+        $dataByDay = [];
+        $statComputer = new StatisticsComputer();
+        foreach ($insulinData as $type => $datum) {
+            if($type == 'basal') {
+                $datum = $statComputer->computeBasalSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
+            } else {
+                $datum = $statComputer->computeSum($datum, 60 * 60 * 24, $this->m_dataStartPoint);
+            }
+            foreach($datum as $time => $value) {
+                if(array_key_exists($time, $dataByDay)) {
+                    $dataByDay[$time] += $value;
+                } else {
+                    $dataByDay[$time] = $value;
+                }
+            }
+        }
+        ksort($dataByDay);
+        return $dataByDay;
     }
 }

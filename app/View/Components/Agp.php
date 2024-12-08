@@ -256,7 +256,7 @@ class Agp extends HighChartsComponent {
                 [
                     'className' => 'outer-low',
                     'color' => '#fb987a',
-                    'value' => $targets['low']
+                    'value' => $targets['tightRange']
                 ],
                 [
                     'className' => 'outer-inrange',
@@ -282,7 +282,7 @@ class Agp extends HighChartsComponent {
                 [
                     'className' => 'inner-low',
                     'color' => '#ffcc7a',
-                    'value' => $targets['low']
+                    'value' => $targets['tightRange']
                 ],
                 [
                     'className' => 'inner-inrange',
@@ -308,7 +308,7 @@ class Agp extends HighChartsComponent {
             'zones' => [
                 [
                     'color' => '#ffad00',
-                    'value' => $targets['low']
+                    'value' => $targets['tightRange']
                 ],
                 [
                     'color' => '#00b657',

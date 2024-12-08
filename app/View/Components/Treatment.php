@@ -88,7 +88,7 @@ class Treatment extends HighChartsComponent {
             'name' => "Glycémie",
             'data' => $this->formatTimeDataForChart($this->m_bgData),
             'zones' => $this->getDefaultZones(),
-            'color' => config('colors.timeInRange.target'),
+            'color' => config('colors.timeInRange.tightRange'),
             'lineWidth' => 2,
             //'marker' => ['enabled' => true, 'radius' => 1,],
             'zIndex' => 100

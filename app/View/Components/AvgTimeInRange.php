@@ -8,13 +8,6 @@ use Illuminate\Support\Facades\Request;
 class AvgTimeInRange extends HighChartsComponent {
     protected int $m_minValTimeInRangeChart = 2;
 
-    protected array $m_timeInRangeLabels =
-        ['veryHigh' => 'Très élevée',
-            'veryLow' => 'Très basse',
-            'high' => 'Élevée',
-            'low' => 'Basse',
-            'target' => 'Dans la plage'];
-
     /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /**
      * Get the view / contents that represent the component.
@@ -29,10 +22,12 @@ class AvgTimeInRange extends HighChartsComponent {
     /* * * * * * * * * * * * * * * * * * * * * * PRIVATE METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     private function addBloodGlucoseSeries(Highchart $_chart) {
         $data = $this->m_data->getTimeInRangePercent();
+        $data['tightRange'] += $data['range'];
+        unset($data['range']);
         //var_dump($data);
         foreach($data as &$value) {
             if($value < $this->m_minValTimeInRangeChart) {
-                $data['target'] -= ($this->m_minValTimeInRangeChart - $value);
+                $data['tightRange'] -= ($this->m_minValTimeInRangeChart - $value);
                 $value = $this->m_minValTimeInRangeChart;
             }
         }

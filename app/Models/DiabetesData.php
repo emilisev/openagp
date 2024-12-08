@@ -166,33 +166,15 @@ class DiabetesData {
         if(empty($this->m_bloodGlucoseData)) {
             return;
         }
-        $timeInRangeCount = ['veryLow' => 0, 'low' => 0, 'target' => 0, 'high' => 0, 'veryHigh' => 0];
-        foreach($this->m_bloodGlucoseData as $value) {
-            if($value === null) {
-                continue;
-            }
-            if($value >= $this->m_targets['low'] && $value <= $this->m_targets['high']) {
-                $timeInRangeCount['target']++;
-            } elseif($value < $this->m_targets['veryLow']) {
-                $timeInRangeCount['veryLow']++;
-            } elseif($value > $this->m_targets['veryHigh']) {
-                $timeInRangeCount['veryHigh']++;
-            } elseif($value <= $this->m_targets['low']) {
-                $timeInRangeCount['low']++;
-            } elseif($value >= $this->m_targets['high']) {
-                $timeInRangeCount['high']++;
-            }
+        $data = $this->getDailyTimeInRange();
+        foreach($data as $label => $values) {
+            $data[$label] = array_sum($values);
         }
-        $countValues = array_sum($timeInRangeCount);
-        //echo "<pre>"; var_dump($timeInRangeCount, count($this->m_bloodGlucoseData));
-        $this->m_timeInRangePercent = [
-            'veryHigh' => $timeInRangeCount['veryHigh'] * 100 / $countValues,
-            'high' => $timeInRangeCount['high'] * 100 / $countValues,
-            'target' => $timeInRangeCount['target'] * 100 / $countValues,
-            'low' => $timeInRangeCount['low'] * 100 / $countValues,
-            'veryLow' => $timeInRangeCount['veryLow'] * 100 / $countValues,
-        ];
-
+        $sumValues = array_sum($data);
+        foreach($data as $label => $sumValue) {
+            $data[$label] = $sumValue * 100 / $sumValues;
+        }
+        $this->m_timeInRangePercent = $data;
     }
 
     public function filter($_begin, $_end): void {
@@ -386,6 +368,10 @@ class DiabetesData {
 
     public function getTreatmentsData(): array {
         return $this->m_treatmentsData;
+    }
+
+    public function getUtcOffset(): int {
+        return $this->m_utcOffset;
     }
 
     public function getVariation(): float {
@@ -657,32 +643,50 @@ class DiabetesData {
         if(empty($this->m_bloodGlucoseData)) {
             return;
         }
-        $timeInRangeCount = ['target' => [], 'other' => []];
+        $timeInRangeCount = ['total' => []];
+        foreach(array_keys(config('diabetes.bloodGlucose.targets')) as $category) {
+            $timeInRangeCount[$category] = [];
+        }
         foreach($this->m_bloodGlucoseData as $time => $value) {
             $day = strtotime("midnight", $time / self::__1SECOND) * self::__1SECOND;
-            if(!array_key_exists($day, $timeInRangeCount['target'])) {
-                $timeInRangeCount['target'][$day] = 0;
-                $timeInRangeCount['other'][$day] = 0;
-            }
-
-            if($value >= $this->m_targets['low'] && $value <= $this->m_targets['high']) {
-                $timeInRangeCount['target'][$day]++;
-            } else {
-                $timeInRangeCount['other'][$day]++;
+            foreach(config('diabetes.bloodGlucose.targets') as $category => $maxValue) {
+                if($value >= $maxValue) {
+                    if (!array_key_exists($day, $timeInRangeCount['total'])) {
+                        $timeInRangeCount['total'][$day] = 0;
+                    }
+                    if (!array_key_exists($day, $timeInRangeCount[$category])) {
+                        $timeInRangeCount[$category][$day] = 0;
+                    }
+                    $timeInRangeCount[$category][$day]++;
+                    $timeInRangeCount['total'][$day]++;
+                    break;
+                }
             }
         }
+        /*echo '<pre>';
+        var_dump(readableTimeArray($timeInRangeCount));
+        die();*/
         $this->m_dailyTimeInRange = $timeInRangeCount;
+        $this->computeDailyTimeInRangePercent();
+        unset($this->m_dailyTimeInRange['total']);
+        unset($this->m_dailyTimeInRangePercent['total']);
+
     }
 
     private function computeDailyTimeInRangePercent() {
-        $timeInRangePercent = ['target' => [], 'other' => []];
+        $timeInRangePercent = [];
         /*echo '<pre>';
         var_dump(readableDateArray($this->getDailyTimeInRange()['target']), readableDateArray($this->getDailyTimeInRange()['other']));*/
-        foreach($this->getDailyTimeInRange()['target'] as $time => $timeInRangeCount) {
-            $sum = $timeInRangeCount + $this->getDailyTimeInRange()['other'][$time];
-            $timeInRangePercent['target'][$time] = $timeInRangeCount / $sum * 100;
-            $timeInRangePercent['other'][$time] = $this->getDailyTimeInRange()['other'][$time] / $sum * 100;
+        foreach($this->getDailyTimeInRange() as $category => $days) {
+            foreach($days as $day => $value) {
+                $sum = $this->getDailyTimeInRange()['total'][$day];
+                $timeInRangePercent[$category][$day] = $value / $sum * 100;
+            }
         }
+
+        /*echo '<pre>';
+        var_dump($timeInRangePercent);
+        die();*/
         $this->m_dailyTimeInRangePercent = $timeInRangePercent;
     }
 
@@ -848,31 +852,32 @@ class DiabetesData {
     }
 
     private function computeWeeklyTimeInRangePercent() {
-        $timeInRangeByWeek = ['target' => [], 'other' => []];
-        $dayPos = 1;
-        $targetSum = 0;
-        $otherSum = 0;
-        $startOfWeekTime = null;
-        foreach($this->getDailyTimeInRangePercent()['target'] as $time => $targetValue) {
-            $targetSum += $targetValue;
-            $otherSum += $this->getDailyTimeInRangePercent()['other'][$time];
-            if($dayPos == 1) {
-                $startOfWeekTime = $time;
-            }
-            if($dayPos == 7) {
-                $timeInRangeByWeek['target'][$startOfWeekTime] = $targetSum / $dayPos;
-                $timeInRangeByWeek['other'][$startOfWeekTime] = $otherSum / $dayPos;
-                $dayPos = 1;
-                $targetSum = 0;
-                $otherSum = 0;
-            } else {
-                $dayPos++;
+        $timeInRangeByWeek = ['total' => []];
+        foreach(array_keys(config('diabetes.bloodGlucose.targets')) as $category) {
+            $timeInRangeByWeek[$category] = [];
+        }
+        for($start = $this->getBegin() * self::__1SECOND; $start <= $this->getEnd() * self::__1SECOND; $start += self::__1DAY * 7) {
+            $end = $start + self::__1DAY * 7;
+            $timeInRangeByWeek['total'][$start] = 0;
+            foreach($this->getDailyTimeInRange() as $category => $values) {
+                $valuesInWeek = array_filter(
+                    $values,
+                    function($_key) use ($start, $end) {
+                        return $_key >= $start && $_key < $end;
+                    },
+                    ARRAY_FILTER_USE_KEY);
+                $timeInRangeByWeek[$category][$start] = array_sum($valuesInWeek);
+                $timeInRangeByWeek['total'][$start] += $timeInRangeByWeek[$category][$start];
             }
         }
-        if($dayPos > 1) {
-            $timeInRangeByWeek['target'][$startOfWeekTime] = $targetSum / ($dayPos -1);
-            $timeInRangeByWeek['other'][$startOfWeekTime] = $otherSum / ($dayPos -1);
+        foreach($timeInRangeByWeek as $category => $weeks) {
+            if($category != 'total') {
+                foreach($weeks as $week => $value) {
+                    $timeInRangeByWeek[$category][$week] = $value * 100 / $timeInRangeByWeek['total'][$week];
+                }
+            }
         }
+        unset($timeInRangeByWeek['total']);
         $this->m_weeklyTimeInRangePercent = $timeInRangeByWeek;
 
 

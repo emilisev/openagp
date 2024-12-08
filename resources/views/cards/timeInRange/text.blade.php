@@ -27,8 +27,8 @@
     </div>
 
     <div class="row">
-        <div class="block-label target" style="color:{{config('colors.timeInRange.target')}}">
-            {{ round($timeInRangeData['target']) }}&nbsp;% {{ __("Dans la plage") }}
+        <div class="block-label target" style="color:{{config('colors.timeInRange.tightRange')}}">
+            {{ round($timeInRangeData['range'] + $timeInRangeData['tightRange']) }}&nbsp;% {{ __("Dans la plage") }}
         </div>
         <div class="goal target-goal d-none d-lg-block">
             {{ __("Objectif") }}&nbsp;: &gt;70&nbsp;%
@@ -36,7 +36,7 @@
     </div>
 
 
-    <div  class="row">
+    <div class="row">
         <div class="low-container time-in-range-container col">
             <div class="block-label low" style="color:{{config('colors.timeInRange.low')}}">
                 {{ round($timeInRangeData['low']) }}&nbsp;% {{ __("Basse") }}

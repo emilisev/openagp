@@ -1,6 +1,6 @@
 @php
     if($data->getVariation() <= config('diabetes.variation.targets.good')) {
-	    $color = config('colors.timeInRange.target');
+	    $color = config('colors.timeInRange.range');
     } elseif($data->getVariation() <= config('diabetes.variation.targets.high')) {
 	    $color = config('colors.timeInRange.high');
     } else {

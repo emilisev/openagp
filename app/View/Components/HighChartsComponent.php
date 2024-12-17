@@ -57,12 +57,12 @@ abstract class HighChartsComponent extends Component {
             [
                 'className' => 'outer-veryLow',
                 'color' => config('colors.timeInRange.veryLow'),
-                'value' => $targets['veryLow']
+                'value' => $targets['low']
             ],
             [
                 'className' => 'outer-low',
                 'color' => config('colors.timeInRange.low'),
-                'value' => $targets['low']
+                'value' => $targets['tightRange']
             ],
             [
                 'className' => 'outer-inrange',

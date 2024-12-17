@@ -4,7 +4,7 @@
     } elseif($data->getAverage() <= config('diabetes.bloodGlucose.targets.low')) {
 	    $color = config('colors.timeInRange.low');
     } elseif($data->getAverage() <= config('diabetes.bloodGlucose.targets.high')) {
-	    $color = config('colors.timeInRange.target');
+	    $color = config('colors.timeInRange.range');
     } elseif($data->getAverage() <= config('diabetes.bloodGlucose.targets.veryHigh')) {
 	    $color = config('colors.timeInRange.high');
     } else {

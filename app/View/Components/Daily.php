@@ -104,15 +104,16 @@ class Daily extends HighChartsComponent {
         //prepare data
         $_chart->series[] = [
             'type' => 'line',
+            'name' => LabelProviders::get('insulinActivity'),
             'data' => $this->formatTimeDataForChart($data['insulinActivity']),
             'yAxis' => 'iob-yAxis',
             'lineWidth' => 1,
             'color' => config('colors.iob.iob'),
             'zIndex' => 7,
-            'enableMouseTracking'=> false
+            //'enableMouseTracking'=> false
         ];
         $_chart->yAxis[] = [
-            'id' => 'iob-yAxis', 'visible' => false
+            'id' => 'iob-yAxis', 'visible' => false, 'min' => 0
         ];
     }
 

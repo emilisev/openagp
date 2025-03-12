@@ -26,6 +26,9 @@ class LabelProviders {
         if($_string == 'diner') {
             return __('Dîner');
         }
+        if($_string == 'insulinActivity') {
+            return __('Activé de l\'insuline');
+        }
         if($_string == '') {
             return __('');
         }

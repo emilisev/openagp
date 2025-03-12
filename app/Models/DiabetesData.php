@@ -988,6 +988,7 @@ class DiabetesData {
             if(is_null($timestamp)) {
                 continue;
             }
+            $timestamp = $this->roundToFiveMinutes($timestamp);
             if(is_float(@$item['openaps']['iob']['activity'])) {
                 $this->m_treatmentsData['insulinActivity'][$timestamp] = $item['openaps']['iob']['activity'];
                 $this->m_batteryInfo[$timestamp] = $item['uploaderBattery'];

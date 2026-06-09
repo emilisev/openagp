@@ -23,7 +23,7 @@ return [
         ]
     ],
     'notes' => [
-        'filter' => ['PEN']
+        'filter' => ['PEN', 'Paramètres exportés']
     ],
     'treatments' => [
         'relativeAxisHeight' => 1/3

@@ -18,6 +18,7 @@
         ->addMenuLink(Link::toUrl('/daily', __('Quotidien')))
         ->addMenuLink(Link::toUrl('/daytoday', __('Jour après jour')))
         ->add(\Spatie\Menu\Html::raw($searchForm))
+        ->addMenuLink(Link::toUrl('/minmax', __('Minimum & maximum')))
         ->addMenuLink(Link::toUrl('/weekly', __('Hebdo')))
         ->addMenuLink(Link::toUrl('/monthly', __('Mensuel'))))
     ->submenu(__('Analyse'), CustomMenu::new()->addClass('nav')->addClass('flex-column')

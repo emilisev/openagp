@@ -26,6 +26,7 @@ Route::any('/daily', [AgpController::class, 'view'])->name('daily');
 Route::post('daily', [AgpController::class, 'postToGet'])->name('daily');
 
 Route::any('/daytoday', [AgpController::class, 'view'])->name('daytoday');
+Route::any('/minmax', [AgpController::class, 'view'])->name('minmax');
 Route::any('/weekly', [AgpController::class, 'view'])->name('weekly');
 Route::any('/monthly', [AgpController::class, 'view'])->name('monthly');
 

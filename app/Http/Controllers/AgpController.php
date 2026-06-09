@@ -66,13 +66,39 @@ class AgpController extends BaseController {
             } else {
                 $startDate = Request::session()->get('startDate');
                 $endDate = Request::session()->get('endDate');
-                if(Request::route()->getName() == 'daytoday') {
+                if(in_array(Request::route()->getName(), ['daytoday', 'minmax'])) {
                     $startDateObject = DateTime::createFromFormat('d/m/Y', $startDate);
                     $endDateObject = DateTime::createFromFormat('d/m/Y', $endDate);
-                    $dailyData = [];
+                    $dailyData = $mins = $maxs = [];
                     for($date = $endDateObject->format('U'); $date >= $startDateObject->format('U'); $date -= 60 *60 * 24) {
                         //var_dump(date('Y-m-d H:i:s', $date));
-                        $dailyData[] = $this->fetchAndPrepareData(date('d/m/Y', $date), date('d/m/Y', $date));
+                        $data = $this->fetchAndPrepareData(date('d/m/Y', $date), date('d/m/Y', $date));
+                        if(Request::route()->getName() == 'minmax'
+                            && ($numericBg = array_filter($data->getBloodGlucoseData(), function($_v) { return is_numeric($_v);}))
+                            && !empty($numericBg)) {
+                            $min = min($numericBg);
+                            $max = max($numericBg);
+                            if(count($mins) < 3 || $min < min($mins)) {
+                                $mins[$date] = $min;
+                                $dailyData[$date] = $data;
+                                if(count($mins) > 3) {
+                                    $maxInMin = max($mins);
+                                    $key = array_search($maxInMin, $mins);
+                                    unset($mins[$key]);
+                                }
+                            }
+                            if (count($maxs) < 3 || $max > max($maxs)) {
+                                $maxs[$date] = $max;
+                                $dailyData[$date] = $data;
+                                if(count($maxs) > 3) {
+                                    $minInMax = min($maxs);
+                                    $key = array_search($minInMax, $maxs);
+                                    unset($maxs[$key]);
+                                }
+                            }
+                        } else {
+                            $dailyData[$date] = $data;
+                        }
                     }
                 }
                 $data = $this->fetchAndPrepareData($startDate, $endDate);
@@ -100,6 +126,10 @@ class AgpController extends BaseController {
             [
                 'data' => $data,
                 'dailyData' => @$dailyData,
+                //min-max view
+                'mins' => @$mins,
+                'maxs' => @$maxs,
+
                 'chart' => $chart,
                 'formDefault' => ['startDate' => $startDate, 'endDate' => $endDate,
                     'isFocusOnNightAllowed' => $this->isFocusOnNightAllowed(),

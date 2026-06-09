@@ -18,7 +18,7 @@
     <a href="?day={{ date('d/m/Y',  $previousDay) }}"><i class="bi bi-caret-left-fill"></i></a>
 @endif
 
-@if(!$allowChange)<a href="/{{ Request::route()->getName() }}?day={{ date('d/m/Y',  $begin) }}">@endif
+@if(!$allowChange)<a href="/daily?day={{ date('d/m/Y',  $begin) }}">@endif
 @if($formDefault['focusOnNight'] == true)
     {{ $dateFormatter->format($begin - 60 * 60 *12) }} -
 @endif

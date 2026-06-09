@@ -1095,7 +1095,7 @@ class DiabetesData {
             } elseif(!$isInsulinData && $item["eventType"] == 'BG Check' && array_key_exists('glucose', $item)) {
                 $this->m_bloodGlucoseData[$timestamp] = $item["glucose"];
                 $this->m_treatmentsData['notes'][$timestamp] = $item["eventType"].' : '.$item["glucose"];
-            } elseif(!$isInsulinData && !in_array($item["eventType"], ['Temporary Target', 'Bolus Wizard'])) {
+            } elseif(!$isInsulinData && !in_array($item["eventType"], ['Temporary Target', 'Bolus Wizard', 'OpenAPS Offline'])) {
                 $this->m_treatmentsData['notes'][$timestamp] = $item["eventType"];
             }
 

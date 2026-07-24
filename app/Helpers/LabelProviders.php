@@ -29,6 +29,9 @@ class LabelProviders {
         if($_string == 'insulinActivity') {
             return __('Activé de l\'insuline');
         }
+        if($_string == 'iob') {
+            return __('Insuline active');
+        }
         if($_string == '') {
             return __('');
         }

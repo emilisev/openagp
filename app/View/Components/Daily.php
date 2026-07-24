@@ -97,15 +97,16 @@ class Daily extends HighChartsComponent {
 
     private function addInsulinActivitySerie(Highchart $_chart) {
         $data = $this->m_data->getTreatmentsData();
-        if(!array_key_exists('insulinActivity', $data)|| empty($data['insulinActivity'])) {
+        $key = 'iob';
+        if(!array_key_exists($key, $data)|| empty($data[$key])) {
             return;
         }
-        ksort($data['insulinActivity']);
+        ksort($data[$key]);
         //prepare data
         $_chart->series[] = [
             'type' => 'line',
-            'name' => LabelProviders::get('insulinActivity'),
-            'data' => $this->formatTimeDataForChart($data['insulinActivity']),
+            'name' => LabelProviders::get($key),
+            'data' => $this->formatTimeDataForChart($data[$key]),
             'yAxis' => 'iob-yAxis',
             'lineWidth' => 1,
             'color' => config('colors.iob.iob'),

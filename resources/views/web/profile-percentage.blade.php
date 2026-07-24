@@ -6,7 +6,7 @@
 <h1>{{ __("Pourcentage du profil") }}</h1>
 @include('layouts.sub.reportDateRange')
 <div class="card">
-    <header class="card-title">{{ __("Insuline active") }}</header>
+    <header class="card-title">{{ __("Pourcentage du profil") }}</header>
     <content class="card-body">
         <div id="chart" class="highcharts-light"></div>
     </content>

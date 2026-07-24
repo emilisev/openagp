@@ -36,6 +36,7 @@ Route::any('/iob', [AgpController::class, 'view'])->name('iob');
 Route::any('/overlay', [AgpController::class, 'view'])->name('overlay');
 Route::any('/insulin-profile', [AgpController::class, 'view'])->name('insulin-profile');
 Route::any('/profile-percentage', [AgpController::class, 'view'])->name('profile-percentage');
+Route::any('/pump-site-location', [AgpController::class, 'view'])->name('pump-site-location');
 Route::any('/battery', [AgpController::class, 'view'])->name('battery');
 
 

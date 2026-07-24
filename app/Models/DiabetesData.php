@@ -103,8 +103,6 @@ class DiabetesData {
         $this->m_cgmActivePercent = count($this->m_bloodGlucoseData) * 100 / $potentialDataCount;
     }
 
-    /* * * * * * * * * * * * * * * * * * * * * * PUBLIC METHODS  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
     public function computeInsulinAgp(int $_minutesBetweenInjections): void {
         //echo "<pre>";
         $secondsBetweenInjections = $_minutesBetweenInjections * 60;
@@ -232,6 +230,7 @@ class DiabetesData {
         var_dump(readableDateArray($this->m_treatmentsData['insulin']["Novorapid"]));*/
         /*var_dump($this->m_treatmentsData);
         die();*/
+        $this->m_dailyTimeInRange = [];
     }
 
     static function filterData($_data, $_beginTimestamp, $_endTimestamp): array {
@@ -391,6 +390,22 @@ class DiabetesData {
      */
     public function hasBasalTreatment(): bool {
         return $this->m_hasBasalTreatment;
+    }
+
+    public function mergeWith(DiabetesData $_data) {
+        $this->m_bloodGlucoseData += $_data->getBloodGlucoseData();
+        foreach($this->m_treatmentsData as $key => $data) {
+            $firstVal = reset($data);
+            if(is_array($firstVal)) {
+                foreach($data as $subKey => $subData) {
+                    if(array_key_exists($subKey, $_data->getTreatmentsData()[$key])) {
+                        $this->m_treatmentsData[$key][$subKey] = $subData + $_data->getTreatmentsData()[$key][$subKey];
+                    }
+                }
+            } elseif(array_key_exists($key, $_data->getTreatmentsData())) {
+                $this->m_treatmentsData[$key] = $data + $_data->getTreatmentsData()[$key];
+            }
+        }
     }
 
     public function parse($_endDateSeconds): void {
@@ -1051,6 +1066,7 @@ class DiabetesData {
         //echo '<pre>';
         $simpleProfiles = $completeProfiles = [];
         $treatments = ParserHelper::removeDuplicates($this->m_rawData['treatments']);
+
         foreach($treatments as $item) {
             //compute timestamp from various possibilities
             $timestamp = ParserHelper::extractTimestamp($item, $this->m_utcOffset);
@@ -1064,6 +1080,9 @@ class DiabetesData {
             if(array_key_exists("carbs", $item) && is_numeric($item["carbs"])) {
                 $this->m_treatmentsData['carbs'][$timestamp] = $item["carbs"];
                 $isInsulinData = true;
+            }
+            if(!$isInsulinData && $item["eventType"] == 'Site Change') {
+                $this->m_treatmentsData['siteChange'][$timestamp] = @$item["notes"]??__('Inconnu');
             }
 
             if(array_key_exists("profileJson", $item) && !empty($item["profileJson"])
@@ -1107,6 +1126,10 @@ class DiabetesData {
             $this->m_treatmentsData['insulin']['Manual Bolus'] = $this->m_treatmentsData['insulin']['Meal Bolus'];
             unset($this->m_treatmentsData['insulin']['Meal Bolus']);
         }
+
+       /* echo "<pre>";
+        var_dump($this->m_treatmentsData);
+        echo "</pre>";*/
 
         //var_dump('completeProfiles', $completeProfiles);
         if(!empty($completeProfiles) || !empty($tempBasalRates)) {

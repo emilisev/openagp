@@ -66,9 +66,9 @@ class AgpController extends BaseController {
             } else {
                 $startDate = Request::session()->get('startDate');
                 $endDate = Request::session()->get('endDate');
+                $endDateObject = DateTime::createFromFormat('d/m/Y', $endDate);
                 if(in_array(Request::route()->getName(), ['daytoday', 'minmax'])) {
                     $startDateObject = DateTime::createFromFormat('d/m/Y', $startDate);
-                    $endDateObject = DateTime::createFromFormat('d/m/Y', $endDate);
                     $dailyData = $mins = $maxs = [];
                     for($date = $endDateObject->format('U'); $date >= $startDateObject->format('U'); $date -= 60 *60 * 24) {
                         //var_dump(date('Y-m-d H:i:s', $date));
@@ -102,6 +102,39 @@ class AgpController extends BaseController {
                     }
                 }
                 $data = $this->fetchAndPrepareData($startDate, $endDate);
+                if(in_array(Request::route()->getName(), ['pump-site-location'])) {
+                    if(!array_key_exists('siteChange', $data->getTreatmentsData()) || count($data->getTreatmentsData()['siteChange']) == 1) {
+                        throw new \Exception(__("Pour utiliser cette vue, assurez-vous d'enregistrer les changements de site avec un événement Nightscout 'Pump site change' et de noter en commentaire l'emplacement de la pompe"));
+                    }
+                    $pumpSiteChanges = $data->getTreatmentsData()['siteChange'];
+                    $endTimestamp = $endDateObject->format('U') * DiabetesData::__1SECOND + DiabetesData::__1DAY;
+                    $pumpSiteChanges[$endTimestamp] = '';
+                    //echo "<pre>";
+                    foreach($pumpSiteChanges as $date => $location) {
+                        $pumpSiteEndDate = $date;
+                        if(isset($pumpSiteStartDate) && isset($previousLocation)) {
+                            //var_dump($previousLocation);
+                            $localData = clone $data;
+                            $localData->filter($pumpSiteStartDate / DiabetesData::__1SECOND, $pumpSiteEndDate / DiabetesData::__1SECOND);
+                            //var_dump(count($localData->getBloodGlucoseData()), $pumpSiteStartDate / DiabetesData::__1SECOND, $pumpSiteEndDate / DiabetesData::__1SECOND);
+                            if(!isset($dailyData[$previousLocation])) {
+                                $dailyData[$previousLocation] = $localData;
+                            } else {
+                                //var_dump('merge', count($dailyData[$previousLocation]->getBloodGlucoseData()). '+'. count($localData->getBloodGlucoseData()));
+                                $dailyData[$previousLocation]->mergeWith($localData);
+                                //var_dump(count($dailyData[$previousLocation]->getBloodGlucoseData()));
+                            }
+                        }
+                        $pumpSiteStartDate = $date;
+                        $previousLocation = $location;
+                    }
+                    foreach($dailyData as $localData) {
+                        $localData->computeAverage();
+                        $localData->computeTimeInRange();
+                    }
+                    /*echo "</pre>";
+                    die();*/
+                }
             }
         } catch(\Exception $e) {
             return view(
@@ -141,9 +174,17 @@ class AgpController extends BaseController {
         return $result;
     }
 
-    private function fetchAndPrepareData($_startDate, $_endDate) {
-        $startDateObject = DateTime::createFromFormat('d/m/Y H:i:s', $_startDate.' 00:00:00');
-        $endDateObject = DateTime::createFromFormat('d/m/Y H:i:s', $_endDate.' 23:59:59');
+    private function fetchAndPrepareData($_startDate, $_endDate):DiabetesData {
+        if($_startDate instanceof DateTime) {
+            $startDateObject = $_startDate;
+        } else {
+            $startDateObject = DateTime::createFromFormat('d/m/Y H:i:s', $_startDate.' 00:00:00');
+        }
+        if($_endDate instanceof DateTime) {
+            $endDateObject = $_endDate;
+        } else {
+            $endDateObject = DateTime::createFromFormat('d/m/Y H:i:s', $_endDate.' 23:59:59');
+        }
         if(!$startDateObject || !$endDateObject) {
             throw new \Exception(__("Vérifiez les dates sélectionnées"));
         }
@@ -172,7 +213,6 @@ class AgpController extends BaseController {
             }
             throw $exception;
         }
-
         //$data = Storage::disk('local')->get('response.json');
         $utcOffset = $endDateObject->getOffset();
         $data = new DiabetesData($rawData, $utcOffset);

@@ -74,6 +74,23 @@ class NightscoutProvider {
         return $this->fetchDeviceStatusV3(true);
     }
 
+    public function fetchProfiles() {
+        if($this->m_apiVersion != 3) {
+            return [];
+        }
+
+        $params = ['query' => ['sort$desc' => 'date', 'limit' => '1', 'fields' => '_all']];
+        $this->openSession();
+        if(!empty($this->m_token)) {
+            $params['headers'] = [
+                'Authorization' => "Bearer $this->m_token",
+            ];
+        }
+
+        $result = $this->getCacheOrLive($this->m_url.'api/v3/profile', $params);
+        return $result;
+    }
+
     public function fetchTreatments($_forceRefresh = false) {
         try {
             return $this->fetchTreatmentsV3($_forceRefresh);
@@ -83,6 +100,19 @@ class NightscoutProvider {
             }
             throw $exception;
         }
+    }
+
+    public function postProfiles($_profiles) {
+        $params = [
+            'json' => $_profiles,
+            'headers' => [
+                'Authorization' => "Bearer $this->m_token"
+            ]
+        ];
+        $client = new Client(self::__CLIENT_CONFIG);
+        $response = $client->request('POST', $this->m_url.'api/v3/profile', $params);
+
+        $data = $response->getBody()->getContents();
     }
 
     public function searchNotes($_notes) {

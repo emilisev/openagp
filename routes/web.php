@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfilesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AgpController;
@@ -38,6 +38,8 @@ Route::any('/insulin-profile', [AgpController::class, 'view'])->name('insulin-pr
 Route::any('/profile-percentage', [AgpController::class, 'view'])->name('profile-percentage');
 Route::any('/pump-site-location', [AgpController::class, 'view'])->name('pump-site-location');
 Route::any('/battery', [AgpController::class, 'view'])->name('battery');
+
+Route::any('/batch-update-profile', [ProfilesController::class, 'batchUpdate']);
 
 
 Route::any('/user', [UserController::class, 'view'])->name('user');

@@ -2,6 +2,7 @@
 
 namespace App\DataProviders;
 
+use App\Models\DiabetesData;
 use BeyondCode\ServerTiming\Facades\ServerTiming;
 use DateTime;
 use GuzzleHttp\Client;
@@ -100,6 +101,24 @@ class NightscoutProvider {
             }
             throw $exception;
         }
+    }
+
+    public function getLastTwoEntries() {
+        $this->openSession();
+        $url = $this->m_url.'api/v3/entries';
+        $params = [
+            'query' => [
+                'sort$desc' => 'date',
+                'fields' => 'date',
+                'limit' => 2,
+            ],
+        ];
+        $rawResult = $this->getDataFromUrl($url, $params);
+        /*echo "<pre>";
+        var_dump($params, $rawResult);
+        die();*/
+        return $rawResult['result'];
+
     }
 
     public function postProfiles($_profiles) {
@@ -263,7 +282,11 @@ class NightscoutProvider {
                     'limit' => 400,
                 ],
             ];
-            $currentDate->add(new \DateInterval('P1D'));
+            if(Request::session()->get('bgFrequency') == 1 && $_collection == 'entries') {
+                $currentDate->add(new \DateInterval('PT400M'));
+            } else {
+                $currentDate->add(new \DateInterval('P1D'));
+            }
             $cacheKey = (!$_forceRefresh && $currentDate < new DateTime())?sha1($url.json_encode($params['query'])):null;
             if(!empty($cacheKey) && Request::session()->has($cacheKey)) {
                 $rawResults[] = Request::session()->get($cacheKey);

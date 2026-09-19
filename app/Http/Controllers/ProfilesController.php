@@ -67,8 +67,10 @@ class ProfilesController extends BaseController {
         die();*/
         try {
             $newProfiles = $nightscoutProvider->postProfiles($profiles);
+            echo "success<br/>";
             var_dump($newProfiles);
         } catch (\Exception $e) {
+            echo "error<br/>";
             var_dump($e->getMessage());
         }
         echo "</pre>";

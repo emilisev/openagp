@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 use IntlDateFormatter;
+use function App\DataProviders\readableDate;
 
 class AgpController extends BaseController {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
@@ -42,8 +43,10 @@ class AgpController extends BaseController {
 
     public function view(Request $_request, string $_notes = null) {
         ServerTiming::start('AgpController');
-
         try {
+            if(empty(Request::session()->get('bgFrequency'))) {
+                $this->checkBgFrequency();
+            }
             if(Request::route()->getName() == 'daily' && !empty($_notes)) {
                 $matchingDates = $this->getMatchingDatesForNotes($_notes);
                 $data = [];
@@ -172,6 +175,26 @@ class AgpController extends BaseController {
             ]);
         ServerTiming::stop('AgpController');
         return $result;
+    }
+
+    private function checkBgFrequency() {
+        $nightscoutProvider = $this->getNightscoutProvider(null, null);
+        $result = $nightscoutProvider->getLastTwoEntries();
+        if(count($result) == 2) {
+            $timeDiff = $result[0]['date'] - $result[1]['date'];
+            /*var_dump($result, readableDate($result[1]['date']), readableDate($result[0]['date']),
+                     $timeDiff, DiabetesData::__1MINUTE * 3);*/
+            if($timeDiff < DiabetesData::__1MINUTE * 3) {
+                Request::session()->put('bgFrequency', 1);
+                //echo "data every mn";
+            } else {
+                Request::session()->put('bgFrequency', 5);
+                //echo "data every 5mn";
+            }
+            return;
+        }
+        //default to 5
+        Request::session()->put('bgFrequency', 5);
     }
 
     private function fetchAndPrepareData($_startDate, $_endDate):DiabetesData {

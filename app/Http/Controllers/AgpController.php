@@ -112,6 +112,7 @@ class AgpController extends BaseController {
                     $pumpSiteChanges = $data->getTreatmentsData()['siteChange'];
                     $endTimestamp = $endDateObject->format('U') * DiabetesData::__1SECOND + DiabetesData::__1DAY;
                     $pumpSiteChanges[$endTimestamp] = '';
+                    $pumpSiteChangesCount = [];
                     //echo "<pre>";
                     foreach($pumpSiteChanges as $date => $location) {
                         $pumpSiteEndDate = $date;
@@ -122,15 +123,26 @@ class AgpController extends BaseController {
                             //var_dump(count($localData->getBloodGlucoseData()), $pumpSiteStartDate / DiabetesData::__1SECOND, $pumpSiteEndDate / DiabetesData::__1SECOND);
                             if(!isset($dailyData[$previousLocation])) {
                                 $dailyData[$previousLocation] = $localData;
+                                $pumpSiteChangesCount[$previousLocation] = 1;
                             } else {
                                 //var_dump('merge', count($dailyData[$previousLocation]->getBloodGlucoseData()). '+'. count($localData->getBloodGlucoseData()));
                                 $dailyData[$previousLocation]->mergeWith($localData);
                                 //var_dump(count($dailyData[$previousLocation]->getBloodGlucoseData()));
+                                $pumpSiteChangesCount[$previousLocation] ++;
                             }
                         }
                         $pumpSiteStartDate = $date;
                         $previousLocation = $location;
                     }
+                    $dailyDataWithCount = [];
+                    foreach($dailyData as $key => $values) {
+                        if(array_key_exists($key, $pumpSiteChangesCount)) {
+                            $dailyDataWithCount[$key.' ('.$pumpSiteChangesCount[$key].')'] = $values;
+                        } else {
+                            $dailyDataWithCount[$key] = $values;
+                        }
+                    }
+                    $dailyData = $dailyDataWithCount;
                     foreach($dailyData as $localData) {
                         $localData->computeAverage();
                         $localData->computeTimeInRange();

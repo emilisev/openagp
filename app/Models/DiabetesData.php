@@ -1082,7 +1082,7 @@ class DiabetesData {
                 $isInsulinData = true;
             }
             if(!$isInsulinData && $item["eventType"] == 'Site Change') {
-                $this->m_treatmentsData['siteChange'][$timestamp] = @$item["notes"]??__('Inconnu');
+                $this->m_treatmentsData['siteChange'][$timestamp] = @$item["location"]??(@$item["notes"]??__('Inconnu'));
             }
 
             if(array_key_exists("profileJson", $item) && !empty($item["profileJson"])

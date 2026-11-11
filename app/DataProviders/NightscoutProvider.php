@@ -104,21 +104,39 @@ class NightscoutProvider {
     }
 
     public function getLastTwoEntries() {
-        $this->openSession();
-        $url = $this->m_url.'api/v3/entries';
-        $params = [
-            'query' => [
-                'sort$desc' => 'date',
-                'fields' => 'date',
-                'limit' => 2,
-            ],
-        ];
-        $rawResult = $this->getDataFromUrl($url, $params);
-        /*echo "<pre>";
-        var_dump($params, $rawResult);
-        die();*/
-        return $rawResult['result'];
-
+        try {
+            $this->openSession();
+            $url = $this->m_url.'api/v3/entries';
+            $params = [
+                'query' => [
+                    'sort$desc' => 'date',
+                    'fields' => 'date',
+                    'limit' => 2,
+                ],
+            ];
+            $rawResult = $this->getDataFromUrl($url, $params);
+            /*echo "<pre>";
+            var_dump($params, $rawResult);
+            die();*/
+            return $rawResult['result'];
+        } catch (\Exception $exception) {
+            if($exception->getMessage() == self::APIV_1) {
+                $url = $this->m_urlV1.'api/v1/entries.json';
+                $params = [
+                    'query' => [
+                        'count' => 2,
+                    ],
+                ];
+                if(!empty($this->m_apiSecretV1)) {
+                    $params['headers'] = [
+                        'API-SECRET' => $this->m_apiSecretV1,
+                    ];
+                }
+                $result = $this->getCacheOrLive($url, $params);
+                return($result);
+            }
+            throw $exception;
+        }
     }
 
     public function postProfiles($_profiles) {

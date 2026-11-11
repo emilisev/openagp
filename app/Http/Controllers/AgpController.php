@@ -112,6 +112,7 @@ class AgpController extends BaseController {
                     $pumpSiteChanges = $data->getTreatmentsData()['siteChange'];
                     $endTimestamp = $endDateObject->format('U') * DiabetesData::__1SECOND + DiabetesData::__1DAY;
                     $pumpSiteChanges[$endTimestamp] = '';
+                    ksort($pumpSiteChanges);
                     $pumpSiteChangesCount = [];
                     //echo "<pre>";
                     foreach($pumpSiteChanges as $date => $location) {
